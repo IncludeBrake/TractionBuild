@@ -1,0 +1,29 @@
+tasks:
+  feedback_collection:
+    agent: feedback_agent
+    description: Collect and analyze stakeholder feedback
+    expected_output: Comprehensive feedback analysis with actionable insights
+  idea_validation:
+    agent: validator_agent
+    description: Validate business idea feasibility and market fit
+    expected_output: Validation report with go/no-go recommendation
+  market_research:
+    agent: validator_agent
+    description: Conduct comprehensive market research and analysis
+    expected_output: Detailed market analysis report with insights and recommendations
+  marketing_strategy:
+    agent: marketing_agent
+    description: Develop comprehensive marketing strategy and campaign plan
+    expected_output: Detailed marketing strategy with implementation roadmap
+  product_launch:
+    agent: launch_agent
+    description: Orchestrate successful product launch and go-to-market execution
+    expected_output: Launch plan with execution timeline and success metrics
+  quality_assessment:
+    agent: feedback_agent
+    description: Assess quality of deliverables and outputs
+    expected_output: Quality assessment report with improvement recommendations
+  technical_implementation:
+    agent: builder_agent
+    description: Implement technical solutions and build deliverables
+    expected_output: Technical implementation with code and documentation

@@ -1,0 +1,402 @@
+# ZeroToShip Crew Configuration
+# Defines all crews, agents, tasks, and compliance policies
+
+crews:
+  validator:
+    name: "Validator Crew"
+    description: "Market research, competitor analysis, and idea validation"
+    agents:
+      - role: "Market Research Specialist"
+        goal: "Conduct comprehensive market research and analysis"
+        backstory: "Expert market researcher with 15+ years of experience in startup validation and market analysis"
+        tools: ["market_api", "competitor_analysis_tool"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Competitive Intelligence Analyst"
+        goal: "Analyze competitive landscape and identify market opportunities"
+        backstory: "Strategic analyst specializing in competitive intelligence and market positioning"
+        tools: ["competitor_analysis_tool", "market_sizing_tool"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Compliance Checker"
+        goal: "Ensure GDPR, CCPA, SOC 2 compliance"
+        backstory: "Regulatory expert with audit experience and compliance certification"
+        tools: ["compliance_tool", "audit_trail_tool"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Risk Assessment Specialist"
+        goal: "Identify and assess market risks and challenges"
+        backstory: "Risk management expert with deep understanding of startup and market risks"
+        tools: ["risk_assessment_tool"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Validation Synthesis Specialist"
+        goal: "Synthesize all findings into comprehensive validation recommendations"
+        backstory: "Strategic advisor with expertise in startup validation and go/no-go decisions"
+        tools: ["validation_synthesis_tool"]
+        verbose: true
+        allow_delegation: false
+    
+    tasks:
+      - name: "initial_market_research"
+        description: "Analyze the provided idea through comprehensive market research"
+        expected_output: "Comprehensive market research report with key insights and data points"
+        agent: "Market Research Specialist"
+        
+      - name: "competitor_analysis"
+        description: "Conduct thorough competitor analysis for the idea"
+        expected_output: "Detailed competitor analysis with strategic positioning recommendations"
+        agent: "Competitive Intelligence Analyst"
+        context: ["initial_market_research"]
+        
+      - name: "compliance_check"
+        description: "Check idea for GDPR/CCPA/SOC2 compliance requirements"
+        expected_output: "Compliance report with audit trail and recommendations"
+        agent: "Compliance Checker"
+        context: ["initial_market_research"]
+        
+      - name: "risk_assessment"
+        description: "Conduct comprehensive risk assessment for the idea"
+        expected_output: "Comprehensive risk assessment with mitigation strategies"
+        agent: "Risk Assessment Specialist"
+        context: ["competitor_analysis", "compliance_check"]
+        
+      - name: "validation_synthesis"
+        description: "Synthesize all validation findings into a comprehensive recommendation"
+        expected_output: "Final validation result with recommendation and confidence score"
+        agent: "Validation Synthesis Specialist"
+        context: ["initial_market_research", "competitor_analysis", "compliance_check", "risk_assessment"]
+
+  execution:
+    name: "Execution Crew"
+    description: "Task decomposition, planning, and execution orchestration"
+    agents:
+      - role: "Task Decomposer"
+        goal: "Break down projects into atomic tasks"
+        backstory: "Expert in project planning and decomposition with 10+ years experience"
+        tools: ["task_decomposition_tool", "dependency_mapper"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Resource Planner"
+        goal: "Plan and allocate resources for project execution"
+        backstory: "Resource management specialist with expertise in project optimization"
+        tools: ["resource_planning_tool", "cost_estimator"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Timeline Architect"
+        goal: "Design optimal execution timelines and dependencies"
+        backstory: "Project timeline expert with experience in complex multi-team projects"
+        tools: ["timeline_tool", "critical_path_analyzer"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Execution Coordinator"
+        goal: "Coordinate and orchestrate task execution"
+        backstory: "Project coordinator with expertise in agile and waterfall methodologies"
+        tools: ["execution_coordinator_tool"]
+        verbose: true
+        allow_delegation: false
+    
+    tasks:
+      - name: "task_decomposition"
+        description: "Decompose idea into atomic tasks with dependencies"
+        expected_output: "Task graph with metadata and dependencies"
+        agent: "Task Decomposer"
+        
+      - name: "resource_planning"
+        description: "Plan resource allocation and cost estimation"
+        expected_output: "Resource plan with cost estimates and team requirements"
+        agent: "Resource Planner"
+        context: ["task_decomposition"]
+        
+      - name: "timeline_architecture"
+        description: "Design optimal execution timeline with critical path"
+        expected_output: "Timeline with milestones and critical path analysis"
+        agent: "Timeline Architect"
+        context: ["task_decomposition", "resource_planning"]
+        
+      - name: "execution_coordination"
+        description: "Coordinate and orchestrate the execution plan"
+        expected_output: "Execution coordination plan with monitoring points"
+        agent: "Execution Coordinator"
+        context: ["task_decomposition", "resource_planning", "timeline_architecture"]
+
+  builder:
+    name: "Builder Crew"
+    description: "Code generation, architecture design, and technical implementation"
+    agents:
+      - role: "Code Architect"
+        goal: "Design and generate MVP code with best practices"
+        backstory: "Software architect with expertise in scalable systems and modern frameworks"
+        tools: ["secure_coder_gpt", "architecture_designer"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Security Specialist"
+        goal: "Ensure security best practices and compliance"
+        backstory: "Security expert with experience in secure coding and compliance"
+        tools: ["security_auditor", "compliance_checker"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Testing Engineer"
+        goal: "Design and implement comprehensive testing strategy"
+        backstory: "QA engineer with expertise in automated testing and quality assurance"
+        tools: ["test_generator", "quality_analyzer"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "DevOps Engineer"
+        goal: "Design deployment and infrastructure strategy"
+        backstory: "DevOps expert with experience in cloud deployment and CI/CD"
+        tools: ["deployment_planner", "infrastructure_designer"]
+        verbose: true
+        allow_delegation: false
+    
+    tasks:
+      - name: "architecture_design"
+        description: "Design system architecture and technical stack"
+        expected_output: "Architecture design with technology stack and patterns"
+        agent: "Code Architect"
+        
+      - name: "security_audit"
+        description: "Conduct security audit and implement best practices"
+        expected_output: "Security audit report with implementation recommendations"
+        agent: "Security Specialist"
+        context: ["architecture_design"]
+        
+      - name: "code_generation"
+        description: "Generate MVP code from architecture and requirements"
+        expected_output: "MVP codebase with documentation and best practices"
+        agent: "Code Architect"
+        context: ["architecture_design", "security_audit"]
+        
+      - name: "testing_strategy"
+        description: "Design and implement comprehensive testing strategy"
+        expected_output: "Testing strategy with automated tests and quality metrics"
+        agent: "Testing Engineer"
+        context: ["code_generation"]
+        
+      - name: "deployment_planning"
+        description: "Plan deployment strategy and infrastructure requirements"
+        expected_output: "Deployment plan with infrastructure and CI/CD pipeline"
+        agent: "DevOps Engineer"
+        context: ["code_generation", "testing_strategy"]
+
+  marketing:
+    name: "Marketing Crew"
+    description: "Positioning, asset generation, and launch strategy"
+    agents:
+      - role: "Content Creator"
+        goal: "Generate compelling marketing content and assets"
+        backstory: "Marketing expert with focus on conversions and user engagement"
+        tools: ["content_api", "copy_generator"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Brand Strategist"
+        goal: "Develop brand positioning and messaging strategy"
+        backstory: "Brand strategist with experience in startup positioning and market entry"
+        tools: ["brand_analyzer", "positioning_tool"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Launch Coordinator"
+        goal: "Coordinate launch strategy and go-to-market plan"
+        backstory: "Launch specialist with experience in product launches and market entry"
+        tools: ["launch_planner", "market_entry_tool"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Growth Hacker"
+        goal: "Design growth strategies and user acquisition plans"
+        backstory: "Growth hacker with expertise in viral marketing and user acquisition"
+        tools: ["growth_analyzer", "acquisition_planner"]
+        verbose: true
+        allow_delegation: false
+    
+    tasks:
+      - name: "brand_positioning"
+        description: "Develop brand positioning and messaging strategy"
+        expected_output: "Brand positioning strategy with messaging framework"
+        agent: "Brand Strategist"
+        
+      - name: "content_creation"
+        description: "Create marketing content and launch assets"
+        expected_output: "Marketing content and launch assets"
+        agent: "Content Creator"
+        context: ["brand_positioning"]
+        
+      - name: "launch_strategy"
+        description: "Develop comprehensive launch strategy and go-to-market plan"
+        expected_output: "Launch strategy with timeline and key activities"
+        agent: "Launch Coordinator"
+        context: ["brand_positioning", "content_creation"]
+        
+      - name: "growth_strategy"
+        description: "Design growth strategies and user acquisition plans"
+        expected_output: "Growth strategy with user acquisition and retention plans"
+        agent: "Growth Hacker"
+        context: ["brand_positioning", "launch_strategy"]
+
+  feedback:
+    name: "Feedback Crew"
+    description: "Quality assurance, feedback collection, and continuous improvement"
+    agents:
+      - role: "Quality Assessor"
+        goal: "Evaluate outputs and ensure quality standards"
+        backstory: "Quality control specialist with expertise in software quality and user experience"
+        tools: ["quality_analyzer", "user_experience_tester"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Feedback Collector"
+        goal: "Collect and analyze user and stakeholder feedback"
+        backstory: "User research specialist with experience in feedback collection and analysis"
+        tools: ["feedback_collector", "survey_analyzer"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Improvement Analyst"
+        goal: "Analyze feedback and identify improvement opportunities"
+        backstory: "Data analyst with expertise in feedback analysis and improvement planning"
+        tools: ["improvement_analyzer", "priority_planner"]
+        verbose: true
+        allow_delegation: false
+        
+      - role: "Continuous Improvement Coordinator"
+        goal: "Implement continuous improvement recommendations"
+        backstory: "Process improvement specialist with experience in agile and lean methodologies"
+        tools: ["improvement_implementer", "metrics_tracker"]
+        verbose: true
+        allow_delegation: false
+    
+    tasks:
+      - name: "quality_assessment"
+        description: "Conduct comprehensive quality assessment of deliverables"
+        expected_output: "Quality assessment report with improvement recommendations"
+        agent: "Quality Assessor"
+        
+      - name: "feedback_collection"
+        description: "Collect and analyze user and stakeholder feedback"
+        expected_output: "Feedback analysis with user insights and recommendations"
+        agent: "Feedback Collector"
+        context: ["quality_assessment"]
+        
+      - name: "improvement_analysis"
+        description: "Analyze feedback and identify improvement opportunities"
+        expected_output: "Improvement analysis with prioritized recommendations"
+        agent: "Improvement Analyst"
+        context: ["quality_assessment", "feedback_collection"]
+        
+      - name: "continuous_improvement"
+        description: "Implement continuous improvement recommendations"
+        expected_output: "Continuous improvement plan with implementation metrics"
+        agent: "Continuous Improvement Coordinator"
+        context: ["improvement_analysis"]
+
+# Compliance Configuration
+compliance:
+  policies:
+    gdpr:
+      data_anonymization: true
+      audit_trail: true
+      data_retention: "30 days"
+      user_consent: true
+      data_portability: true
+      
+    ccpa:
+      opt_out_support: true
+      data_disclosure: true
+      consumer_rights: true
+      privacy_notice: true
+      
+    soc2:
+      encryption: "aes256"
+      audit_logging: true
+      access_controls: true
+      change_management: true
+      vendor_management: true
+      
+    general:
+      security_best_practices: true
+      code_review: true
+      testing_requirements: true
+      documentation_standards: true
+
+# Observability Configuration
+observability:
+  metrics:
+    enabled: true
+    prometheus_endpoint: "/metrics"
+    custom_metrics: true
+    
+  tracing:
+    enabled: true
+    opentelemetry_endpoint: "http://localhost:4317"
+    sampling_rate: 0.1
+    
+  logging:
+    level: "INFO"
+    structured_logging: true
+    log_retention: "30 days"
+    
+  alerting:
+    enabled: true
+    alert_rules:
+      - name: "high_error_rate"
+        threshold: 0.05
+        window: "5m"
+      - name: "slow_response_time"
+        threshold: 30
+        window: "1m"
+
+# Performance Configuration
+performance:
+  async_execution:
+    enabled: true
+    max_concurrent_tasks: 50
+    timeout_seconds: 300
+    
+  graph_processing:
+    max_nodes_per_shard: 500
+    sharding_enabled: true
+    parallel_processing: true
+    
+  database:
+    connection_pool_size: 20
+    query_timeout: 30
+    batch_size: 1000
+    
+  memory:
+    max_entries_per_type: 1000
+    cleanup_interval: "1 hour"
+    retention_period: "30 days"
+
+# Tool Configuration
+tools:
+  market_api:
+    endpoint: "https://api.marketdata.com"
+    rate_limit: 100
+    timeout: 30
+    
+  compliance_tool:
+    endpoint: "https://api.compliance.com"
+    audit_enabled: true
+    real_time_checks: true
+    
+  secure_coder_gpt:
+    model: "gpt-4"
+    security_focus: true
+    code_review: true
+    
+  content_api:
+    endpoint: "https://api.content.com"
+    templates_enabled: true
+    brand_guidelines: true 

@@ -1,0 +1,120 @@
+# ZeroToShip Agent Configuration
+# Defines the roles, capabilities, and configurations for all agents
+
+agents:
+  validator:
+    name: "Validator Agent"
+    role: "Market Research and Idea Validation"
+    description: "Validates ideas through market research, competitor analysis, and MVP scoping"
+    capabilities:
+      - market_research
+      - competitor_analysis
+      - mvp_scoping
+      - validation_reporting
+    tools:
+      - market_tools
+      - web_search
+      - data_analysis
+    model: "gpt-4-turbo-preview"
+    temperature: 0.3
+
+  execution_graph:
+    name: "Execution Graph Agent"
+    role: "Task Decomposition and Planning"
+    description: "Breaks down ideas into atomic tasks and creates execution graphs"
+    capabilities:
+      - task_decomposition
+      - priority_analysis
+      - dependency_mapping
+      - graph_generation
+    tools:
+      - graph_tools
+      - neo4j_tools
+      - mermaid_tools
+    model: "gpt-4-turbo-preview"
+    temperature: 0.2
+
+  builder:
+    name: "Builder Agent"
+    role: "Code Generation and Development"
+    description: "Generates code, implements features, and ensures code quality"
+    capabilities:
+      - code_generation
+      - testing
+      - refactoring
+      - documentation
+    tools:
+      - code_tools
+      - git_tools
+      - testing_tools
+    model: "gpt-4-turbo-preview"
+    temperature: 0.1
+
+  marketing:
+    name: "Marketing Agent"
+    role: "Launch Preparation and Positioning"
+    description: "Creates marketing assets, positioning, and launch strategies"
+    capabilities:
+      - copywriting
+      - asset_creation
+      - positioning
+      - launch_planning
+    tools:
+      - market_tools
+      - design_tools
+      - social_media_tools
+    model: "gpt-4-turbo-preview"
+    temperature: 0.4
+
+  feedback:
+    name: "Feedback Agent"
+    role: "Learning and Improvement"
+    description: "Analyzes results, learns from feedback, and updates knowledge graphs"
+    capabilities:
+      - performance_analysis
+      - learning_extraction
+      - knowledge_updates
+      - optimization
+    tools:
+      - neo4j_tools
+      - analytics_tools
+      - feedback_tools
+    model: "gpt-4-turbo-preview"
+    temperature: 0.3
+
+crews:
+  validator_crew:
+    name: "Validator Crew"
+    agents: ["validator"]
+    workflow: "sequential"
+    max_iterations: 3
+
+  execution_crew:
+    name: "Execution Graph Crew"
+    agents: ["execution_graph"]
+    workflow: "sequential"
+    max_iterations: 5
+
+  builder_crew:
+    name: "Builder Crew"
+    agents: ["builder"]
+    workflow: "sequential"
+    max_iterations: 10
+
+  marketing_crew:
+    name: "Marketing Crew"
+    agents: ["marketing"]
+    workflow: "sequential"
+    max_iterations: 3
+
+  feedback_crew:
+    name: "Feedback Crew"
+    agents: ["feedback"]
+    workflow: "sequential"
+    max_iterations: 2
+
+  main_crew:
+    name: "ZeroToShip Main Crew"
+    agents: ["validator", "execution_graph", "builder", "marketing", "feedback"]
+    workflow: "hierarchical"
+    max_iterations: 15 

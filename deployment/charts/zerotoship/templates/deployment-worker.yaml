@@ -1,0 +1,159 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zerotoship.fullname" . }}-worker
+  labels:
+    {{- include "zerotoship.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  {{- if not .Values.worker.autoscaling.enabled }}
+  replicas: {{ .Values.worker.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "zerotoship.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+        {{- if .Values.spiffe.enabled }}
+        spiffe.io/spiffe-id: "spiffe://{{ .Values.spiffe.server.config.trustDomain }}/zerotoship/worker"
+        {{- end }}
+      labels:
+        {{- include "zerotoship.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+        app: zerotoship-worker  # For Prometheus service discovery
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "zerotoship.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          command: ["celery"]
+          args:
+            - "worker"
+            - "--app=src.zerotoship.tasks.celery_app:app"
+            - "--loglevel=info"
+            - "--concurrency={{ .Values.worker.celery.concurrency }}"
+            - "--max-tasks-per-child={{ .Values.worker.celery.maxTasksPerChild }}"
+            - "--queues=crew_execution,validation,reporting"
+          ports:
+            - name: metrics
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: ZEROTOSHIP_MODE
+              value: "worker"
+            - name: ZEROTOSHIP_USE_CELERY
+              value: "true"
+            - name: REDIS_URL
+              value: "redis://{{ include "zerotoship.fullname" . }}-redis-master:6379/0"
+            - name: POSTGRES_URL
+              value: "postgresql://postgres:$(POSTGRES_PASSWORD)@{{ include "zerotoship.fullname" . }}-postgresql:5432/zerotoship"
+            - name: NEO4J_URI
+              value: "neo4j://{{ include "zerotoship.fullname" . }}-neo4j:7687"
+            - name: PROMETHEUS_URL
+              value: "http://{{ include "zerotoship.fullname" . }}-prometheus-server:80"
+            - name: VAULT_ADDR
+              value: "{{ .Values.security.vault.address }}"
+            - name: SPIFFE_ENDPOINT_SOCKET
+              value: "unix:///spiffe-workload-api/spire-agent.sock"
+            - name: CELERY_TASK_TIME_LIMIT
+              value: "{{ .Values.worker.celery.taskTimeLimit }}"
+            - name: CELERY_TASK_SOFT_TIME_LIMIT
+              value: "{{ .Values.worker.celery.taskSoftTimeLimit }}"
+            - name: WORKER_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            {{- if .Values.sustainability.carbonTracking.enabled }}
+            - name: CODECARBON_ENABLED
+              value: "true"
+            - name: CODECARBON_PROJECT_NAME
+              value: "{{ .Values.sustainability.carbonTracking.projectName }}-worker"
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ include "zerotoship.fullname" . }}-secrets
+          livenessProbe:
+            exec:
+              command:
+                - celery
+                - inspect
+                - ping
+                - --app=src.zerotoship.tasks.celery_app:app
+                - --destination=celery@$(WORKER_ID)
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - celery
+                - inspect
+                - stats
+                - --app=src.zerotoship.tasks.celery_app:app
+                - --destination=celery@$(WORKER_ID)
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 10
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.spiffe.enabled }}
+            - name: spiffe-workload-api
+              mountPath: /spiffe-workload-api
+              readOnly: true
+            {{- end }}
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+            - name: temp
+              mountPath: /tmp
+            - name: models
+              mountPath: /models
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        {{- if .Values.spiffe.enabled }}
+        - name: spiffe-workload-api
+          csi:
+            driver: "csi.spiffe.io"
+            readOnly: true
+        {{- end }}
+        - name: config
+          configMap:
+            name: {{ include "zerotoship.fullname" . }}-config
+        - name: temp
+          emptyDir: {}
+        - name: models
+          configMap:
+            name: {{ include "zerotoship.fullname" . }}-models
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
