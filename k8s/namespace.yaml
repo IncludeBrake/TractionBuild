@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zerotoship
+  labels:
+    name: zerotoship
+    app: zerotoship
+    environment: production

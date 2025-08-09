@@ -74,3 +74,6 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 # The command to run when the container starts
 CMD ["python", "main.py", "--idea", "Default Production Idea", "--workflow", "validation_and_launch"]
+
+# Alternative: Run as a web server for Kubernetes
+# CMD ["uvicorn", "src.zerotoship.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,177 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerotoship-app
+  namespace: zerotoship
+  labels:
+    app: zerotoship
+    component: app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: zerotoship
+      component: app
+  template:
+    metadata:
+      labels:
+        app: zerotoship
+        component: app
+    spec:
+      containers:
+      - name: zerotoship
+        image: your-registry.com/zerotoship:latest  # Update this to your registry
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: metrics
+        env:
+        # From ConfigMap
+        - name: NEO4J_URI
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: NEO4J_URI
+        - name: NEO4J_USER
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: NEO4J_USER
+        - name: PROMETHEUS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: PROMETHEUS_PORT
+        - name: MEMORY_FILE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: MEMORY_FILE_PATH
+        - name: CREWAI_MEMORY_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: CREWAI_MEMORY_PATH
+        - name: HOME
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: HOME
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: LOG_LEVEL
+        - name: CREWAI_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: CREWAI_LOG_LEVEL
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: ENVIRONMENT
+        - name: PROJECT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: zerotoship-config
+              key: PROJECT_NAME
+        # From Secret
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: zerotoship-secrets
+              key: NEO4J_PASSWORD
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: zerotoship-secrets
+              key: OPENAI_API_KEY
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: zerotoship-secrets
+              key: ANTHROPIC_API_KEY
+        # Default values
+        - name: IDEA
+          value: "Default Production Idea"
+        - name: WORKFLOW
+          value: "validation_and_launch"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: output-data
+          mountPath: /app/output
+        - name: app-data
+          mountPath: /app/data
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: output-data
+        persistentVolumeClaim:
+          claimName: zerotoship-output-pvc
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: zerotoship-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zerotoship-app
+  namespace: zerotoship
+  labels:
+    app: zerotoship
+    component: app
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: metrics
+  selector:
+    app: zerotoship
+    component: app
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zerotoship-output-pvc
+  namespace: zerotoship
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zerotoship-data-pvc
+  namespace: zerotoship
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi

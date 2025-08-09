@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zerotoship-config
+  namespace: zerotoship
+data:
+  # Application configuration
+  NEO4J_URI: "neo4j://zerotoship-neo4j:7687"
+  NEO4J_USER: "neo4j"
+  PROMETHEUS_PORT: "8000"
+  MEMORY_FILE_PATH: "/app/output/project_memory.json"
+  CREWAI_MEMORY_PATH: "/app/output/crewai_memory"
+  HOME: "/app"
+  
+  # Logging configuration
+  LOG_LEVEL: "INFO"
+  CREWAI_LOG_LEVEL: "INFO"
+  
+  # Environment configuration
+  ENVIRONMENT: "production"
+  PROJECT_NAME: "ZeroToShip"
