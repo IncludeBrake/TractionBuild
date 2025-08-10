@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: zerotoship-run
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: zerotoship
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: zerotoship
+        image: zerotoship-test:latest
+        # image's CMD already runs main.py – leave args empty unless you want to override:
+        # args: ["python","main.py","--idea","Default Production Idea","--workflow","validation_and_launch"]

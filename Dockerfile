@@ -72,8 +72,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Set the entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# The command to run when the container starts
-CMD ["python", "main.py", "--idea", "Default Production Idea", "--workflow", "validation_and_launch"]
+# Run as a web server for Kubernetes
+CMD ["uvicorn", "src.zerotoship.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
 
-# Alternative: Run as a web server for Kubernetes
-# CMD ["uvicorn", "src.zerotoship.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Alternative: Run batch processing
+# CMD ["python", "main.py", "--idea", "Default Production Idea", "--workflow", "validation_and_launch"]

@@ -1,0 +1,87 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: zerotoship-storage-alerts
+  namespace: zerotoship
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: zerotoship.storage
+    rules:
+    # Alert when PVC binding takes too long
+    - alert: PVCPendingTooLong
+      expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} > 0
+      for: 30s
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "PVC {{ $labels.persistentvolumeclaim }} is pending for too long"
+        description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} has been pending for more than 30 seconds. This may indicate storage provisioning issues."
+        
+    # Alert when PVC binding takes more than 10 seconds
+    - alert: PVCBindingSlow
+      expr: kube_persistentvolumeclaim_status_phase{phase="Bound"} > 0 and (time() - kube_persistentvolumeclaim_created) > 10
+      labels:
+        severity: info
+        component: storage
+      annotations:
+        summary: "PVC {{ $labels.persistentvolumeclaim }} took more than 10s to bind"
+        description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} took more than 10 seconds to bind to a PersistentVolume."
+        
+    # Alert when storage is running low
+    - alert: StorageUsageHigh
+      expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "Storage usage is high on {{ $labels.persistentvolumeclaim }}"
+        description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is using more than 80% of its capacity."
+        
+    # Alert when storage is critically low
+    - alert: StorageUsageCritical
+      expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) > 0.95
+      for: 2m
+      labels:
+        severity: critical
+        component: storage
+      annotations:
+        summary: "Storage usage is critical on {{ $labels.persistentvolumeclaim }}"
+        description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is using more than 95% of its capacity. Immediate action required."
+        
+    # Alert when pods are stuck due to storage issues
+    - alert: PodStuckOnStorage
+      expr: kube_pod_status_phase{phase="Pending"} > 0 and kube_pod_container_status_waiting_reason{reason="ContainerCreating"} > 0
+      for: 2m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "Pod {{ $labels.pod }} is stuck waiting for storage"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been stuck in ContainerCreating state for more than 2 minutes, likely due to storage provisioning issues."
+        
+    # Alert when local-path-provisioner is not running
+    - alert: LocalPathProvisionerDown
+      expr: kube_pod_status_phase{namespace="kube-system", pod=~"local-path-provisioner.*"} != 1
+      for: 1m
+      labels:
+        severity: critical
+        component: storage
+      annotations:
+        summary: "Local path provisioner is down"
+        description: "The local-path-provisioner pod in kube-system namespace is not running. This will prevent new PVCs from being provisioned."
+        
+    # Alert when storage classes are misconfigured
+    - alert: NoDefaultStorageClass
+      expr: count(kube_storageclass_info{storageclass_kubernetes_io_is_default_class="true"}) == 0
+      for: 1m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "No default storage class configured"
+        description: "No storage class is marked as default. This may cause PVC creation to fail if no storage class is explicitly specified."

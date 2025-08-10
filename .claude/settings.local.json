@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kubectl get:*)",
+      "Bash(kubectl apply:*)",
+      "Bash(kubectl patch:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(kubectl delete pvc:*)",
+      "Bash(kubectl delete deployment:*)",
+      "Bash(docker system prune:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(kubectl logs:*)",
+      "Bash(kubectl wait:*)",
+      "Bash(kubectl delete pods:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(kubectl run:*)",
+      "Bash(kubectl exec:*)",
+      "Bash(kubectl create token:*)",
+      "Bash(docker build:*)"
+    ],
+    "deny": []
+  }
+}
