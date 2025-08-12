@@ -1,291 +1,77 @@
-"""
-Feedback Crew for ZeroToShip.
-Orchestrates quality assurance, feedback collection, and continuous improvement.
-"""
-
-import asyncio
-from typing import Dict, List, Optional, Any
-from crewai import Crew, Process, Task
-from pydantic import BaseModel, Field
-
-from .base_crew import BaseCrew
-from ..agents.feedback_agent import FeedbackAgent
-from ..core.project_meta_memory import ProjectMetaMemoryManager
-
-
-class FeedbackCrewConfig(BaseModel):
-    """Configuration for the Feedback Crew."""
-    
-    enable_memory_learning: bool = Field(default=True, description="Enable memory learning")
-    enable_quality_assurance: bool = Field(default=True, description="Enable quality assurance")
-    max_feedback_iterations: int = Field(default=3, description="Maximum feedback iterations")
-    enable_output_validation: bool = Field(default=True, description="Enable output validation")
-    enable_continuous_improvement: bool = Field(default=True, description="Enable continuous improvement")
-
+from crewai import Crew, Agent, Task, Process
+from .base_crew import BaseCrew # Import our standardized base class
 
 class FeedbackCrew(BaseCrew):
-    """Feedback Crew for comprehensive quality assurance and feedback collection."""
-    
-    def __init__(self, project_data: Dict[str, Any]):
-        """Initialize the Feedback Crew with project data."""
-        self.memory_manager = ProjectMetaMemoryManager()
-        self.feedback_agent = FeedbackAgent()
-        super().__init__(project_data)
-        
+    """
+    The FeedbackCrew is a specialized team of AI agents that serves as the final
+    quality gate. It assesses all project outputs, gathers feedback, and
+    generates an actionable roadmap for continuous improvement.
+    """
+
     def _create_crew(self) -> Crew:
-        """Create the CrewAI crew for feedback tasks."""
-        # Get project context
-        context = self.get_project_context()
-        
-        # Create agents
-        quality_assessor = FeedbackAgent()()
-        feedback_collector = FeedbackAgent()()
-        improvement_analyst = FeedbackAgent()()
-        validation_specialist = FeedbackAgent()()
-        continuous_improvement_coordinator = FeedbackAgent()()
-        
-        # Create tasks
-        tasks = []
-        
-        # Task 1: Comprehensive Quality Assessment
-        tasks.append(Task(
-            description=f"""
-            Conduct comprehensive quality assessment of all project deliverables.
-            
-            Assess:
-            1. Code quality and best practices compliance
-            2. Documentation completeness and accuracy
-            3. Test coverage and reliability
-            4. Performance and scalability metrics
-            5. Security and compliance requirements
-            
-            Project Context: {context}
-            
-            Provide detailed quality assessment with improvement recommendations.
-            """,
-            agent=quality_assessor,
-            expected_output="Comprehensive quality assessment report with actionable recommendations."
-        ))
-        
-        # Task 2: Stakeholder Feedback Collection
-        tasks.append(Task(
-            description=f"""
-            Collect comprehensive feedback from all project stakeholders.
-            
-            Collect:
-            1. User feedback and satisfaction metrics
-            2. Stakeholder expectations and requirements
-            3. Team feedback and process improvements
-            4. External reviewer feedback
-            5. Market response and validation
-            
-            Project Context: {context}
-            
-            Provide structured feedback analysis with priority recommendations.
-            """,
-            agent=feedback_collector,
-            expected_output="Comprehensive feedback analysis with stakeholder insights."
-        ))
-        
-        # Task 3: Improvement Opportunity Analysis
-        tasks.append(Task(
-            description=f"""
-            Analyze collected feedback and identify improvement opportunities.
-            
-            Analyze:
-            1. Feedback patterns and recurring themes
-            2. Priority improvement areas
-            3. Resource allocation for improvements
-            4. Impact assessment of proposed changes
-            5. Implementation feasibility and timeline
-            
-            Project Context: {context}
-            
-            Provide prioritized improvement roadmap with impact analysis.
-            """,
-            agent=improvement_analyst,
-            expected_output="Prioritized improvement roadmap with implementation plan."
-        ))
-        
-        # Task 4: Output Validation and Verification
-        tasks.append(Task(
-            description=f"""
-            Validate and verify all outputs against project requirements.
-            
-            Validate:
-            1. Functional requirements compliance
-            2. Non-functional requirements verification
-            3. Quality standards adherence
-            4. Performance benchmarks achievement
-            5. Security and compliance validation
-            
-            Project Context: {context}
-            
-            Provide validation report with verification results.
-            """,
-            agent=validation_specialist,
-            expected_output="Comprehensive validation report with verification results."
-        ))
-        
-        # Task 5: Continuous Improvement Implementation
-        tasks.append(Task(
-            description=f"""
-            Implement continuous improvement recommendations and optimizations.
-            
-            Implement:
-            1. High-priority improvement recommendations
-            2. Process optimizations and workflow improvements
-            3. Quality enhancement measures
-            4. Performance optimizations
-            5. Documentation and training improvements
-            
-            Project Context: {context}
-            
-            Provide implementation report with measurable improvements.
-            """,
-            agent=continuous_improvement_coordinator,
-            expected_output="Continuous improvement implementation report with metrics."
-        ))
-        
-        # Create and return the crew
-        return Crew(
-            agents=[
-                quality_assessor,
-                feedback_collector,
-                improvement_analyst,
-                validation_specialist,
-                continuous_improvement_coordinator
-            ],
-            tasks=tasks,
-            process=Process.sequential,
+        """
+        Defines the agents and tasks that form the FeedbackCrew.
+        """
+
+        # 1. --- DEFINE SPECIALIZED AGENTS ---
+
+        quality_assessor = Agent(
+            role="Lead Quality Assurance Engineer",
+            goal="Rigorously assess all project deliverables against functional requirements, performance benchmarks, and security standards.",
+            backstory="You are a meticulous QA engineer with a passion for quality. You systematically review code, documentation, and marketing assets to ensure they meet the highest standards of excellence.",
+            tools=[],
+            allow_delegation=False,
             verbose=True
         )
 
+        feedback_collector = Agent(
+            role="User Experience (UX) Researcher",
+            goal="Synthesize all available feedback from stakeholders, potential users, and market response to identify key themes and sentiment.",
+            backstory="You are an expert in qualitative and quantitative data analysis. You can distill vast amounts of feedback into clear, actionable insights about user satisfaction and stakeholder expectations.",
+            tools=[], # e.g., SentimentAnalysisTool
+            allow_delegation=False,
+            verbose=True
+        )
 
-
-    async def validate_output(self, output: Dict[str, Any], requirements: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Validate output against requirements and quality standards.
-        
-        Args:
-            output: Output to validate
-            requirements: Requirements and quality standards
-            
-        Returns:
-            Validation results and recommendations
-        """
-        # Store validation request in memory
-        self.memory_manager.add_success_pattern(
-            pattern={"validation_request": {"output": output, "requirements": requirements}},
-            project_id="feedback_crew",
-            agent_id="feedback_crew",
-            confidence_score=0.8
+        improvement_analyst = Agent(
+            role="Continuous Improvement Strategist",
+            goal="Analyze quality reports and feedback insights to identify and prioritize the most impactful improvement opportunities for the project.",
+            backstory="You are a strategic thinker who connects quality issues and user feedback to business outcomes. You excel at creating prioritized roadmaps that focus on changes that will deliver the most value.",
+            tools=[],
+            allow_delegation=False,
+            verbose=True
         )
         
-        # Execute the crew workflow
-        inputs = {
-            "output": output,
-            "requirements": requirements or {},
-            "validation_steps": [
-                "comprehensive_quality_assessment",
-                "stakeholder_feedback_collection",
-                "improvement_opportunity_analysis",
-                "output_validation_and_verification",
-                "continuous_improvement_implementation"
-            ]
-        }
-        
-        result = await self.crew().kickoff(inputs=inputs)
-        
-        # Store validation result in memory
-        self.memory_manager.add_success_pattern(
-            pattern={"validation_result": result},
-            project_id="feedback_crew",
-            agent_id="feedback_crew",
-            confidence_score=0.9
+        # 2. --- DEFINE THE SEQUENTIAL TASKS ---
+
+        task_quality_assessment = Task(
+            description="Conduct a comprehensive quality assessment of the entire project_data object. Review the outputs from the Validator, "
+                        "Execution, Builder, and Marketing crews. Assess code quality, documentation, test coverage, and marketing asset quality.",
+            expected_output="A detailed quality assessment report, scoring each project area and highlighting any deviations from best practices.",
+            agent=quality_assessor
         )
         
-        return {
-            "validation_status": result.get("validation_status", "pending"),
-            "quality_score": result.get("quality_score", 0.0),
-            "issues_found": result.get("issues_found", []),
-            "improvement_recommendations": result.get("improvement_recommendations", []),
-            "compliance_status": result.get("compliance_status", {}),
-            "performance_metrics": result.get("performance_metrics", {})
-        }
-
-    async def collect_feedback(self, project_data: Dict[str, Any], feedback_sources: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Collect comprehensive feedback from multiple sources.
-        
-        Args:
-            project_data: Project data and deliverables
-            feedback_sources: Sources to collect feedback from
-            
-        Returns:
-            Collected feedback and analysis
-        """
-        # Store feedback collection in memory
-        self.memory_manager.add_success_pattern(
-            pattern={"feedback_collection": {"project_data": project_data, "sources": feedback_sources}},
-            project_id="feedback_crew",
-            agent_id="feedback_crew",
-            confidence_score=0.8
+        task_feedback_collection = Task(
+            description="Synthesize all feedback-related information within the project_data. Analyze market response, stakeholder expectations, "
+                        "and potential user sentiment to create a unified feedback summary.",
+            expected_output="A structured feedback analysis report identifying key themes, satisfaction metrics, and stakeholder requirements.",
+            agent=feedback_collector,
+            context=[task_quality_assessment] # Depends on the initial QA check
         )
-        
-        # Execute feedback collection
-        inputs = {
-            "project_data": project_data,
-            "feedback_sources": feedback_sources or ["users", "stakeholders", "team", "reviewers"],
-            "collection_type": "comprehensive_feedback"
-        }
-        
-        result = await self.crew().kickoff(inputs=inputs)
-        
-        return {
-            "user_feedback": result.get("user_feedback", {}),
-            "stakeholder_feedback": result.get("stakeholder_feedback", {}),
-            "team_feedback": result.get("team_feedback", {}),
-            "external_feedback": result.get("external_feedback", {}),
-            "feedback_analysis": result.get("feedback_analysis", {}),
-            "priority_recommendations": result.get("priority_recommendations", [])
-        }
 
-    async def generate_quality_report(self, project_results: Dict[str, Any], quality_metrics: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Generate comprehensive quality assurance report.
-        
-        Args:
-            project_results: Project results and deliverables
-            quality_metrics: Quality metrics and benchmarks
-            
-        Returns:
-            Comprehensive quality report
-        """
-        # Store quality report generation in memory
-        self.memory_manager.add_success_pattern(
-            pattern={"quality_report": {"project_results": project_results, "metrics": quality_metrics}},
-            project_id="feedback_crew",
-            agent_id="feedback_crew",
-            confidence_score=0.8
+        task_improvement_analysis = Task(
+            description="Based on the Quality Assessment Report and the Feedback Analysis Report, identify and prioritize a list of improvement opportunities. "
+                        "For each opportunity, assess its potential impact, implementation feasibility, and required resources.",
+            expected_output="A prioritized improvement roadmap, with each item clearly detailed with impact and feasibility scores.",
+            agent=improvement_analyst,
+            context=[task_quality_assessment, task_feedback_collection] # Uses both previous reports
         )
-        
-        # Execute quality report generation
-        inputs = {
-            "project_results": project_results,
-            "quality_metrics": quality_metrics or {},
-            "report_type": "comprehensive_quality"
-        }
-        
-        result = await self.crew().kickoff(inputs=inputs)
-        
-        return {
-            "quality_summary": result.get("quality_summary", {}),
-            "detailed_analysis": result.get("detailed_analysis", {}),
-            "improvement_areas": result.get("improvement_areas", []),
-            "success_metrics": result.get("success_metrics", {}),
-            "recommendations": result.get("recommendations", []),
-            "next_steps": result.get("next_steps", [])
-        }
 
- 
+        # 3. --- ASSEMBLE AND RETURN THE CREW ---
+
+        return Crew(
+            agents=[quality_assessor, feedback_collector, improvement_analyst],
+            tasks=[task_quality_assessment, task_feedback_collection, task_improvement_analysis],
+            process=Process.sequential,
+            verbose=True
+        )

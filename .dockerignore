@@ -54,10 +54,18 @@ data/
 test_*.py
 tests/
 docs/
-deployment/
+k8s/
+*.yaml
+*.yml
+!docker-compose.yml
 node_modules/
 package*.json
+public/
+web-src/
+web-server.js
 
 # Temporary files
 *.tmp
 *.temp
+*.bak
+nul

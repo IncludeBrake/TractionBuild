@@ -1,0 +1,21 @@
+# Override for faster local development builds
+
+services:
+  zerotoship:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+      cache_from:
+        - zerotoship:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+    environment:
+      # Optimize uv for faster installs
+      - UV_CACHE_DIR=/root/.cache/uv
+      - UV_CONCURRENT_DOWNLOADS=8
+      - UV_INDEX_STRATEGY=unsafe-best-match

@@ -3,27 +3,50 @@ FROM python:3.12-slim AS builder
 WORKDIR /app
 
 # Install system dependencies needed for building
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc=4:12.2.0-3 \
+    g++=4:12.2.0-3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-RUN pip install uv
+# Install uv with pinned version
+RUN pip install --no-cache-dir uv==0.8.8
 
-# Copy dependency files
-COPY pyproject.toml uv.lock ./
+# Copy dependency files first for better layer caching
+COPY requirements-docker.txt ./
+COPY pyproject.toml ./
 COPY README.md ./
 
-# Create a virtual environment and install dependencies
-RUN uv venv && . .venv/bin/activate && uv pip install .
+# Create virtual environment
+RUN uv venv
+
+# Install core dependencies first (most cacheable layer) with BuildKit cache
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/root/.cache/pip \
+    . .venv/bin/activate && \
+    UV_CACHE_DIR=/root/.cache/uv \
+    UV_CONCURRENT_DOWNLOADS=8 \
+    UV_INDEX_STRATEGY=unsafe-best-match \
+    uv pip install -r requirements-docker.txt
+
+# Copy source and install package (changes more frequently)
+COPY src/ ./src/
+COPY main.py ./
+COPY entrypoint.sh ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    . .venv/bin/activate && \
+    UV_CACHE_DIR=/root/.cache/uv \
+    UV_CONCURRENT_DOWNLOADS=8 \
+    uv pip install --no-deps -e . && \
+    python -m compileall /app/.venv/lib/python3.12/site-packages/ -q && \
+    find /app/.venv -name "*.pyc" -delete && \
+    find /app/.venv -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Stage 2: Build the final, lean production container
 FROM python:3.12-slim
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl=7.88.1-10+deb12u12 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
@@ -34,15 +57,13 @@ WORKDIR /app
 # Copy the installed dependencies from the builder
 COPY --from=builder /app/.venv ./.venv
 
-# Copy application source code
-COPY src/ ./src
-COPY main.py ./
+# Copy application source code from builder
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/main.py ./
+COPY --from=builder /app/entrypoint.sh ./
 
 # Copy configuration files
 COPY config/ ./config
-
-# Copy entrypoint script
-COPY entrypoint.sh ./entrypoint.sh
 
 # Create necessary directories and set permissions
 RUN mkdir -p /app/data /app/output /app/logs && \

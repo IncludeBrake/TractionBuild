@@ -174,3 +174,4 @@ Thumbs.db
 .env.staging
 secrets.json
 config.json 
+node_modules

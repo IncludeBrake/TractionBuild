@@ -2,14 +2,14 @@
   "name": "zerotoship",
   "version": "1.0.0",
   "description": "AI-powered product studio that validates ideas, builds MVPs, and launches full products",
-  "main": "web/index.js",
+  "main": "web-server.js",
   "scripts": {
-    "dev": "node web/server.js",
+    "dev": "node web-server.js",
     "build": "webpack --mode production",
-    "start": "node web/server.js",
+    "start": "node web-server.js",
     "test": "jest",
-    "lint": "eslint web/",
-    "format": "prettier --write web/"
+    "lint": "eslint web-src/",
+    "format": "prettier --write web-src/"
   },
   "repository": {
     "type": "git",
