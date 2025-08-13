@@ -1,81 +1,64 @@
-version: '3.8'
+# Using YAML anchors for a DRY (Don't Repeat Yourself) configuration
+x-app-base: &app-base
+  build: .
+  env_file: .env
+  volumes:
+    - ./src:/app/src
+    - ./config:/app/config
+    - ./runs:/app/runs
+    - ./output:/app/output
+    - ./:/app  # Mount root to find chat_ui.py
+  depends_on:
+    neo4j:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
 
 services:
-  zerotoship:
-    build: .
-    container_name: zerotoship-app
-    environment:
-      - IDEA=${IDEA:-"Default Production Idea"}
-      - WORKFLOW=${WORKFLOW:-"validation_and_launch"}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-"test_password"}
-      - NEO4J_URI=${NEO4J_URI:-"neo4j://host.docker.internal:7687"}
-      - PROMETHEUS_PORT=8000
-      - MEMORY_FILE_PATH=/app/output/project_memory.json
-      - CREWAI_MEMORY_PATH=/app/output/crewai_memory
-      - HOME=/app
-    ports:
-      - "8000:8000"  # Prometheus metrics
-    volumes:
-      - ./output:/app/output
-      - ./data:/app/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Optional: Neo4j database for persistent storage
+  # The Neo4j Database
   neo4j:
-    image: neo4j:5.15
+    image: neo4j:5
     container_name: zerotoship-neo4j
     environment:
-      - NEO4J_AUTH=neo4j/test_password
-      - NEO4J_PLUGINS=["apoc"]
-    ports:
-      - "7474:7474"  # HTTP
-      - "7687:7687"  # Bolt
-    volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-    restart: unless-stopped
-    profiles:
-      - with-database
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+    ports: ["7474:7474", "7687:7687"]
+    volumes: [neo4j_data:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Alternative: Use external Neo4j (for when Neo4j runs on host)
-  zerotoship-external-neo4j:
-    build: .
-    container_name: zerotoship-app-external
-    environment:
-      - IDEA=${IDEA:-"Default Production Idea"}
-      - WORKFLOW=${WORKFLOW:-"validation_and_launch"}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-"test_password"}
-      - NEO4J_URI=neo4j://host.docker.internal:7687
-      - PROMETHEUS_PORT=8000
-      - MEMORY_FILE_PATH=/app/output/project_memory.json
-      - CREWAI_MEMORY_PATH=/app/output/crewai_memory
-      - HOME=/app
-    ports:
-      - "8000:8000"  # Prometheus metrics
-    volumes:
-      - ./output:/app/output
-      - ./data:/app/data
-    restart: unless-stopped
-    profiles:
-      - external-neo4j
+  # The Redis Message Broker
+  redis:
+    image: "redis:alpine"
+    container_name: zerotoship-redis
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # The FastAPI Service
+  api:
+    <<: *app-base
+    container_name: zerotoship-api
+    command: uvicorn src.zerotoship.api.app:app --host 0.0.0.0 --port 8000 --reload
+    ports: ["8000:8000"]
+
+  # The Celery Worker Service
+  worker:
+    <<: *app-base
+    container_name: zerotoship-worker
+    command: celery -A src.zerotoship.tasks.celery_app worker --loglevel=info
+
+  # The Streamlit Frontend Service
   frontend:
-    build: . # It shares the same build context
+    <<: *app-base
     container_name: zerotoship-frontend
     command: streamlit run chat_ui.py --server.port 8501 --server.address 0.0.0.0
-    ports:
-      - "8501:8501"
-    env_file: .env
-    volumes:
-      - ./src:/app/src
-      - ./:/app # Mount the root to find chat_ui.py
+    ports: ["8501:8501"]
 
 volumes:
   neo4j_data:
-  neo4j_logs:
