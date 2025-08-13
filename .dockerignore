@@ -57,7 +57,17 @@ docs/
 deployment/
 node_modules/
 package*.json
+runs/
+uv.lock
+.env
 
 # Temporary files
 *.tmp
 *.temp
+tmp/
+temp/
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore

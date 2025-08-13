@@ -3,27 +3,28 @@ FROM python:3.12-slim AS builder
 WORKDIR /app
 
 # Install system dependencies needed for building
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc=4:14.2.0-1 \
+    g++=4:14.2.0-1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
-RUN pip install uv
+RUN pip install --no-cache-dir uv
 
-# Copy dependency files
-COPY pyproject.toml uv.lock ./
+# Copy dependency files first for better caching
+COPY pyproject.toml ./
 COPY README.md ./
 
 # Create a virtual environment and install dependencies
-RUN uv venv && . .venv/bin/activate && uv pip install .
+# Use --no-deps to avoid duplicate installs and speed up builds
+RUN uv venv && . .venv/bin/activate && uv pip install --no-cache-dir .
 
 # Stage 2: Build the final, lean production container
 FROM python:3.12-slim
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl=8.14.1-2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
@@ -35,12 +36,11 @@ WORKDIR /app
 COPY --from=builder /app/.venv ./.venv
 
 # Copy application source code
-COPY src/ ./src
-COPY main.py ./
+COPY src/ ./src/
+COPY main.py chat_ui.py ./
 
-# Copy configuration files
-COPY config/ ./config
-
+# Copy the configuration directory. The config_generator ensures this always exists.
+COPY --chown=zerotoship:zerotoship config/ ./config/
 # Copy entrypoint script
 COPY entrypoint.sh ./entrypoint.sh
 
@@ -52,7 +52,6 @@ RUN mkdir -p /app/data /app/output /app/logs && \
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/src"
-ENV NEO4J_PASSWORD="test_password"
 ENV NEO4J_URI="neo4j://host.docker.internal:7687"
 ENV PROMETHEUS_PORT="8000"
 ENV MEMORY_FILE_PATH="/app/output/project_memory.json"

@@ -65,6 +65,17 @@ services:
     profiles:
       - external-neo4j
 
+  frontend:
+    build: . # It shares the same build context
+    container_name: zerotoship-frontend
+    command: streamlit run chat_ui.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    env_file: .env
+    volumes:
+      - ./src:/app/src
+      - ./:/app # Mount the root to find chat_ui.py
+
 volumes:
   neo4j_data:
   neo4j_logs:
