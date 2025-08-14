@@ -1,9 +1,11 @@
-# Stage 1: Build the dependencies using uv
+# --- Stage 1: Builder ---
+# This stage installs dependencies and builds the Python virtual environment.
 FROM python:3.12-slim AS builder
 WORKDIR /app
 
-# Install system dependencies needed for building
+# Install system dependencies needed for building Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
+<<<<<<< Updated upstream
     gcc=4:12.2.0-3 \
     g++=4:12.2.0-3 \
     && rm -rf /var/lib/apt/lists/*
@@ -13,9 +15,19 @@ RUN pip install --no-cache-dir uv==0.8.8
 
 # Copy dependency files first for better layer caching
 COPY requirements-docker.txt ./
-COPY pyproject.toml ./
-COPY README.md ./
+=======
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
+# Install uv, our Python package manager
+RUN pip install --no-cache-dir uv
+
+# Copy dependency files first to leverage Docker's layer caching
+>>>>>>> Stashed changes
+COPY pyproject.toml ./
+
+<<<<<<< Updated upstream
 # Create virtual environment
 RUN uv venv
 
@@ -40,23 +52,33 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     python -m compileall /app/.venv/lib/python3.12/site-packages/ -q && \
     find /app/.venv -name "*.pyc" -delete && \
     find /app/.venv -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+=======
+# Create a virtual environment and install all dependencies from pyproject.toml
+RUN uv venv && . .venv/bin/activate && uv pip install --no-cache-dir .
+>>>>>>> Stashed changes
 
-# Stage 2: Build the final, lean production container
+# --- Stage 2: Final Production Image ---
+# This stage creates the final, lean image for production.
 FROM python:3.12-slim
 
-# Install runtime dependencies
+# Install only the necessary runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+<<<<<<< Updated upstream
     curl=7.88.1-10+deb12u12 \
+=======
+    curl \
+>>>>>>> Stashed changes
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
-RUN groupadd -r zerotoship && useradd -r -g zerotoship zerotoship
+# Create a non-root user and group for better security
+RUN groupadd -r zerotoship && useradd --no-log-init -r -g zerotoship zerotoship
 
 WORKDIR /app
 
-# Copy the installed dependencies from the builder
-COPY --from=builder /app/.venv ./.venv
+# Copy the pre-built virtual environment from the builder stage
+COPY --from=builder --chown=zerotoship:zerotoship /app/.venv ./.venv
 
+<<<<<<< Updated upstream
 # Copy application source code from builder
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/main.py ./
@@ -69,32 +91,40 @@ COPY config/ ./config
 RUN mkdir -p /app/data /app/output /app/logs && \
     chown -R zerotoship:zerotoship /app && \
     chmod +x /app/entrypoint.sh
+=======
+# Copy all other necessary application files
+COPY --chown=zerotoship:zerotoship src/ ./src/
+COPY --chown=zerotoship:zerotoship config/ ./config/
+COPY --chown=zerotoship:zerotoship runs/ ./runs/
+COPY --chown=zerotoship:zerotoship chat_ui.py ./
+COPY --chown=zerotoship:zerotoship entrypoint.sh ./
+RUN chmod +x /app/entrypoint.sh
+>>>>>>> Stashed changes
 
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/src"
+<<<<<<< Updated upstream
 ENV NEO4J_PASSWORD="test_password"
 ENV NEO4J_URI="neo4j://host.docker.internal:7687"
 ENV PROMETHEUS_PORT="8000"
 ENV MEMORY_FILE_PATH="/app/output/project_memory.json"
 ENV CREWAI_MEMORY_PATH="/app/output/crewai_memory"
 ENV HOME="/app"
+=======
+# Note: Sensitive variables like passwords should be injected at runtime, not set here.
+>>>>>>> Stashed changes
 
-# Switch to non-root user
+# Switch to the non-root user
 USER zerotoship
 
-# Expose port for Prometheus metrics
+# Expose the ports the services will run on
 EXPOSE 8000
+EXPOSE 8501
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/metrics || exit 1
-
-# Set the entrypoint
+# The entrypoint script will run first
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# The command to run when the container starts
-CMD ["python", "main.py", "--idea", "Default Production Idea", "--workflow", "validation_and_launch"]
-
-# Alternative: Run as a web server for Kubernetes
-# CMD ["uvicorn", "src.zerotoship.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command if none is provided in docker-compose.yml.
+# This will be overridden by the 'command:' in your compose file.
+CMD ["--help"]
