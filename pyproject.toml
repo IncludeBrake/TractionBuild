@@ -45,6 +45,8 @@ dependencies = [
     "sentence-transformers>=2.7.0", # For embeddings
     "opentelemetry-api>=1.25.0", # For observability
     "dpath>=2.1.0", # For nested data access
+    "streamlit>=1.28.0", # For chat UI
+    "streamlit-chat>=0.1.1", # For chat interface
 ]
 
 [project.optional-dependencies]
