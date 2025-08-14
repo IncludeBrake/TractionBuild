@@ -1,13 +1,38 @@
-from crewai import Crew, Agent, Task, Process
-from .base_crew import BaseCrew # Import our standardized base class
+"""
+Builder Crew for ZeroToShip.
+Orchestrates code generation, development, and technical implementation.
+"""
 
-<<<<<<< Updated upstream
+import asyncio
+from typing import Dict, List, Optional, Any
+from crewai import Crew, Agent, Task, Process
+from pydantic import BaseModel, Field
+
+from .base_crew import BaseCrew
+from ..tools.code_tools import CodeTools
+from ..tools.mermaid_tools import MermaidTools
+from ..core.project_meta_memory import ProjectMetaMemoryManager
+
+class BuilderCrewConfig(BaseModel):
+    """Configuration for the Builder Crew."""
+    enable_memory_learning: bool = Field(default=True, description="Enable memory learning")
+    enable_code_generation: bool = Field(default=True, description="Enable code generation")
+    max_build_iterations: int = Field(default=3, description="Maximum build iterations")
+    enable_testing: bool = Field(default=True, description="Enable automated testing")
+    enable_documentation: bool = Field(default=True, description="Enable code documentation")
+
 class BuilderCrew(BaseCrew):
     """
     The BuilderCrew is a specialized team of AI agents that handles the entire
     software development lifecycle, from system architecture to code generation,
     testing, and documentation.
     """
+
+    def __init__(self, project_data: Dict[str, Any], config: Optional[BuilderCrewConfig] = None):
+        """Initialize the Builder Crew with project data and config."""
+        super().__init__(project_data)
+        self.config = config or BuilderCrewConfig()
+        self.memory_manager = ProjectMetaMemoryManager()
 
     def _create_crew(self) -> Crew:
         """
@@ -21,7 +46,7 @@ class BuilderCrew(BaseCrew):
             role="Principal Software Architect",
             goal="Design a robust, scalable, and maintainable software architecture based on the project requirements.",
             backstory="You are a seasoned software architect with 20 years of experience designing enterprise-grade systems. You think in terms of design patterns, scalability, and long-term maintainability.",
-            tools=[], # e.g., MermaidTools for diagrams
+            tools=[MermaidTools()], # e.g., MermaidTools for diagrams
             allow_delegation=False,
             verbose=True
         )
@@ -30,7 +55,7 @@ class BuilderCrew(BaseCrew):
             role="Senior Full-Stack Developer",
             goal="Write high-quality, production-ready code to implement the specified features.",
             backstory="You are a pragmatic and efficient developer who excels at turning architectural plans into clean, functional code. You follow best practices and write code that is easy for others to understand.",
-            tools=[], # e.g., CodeTools, FileTools
+            tools=[CodeTools()], # e.g., CodeTools, FileTools
             allow_delegation=False,
             verbose=True
         )
@@ -39,7 +64,7 @@ class BuilderCrew(BaseCrew):
             role="QA and Test Automation Engineer",
             goal="Ensure the code is bug-free and meets all quality standards by creating a comprehensive suite of automated tests.",
             backstory="You have a keen eye for detail and a passion for quality. You are an expert in creating robust unit, integration, and end-to-end tests that catch issues before they reach production.",
-            tools=[], # e.g., CodeTools for test generation
+            tools=[CodeTools()], # e.g., CodeTools for test generation
             allow_delegation=False,
             verbose=True
         )
@@ -93,124 +118,24 @@ class BuilderCrew(BaseCrew):
             process=Process.sequential,
             verbose=True
         )
-=======
-import asyncio
-from typing import Dict, List, Optional, Any
-from crewai import Crew, Process, Task
-from pydantic import BaseModel, Field
-
-from ..agents.builder_agent import BuilderAgent
-from ..tools.code_tools import CodeTools
-from ..tools.mermaid_tools import MermaidTools
-from ..core.project_meta_memory import ProjectMetaMemoryManager
-from .base_crew import BaseCrew
-
-class BuilderCrewConfig(BaseModel):
-    """Configuration for the Builder Crew."""
-    enable_memory_learning: bool = Field(default=True, description="Enable memory learning")
-    enable_code_generation: bool = Field(default=True, description="Enable code generation")
-    max_build_iterations: int = Field(default=3, description="Maximum build iterations")
-    enable_testing: bool = Field(default=True, description="Enable automated testing")
-    enable_documentation: bool = Field(default=True, description="Enable code documentation")
-
-class BuilderCrew(BaseCrew):
-    """Builder Crew for comprehensive code generation and development."""
-    
-    def __init__(self, project_data: Dict[str, Any], config: Optional[BuilderCrewConfig] = None):
-        super().__init__(project_data)
-        self.config = config or BuilderCrewConfig()
-        self.memory_manager = ProjectMetaMemoryManager()
-        self.builder_agent = BuilderAgent()
-
-    def _create_crew(self) -> Crew:
-        """Create the Builder Crew with agents and tasks."""
-        agents = [
-            self.builder_agent(name="Code Architect", role="Code architect for system design"),
-            self.builder_agent(name="Feature Implementer", role="Feature implementer for coding"),
-            self.builder_agent(name="Test Engineer", role="Test engineer for automated testing"),
-            self.builder_agent(name="Documentation Specialist", role="Documentation specialist"),
-            self.builder_agent(name="Code Reviewer", role="Code reviewer for quality assurance"),
-        ]
-
-        tasks = [
-            Task(
-                description="""
-                Design comprehensive system architecture for the project.
-                Focus on: 1. Technology stack selection, 2. System architecture patterns,
-                3. Database design, 4. API design, 5. Scalability considerations.
-                Provide blueprint with diagrams.
-                """,
-                agent=agents[0],
-                expected_output="Comprehensive system architecture with technical specs."
-            ),
-            Task(
-                description="""
-                Implement core features based on architecture.
-                Implement: 1. Business logic, 2. UI components, 3. Data models,
-                4. API endpoints, 5. External integrations.
-                Provide code with error handling.
-                """,
-                agent=agents[1],
-                expected_output="Functional code implementation.",
-                context=[tasks[0]]
-            ),
-            Task(
-                description="""
-                Develop automated testing suite.
-                Create: 1. Unit tests, 2. Integration tests, 3. E2E tests,
-                4. Performance tests, 5. Security tests.
-                Provide coverage reports.
-                """,
-                agent=agents[2],
-                expected_output="Comprehensive test suite with high coverage.",
-                context=[tasks[1]]
-            ),
-            Task(
-                description="""
-                Generate code documentation.
-                Create: 1. API docs, 2. Code comments, 3. User guides,
-                4. Developer guides, 5. Architecture docs.
-                Provide clear documentation.
-                """,
-                agent=agents[3],
-                expected_output="Complete documentation suite.",
-                context=[tasks[1], tasks[2]]
-            ),
-            Task(
-                description="""
-                Conduct code quality review.
-                Review: 1. Code quality, 2. Performance, 3. Security,
-                4. Maintainability, 5. Technical debt.
-                Provide quality assessment.
-                """,
-                agent=agents[4],
-                expected_output="Code quality report with recommendations.",
-                context=[tasks[1], tasks[2], tasks[3]]
-            ),
-        ]
-
-        return Crew(
-            agents=agents,
-            tasks=tasks,
-            process=Process.sequential,
-            verbose=True,
-        )
 
     async def generate_code(self, execution_plan: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Generate code based on execution plan and context."""
         project_data = self.project_data.copy()
         project_data.update({"execution_plan": execution_plan, "context": context})
         result = await self.run_async(project_data)
         return result.get("builder", {})
 
     async def implement_feature(self, feature_spec: Dict[str, Any], codebase_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Implement a specific feature based on specification."""
         project_data = self.project_data.copy()
         project_data.update({"feature_spec": feature_spec, "codebase_context": codebase_context})
         result = await self.run_async(project_data)
         return result.get("builder", {})
 
     async def run_tests(self, test_suite: Dict[str, Any]) -> Dict[str, Any]:
+        """Run tests on the codebase."""
         project_data = self.project_data.copy()
         project_data.update({"test_suite": test_suite})
         result = await self.run_async(project_data)
         return result.get("builder", {})
->>>>>>> Stashed changes
