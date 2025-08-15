@@ -1,438 +1,189 @@
-# Production-Ready Workflow Sequences for ZeroToShip
-# Supports quantum-secure encryption, federated ML, conflict-resolving delta merges,
-# advanced orchestration with loops, escalations, and visualization
-
-###############################################################################
-# SELF-EVALUATION WORKFLOW (Dogfooding)
-###############################################################################
-zerotoship_self_eval:
-  metadata:
-    compliance: ["GDPR", "CCPA", "SOC2"]
-    audit: true
-    visualize: true
-    description: "Run Z2S on itself; surface gaps, create Findings, loop until gates are green."
-    estimated_duration: "90-180 minutes"
-    complexity: "high"
-    encryption_enabled: true
-    ml_optimization: true
-  sequence:
-    - state: GATHER_CONTEXT
-      crew: AdvisoryBoardCrew
-      conditions: []
-      timeout: 240
-      retry_attempts: 1
-
-    - state: SYSTEM_MAP
-      crew: ValidatorCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 1
-
-    - state: ARCH_GAP_ANALYSIS
-      crew: ValidatorCrew
-      conditions: []
-      timeout: 420
-      retry_attempts: 1
-
-    - state: COMPLIANCE_SCAN
-      crew: FeedbackCrew            # uses ComplianceCheckerTool internally
-      conditions: []
-      timeout: 300
-      retry_attempts: 0
-
-    - state: DASHBOARD_SPECS
-      crew: BuilderCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 1
-
-    - parallel:
-        - state: IMPLEMENT_OBSERVABILITY
-          crew: BuilderCrew
-          conditions: []
-          timeout: 900
-          retry_attempts: 2
-        - state: CREATE_TESTS
-          crew: BuilderCrew
-          conditions: []
-          timeout: 900
-          retry_attempts: 2
-
-    - loop:
-        state_prefix: SELF_CRITIQUE
-        crew: FeedbackCrew
-        max_iterations: 3
-        break_conditions:
-          - any:
-              - { field: "metrics.error_rate", operator: "<=", value: 0.02 }
-              - { field: "quality.score", operator: ">=", value: 0.85 }
-              - { field: "metrics.cost_per_1k_tokens_delta", operator: "<=", value: 0 }
-        sequence:
-          - state: RUN_E2E
-            crew: LaunchCrew
-            timeout: 900
-            retry_attempts: 1
-          - state: CRITIQUE_AND_FINDINGS
-            crew: FeedbackCrew
-            timeout: 420
-            retry_attempts: 1
-          - state: PRIORITIZE_FIXES
-            crew: FeedbackCrew
-            timeout: 240
-            retry_attempts: 0
-          - state: APPLY_FIXES
-            crew: BuilderCrew
-            timeout: 900
-            retry_attempts: 1
-
-    - state: SHIP_REPORT
-      crew: LaunchCrew
-      conditions: []
-      timeout: 240
-      retry_attempts: 0
-
-    - state: COMPLETED
-
 ###############################################################################
 # DEFAULT SOFTWARE BUILD
+# Full software development workflow with validation, build, marketing, and launch.
 ###############################################################################
 default_software_build:
   metadata:
-    compliance: ["GDPR", "CCPA", "SOC2"]
-    audit: true
-    visualize: true
     description: "Full software development workflow with validation, build, marketing, and launch"
-    estimated_duration: "2-4 hours"
-    complexity: "high"
-    encryption_enabled: true
-    ml_optimization: true
+    compliance: ["GDPR", "CCPA", "SOC2"]
+    visualize: true
   sequence:
     - state: IDEA_VALIDATION
       crew: ValidatorCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 3
-
     - state: GRAPH_GENERATION
       crew: ExecutionCrew
       conditions:
-        - all:
-            - { field: "validation.confidence", operator: ">", value: 0.8 }
-            - { field: "validation.is_technically_feasible", operator: "==", value: true }
-          on_fail:
-            escalate_to: "validation_and_launch"
-      timeout: 600
-      retry_attempts: 2
-
+        all:
+          - { field: "validation.confidence", operator: ">", value: 0.8 }
+          - { field: "validation.passed", operator: "==", value: true }
+      on_fail:
+        action: escalate_to
+        workflow: "validation_and_launch"
     - state: TASK_EXECUTION
       crew: BuilderCrew
-      conditions:
-        - { field: "graph.status", operator: "==", value: "generated" }
-      timeout: 1800
-      retry_attempts: 3
-
     - parallel:
         - state: MARKETING_PREPARATION
           crew: MarketingCrew
-          conditions:
-            - { field: "build.status", operator: "==", value: "completed" }
-          timeout: 900
-          retry_attempts: 2
         - state: LAUNCH_PREPARATION
           crew: LaunchCrew
-          conditions:
-            - { field: "build.status", operator: "==", value: "completed" }
-          timeout: 600
-          retry_attempts: 2
-
-    - loop:
-        state_prefix: FEEDBACK_ITERATION
-        crew: FeedbackCrew
-        max_iterations: 3
-        break_conditions:
-          - any:
-              - { field: "feedback.approved", operator: "==", value: true }
-              - { field: "feedback.escalated", operator: "==", value: true }
-        sequence:
-          - state: FEEDBACK_REVIEW
-            crew: FeedbackCrew
-            timeout: 300
-            retry_attempts: 2
-
+    - state: FEEDBACK_COLLECTION
+      crew: FeedbackCrew
     - state: COMPLETED
+      crew: null # Terminal state
 
 ###############################################################################
 # VALIDATION AND LAUNCH
+# For non-software products or when the build is handled separately.
 ###############################################################################
 validation_and_launch:
   metadata:
-    compliance: ["GDPR", "CCPA"]
-    audit: true
-    visualize: true
     description: "Validation-focused workflow with marketing and launch preparation"
-    estimated_duration: "1-2 hours"
-    complexity: "medium"
-    encryption_enabled: true
-    ml_optimization: true
+    compliance: ["GDPR", "CCPA"]
+    visualize: true
   sequence:
     - state: IDEA_VALIDATION
       crew: ValidatorCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 3
-
     - parallel:
         - state: MARKETING_PREPARATION
           crew: MarketingCrew
-          conditions:
-            - { field: "validation.passed", operator: "==", value: true }
-          timeout: 900
-          retry_attempts: 2
         - state: LAUNCH_PREPARATION
           crew: LaunchCrew
-          conditions:
-            - { field: "validation.passed", operator: "==", value: true }
-          timeout: 600
-          retry_attempts: 2
       conditions:
-        - all:
-            - { field: "validation.confidence", operator: ">", value: 0.7 }
-            - { field: "validation.passed", operator: "==", value: true }
-          on_fail:
-            escalate_to: "rapid_prototype"
-
+        all:
+          - { field: "validation.confidence", operator: ">", value: 0.7 }
+          - { field: "validation.passed", operator: "==", value: true }
+      on_fail:
+        action: escalate_to
+        workflow: "rapid_prototype"
     - state: FEEDBACK_COLLECTION
       crew: FeedbackCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 2
-
     - state: COMPLETED
+      crew: null
 
 ###############################################################################
 # JUST THE BUILD
+# For executing a build for an already validated idea.
 ###############################################################################
 just_the_build:
   metadata:
-    compliance: ["SOC2"]
-    audit: false
-    visualize: true
     description: "Build-only workflow for existing validated ideas"
-    estimated_duration: "30-60 minutes"
-    complexity: "low"
-    encryption_enabled: true
-    ml_optimization: true
+    compliance: ["SOC2"]
+    visualize: true
   sequence:
     - state: TASK_EXECUTION
       crew: BuilderCrew
-      conditions: []
-      timeout: 1800
-      retry_attempts: 3
-
     - state: FEEDBACK_COLLECTION
       crew: FeedbackCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 2
-
     - state: COMPLETED
+      crew: null
 
 ###############################################################################
 # MARKETING FOCUS
+# For products that are built but need a full marketing and launch strategy.
 ###############################################################################
 marketing_focus:
   metadata:
-    compliance: ["GDPR", "CCPA"]
-    audit: true
-    visualize: true
     description: "Marketing-focused workflow for validated ideas"
-    estimated_duration: "1-2 hours"
-    complexity: "medium"
-    encryption_enabled: true
-    ml_optimization: true
+    compliance: ["GDPR", "CCPA"]
+    visualize: true
   sequence:
-    - state: IDEA_VALIDATION
+    - state: IDEA_VALIDATION # Still good practice to re-validate context
       crew: ValidatorCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 3
-
     - state: MARKETING_PREPARATION
       crew: MarketingCrew
       conditions:
-        - { field: "validation.passed", operator: "==", value: true }
-      timeout: 900
-      retry_attempts: 2
-
+        all:
+          - { field: "validation.passed", operator: "==", value: true }
     - state: LAUNCH_PREPARATION
       crew: LaunchCrew
-      conditions:
-        - { field: "marketing.ready", operator: "==", value: true }
-      timeout: 600
-      retry_attempts: 2
-
     - state: COMPLETED
+      crew: null
 
 ###############################################################################
 # RAPID PROTOTYPE
+# A quick loop for fast validation and iteration.
 ###############################################################################
 rapid_prototype:
   metadata:
-    compliance: ["SOC2"]
-    audit: false
-    visualize: true
     description: "Rapid prototyping workflow for quick validation"
-    estimated_duration: "30-45 minutes"
-    complexity: "low"
-    encryption_enabled: true
-    ml_optimization: true
+    compliance: ["SOC2"]
+    visualize: true
   sequence:
     - state: IDEA_VALIDATION
       crew: ValidatorCrew
-      conditions: []
-      timeout: 180
-      retry_attempts: 2
-
     - state: TASK_EXECUTION
       crew: BuilderCrew
       conditions:
-        - { field: "validation.confidence", operator: ">", value: 0.6 }
-      timeout: 900
-      retry_attempts: 2
-
+        all:
+          - { field: "validation.confidence", operator: ">", value: 0.6 }
     - loop:
         state_prefix: QUICK_FEEDBACK
         crew: FeedbackCrew
         max_iterations: 2
         break_conditions:
-          - any:
-              - { field: "feedback.quick_approval", operator: "==", value: true }
-              - { field: "feedback.rejected", operator: "==", value: true }
-        sequence:
-          - state: QUICK_FEEDBACK
-            crew: FeedbackCrew
-            timeout: 180
-            retry_attempts: 1
-
+          any:
+            - { field: "feedback.quick_approval", operator: "==", value: true }
+            - { field: "feedback.rejected", operator: "==", value: true }
     - state: COMPLETED
+      crew: null
 
 ###############################################################################
 # ENTERPRISE WORKFLOW
+# Comprehensive workflow with stringent compliance and validation checks.
 ###############################################################################
 enterprise_workflow:
   metadata:
-    compliance: ["GDPR", "CCPA", "SOC2", "HIPAA"]
-    audit: true
-    visualize: true
     description: "Enterprise-grade workflow with comprehensive compliance"
-    estimated_duration: "4-6 hours"
-    complexity: "very_high"
-    encryption_enabled: true
-    ml_optimization: true
+    compliance: ["GDPR", "CCPA", "SOC2", "HIPAA"]
+    visualize: true
   sequence:
     - state: IDEA_VALIDATION
       crew: ValidatorCrew
-      conditions: []
-      timeout: 600
-      retry_attempts: 3
-
     - state: GRAPH_GENERATION
       crew: ExecutionCrew
       conditions:
-        - all:
-            - { field: "validation.confidence", operator: ">", value: 0.9 }
-            - { field: "validation.compliance_ready", operator: "==", value: true }
-            - { field: "validation.security_approved", operator: "==", value: true }
-      timeout: 1200
-      retry_attempts: 3
-
+        all:
+          - { field: "validation.confidence", operator: ">", value: 0.9 }
+          - { field: "validation.compliance_ready", operator: "==", value: true }
     - state: TASK_EXECUTION
       crew: BuilderCrew
-      conditions:
-        - { field: "graph.status", operator: "==", value: "generated" }
-      timeout: 3600
-      retry_attempts: 3
-
     - parallel:
         - state: MARKETING_PREPARATION
           crew: MarketingCrew
-          conditions: []
-          timeout: 1200
-          retry_attempts: 3
         - state: LAUNCH_PREPARATION
           crew: LaunchCrew
-          conditions: []
-          timeout: 900
-          retry_attempts: 3
         - state: COMPLIANCE_CHECK
-          crew: FeedbackCrew     # standardized: use FeedbackCrew + ComplianceCheckerTool
-          conditions: []
-          timeout: 600
-          retry_attempts: 2
-
-    - loop:
-        state_prefix: ENTERPRISE_FEEDBACK
-        crew: FeedbackCrew
-        max_iterations: 5
-        break_conditions:
-          - any:
-              - { field: "feedback.enterprise_approved", operator: "==", value: true }
-              - { field: "feedback.security_approved", operator: "==", value: true }
-              - { field: "feedback.compliance_approved", operator: "==", value: true }
-        sequence:
-          - state: ENTERPRISE_FEEDBACK
-            crew: FeedbackCrew
-            timeout: 600
-            retry_attempts: 2
-
+          crew: FeedbackCrew # Uses ComplianceCheckerTool
+    - state: FEEDBACK_COLLECTION
+      crew: FeedbackCrew
     - state: COMPLETED
+      crew: null
 
 ###############################################################################
 # HARDWARE PROTOTYPE
+# A specialized workflow for physical product development.
 ###############################################################################
 hardware_prototype:
   metadata:
-    compliance: ["SOC2"]
-    audit: true
-    visualize: true
     description: "Hardware prototyping workflow"
-    estimated_duration: "3-5 hours"
-    complexity: "high"
-    encryption_enabled: true
-    ml_optimization: true
+    compliance: ["SOC2"]
+    visualize: true
   sequence:
     - state: IDEA_VALIDATION
       crew: ValidatorCrew
-      conditions: []
-      timeout: 300
-      retry_attempts: 3
-
     - state: HARDWARE_DESIGN
-      crew: BuilderCrew
+      crew: BuilderCrew # Would use specialized hardware design agents/tools
       conditions:
-        - { field: "validation.passed", operator: "==", value: true }
-      timeout: 1800
-      retry_attempts: 3
-
+        all:
+         - { field: "validation.passed", operator: "==", value: true }
     - state: PROTOTYPE_BUILD
       crew: BuilderCrew
-      conditions:
-        - { field: "design.approved", operator: "==", value: true }
-      timeout: 3600
-      retry_attempts: 2
-
     - loop:
         state_prefix: HARDWARE_TESTING
         crew: FeedbackCrew
-        max_iterations: 3
+        max_iterations: 5
         break_conditions:
-          - any:
-              - { field: "testing.passed", operator: "==", value: true }
-              - { field: "testing.critical_failure", operator: "==", value: true }
-        sequence:
-          - state: HARDWARE_TESTING
-            crew: FeedbackCrew
-            timeout: 1200
-            retry_attempts: 2
-
+          all:
+            - { field: "testing.passed", operator: "==", value: true }
     - state: COMPLETED
+      crew: null

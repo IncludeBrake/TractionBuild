@@ -40,4 +40,12 @@ def load_crew_registry():
 
 
 # Load the registry once on startup
-CREW_REGISTRY = load_crew_registry() 
+CREW_REGISTRY = load_crew_registry()
+
+# Ensure ObservabilityCrew is available
+try:
+    from .observability_crew import ObservabilityCrew
+    CREW_REGISTRY['ObservabilityCrew'] = ObservabilityCrew
+    logger.info("ObservabilityCrew registered successfully")
+except ImportError as e:
+    logger.warning(f"ObservabilityCrew not available: {e}") 
