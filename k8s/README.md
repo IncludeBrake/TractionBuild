@@ -5,15 +5,21 @@ This directory contains all the Kubernetes manifests and scripts needed to deplo
 ## Prerequisites
 
 - Kubernetes cluster (1.20+)
+
 - kubectl configured and connected to your cluster
+
 - Docker installed and configured
+
 - Container registry (Docker Hub, GCR, ECR, etc.)
+
 - Ingress controller (nginx-ingress recommended)
+
 - cert-manager (for SSL certificates)
 
 ## Quick Start
 
 1. **Update the configuration:**
+
    ```bash
    # Edit k8s/deploy.sh and update the REGISTRY variable
    REGISTRY="your-registry.com"
@@ -24,15 +30,18 @@ This directory contains all the Kubernetes manifests and scripts needed to deplo
    # Edit k8s/secret.yaml and add your API keys
    OPENAI_API_KEY: <base64-encoded-openai-key>
    ANTHROPIC_API_KEY: <base64-encoded-anthropic-key>
+
    ```
 
 2. **Make scripts executable:**
+
    ```bash
    chmod +x k8s/deploy.sh
    chmod +x k8s/cleanup.sh
    ```
 
 3. **Deploy to Kubernetes:**
+
    ```bash
    ./k8s/deploy.sh
    ```
@@ -43,24 +52,31 @@ If you prefer to deploy manually:
 
 ```bash
 # Create namespace
+
 kubectl apply -f k8s/namespace.yaml
 
 # Create ConfigMap and Secret
+
 kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/secret.yaml
 
 # Deploy Neo4j
+
 kubectl apply -f k8s/neo4j-deployment.yaml
 
 # Wait for Neo4j to be ready
+
 kubectl wait --for=condition=ready pod -l app=zerotoship,component=neo4j -n zerotoship
 
 # Deploy ZeroToShip application
+
 kubectl apply -f k8s/zerotoship-deployment.yaml
 
 # Create HPA and Ingress
+
 kubectl apply -f k8s/hpa.yaml
 kubectl apply -f k8s/ingress.yaml
+
 ```
 
 ## Configuration
@@ -70,36 +86,55 @@ kubectl apply -f k8s/ingress.yaml
 The application is configured through ConfigMaps and Secrets:
 
 **ConfigMap (k8s/configmap.yaml):**
+
 - `NEO4J_URI`: Neo4j connection URI
+
 - `NEO4J_USER`: Neo4j username
+
 - `PROMETHEUS_PORT`: Metrics port
+
 - `MEMORY_FILE_PATH`: Memory file path
+
 - `CREWAI_MEMORY_PATH`: CrewAI memory path
+
 - `HOME`: Home directory
+
 - `LOG_LEVEL`: Logging level
+
 - `ENVIRONMENT`: Environment name
 
 **Secret (k8s/secret.yaml):**
+
 - `NEO4J_PASSWORD`: Neo4j password
+
 - `OPENAI_API_KEY`: OpenAI API key
+
 - `ANTHROPIC_API_KEY`: Anthropic API key
 
 ### Resource Requirements
 
 **ZeroToShip Application:**
+
 - Requests: 500m CPU, 1Gi memory
+
 - Limits: 2000m CPU, 4Gi memory
 
 **Neo4j Database:**
+
 - Requests: 500m CPU, 1Gi memory
+
 - Limits: 2000m CPU, 4Gi memory
 
 ### Storage
 
 The deployment uses Persistent Volumes for:
+
 - Neo4j data (10Gi)
+
 - Neo4j logs (5Gi)
+
 - Application output (20Gi)
+
 - Application data (10Gi)
 
 ## Monitoring
@@ -107,21 +142,28 @@ The deployment uses Persistent Volumes for:
 ### Health Checks
 
 The application includes:
+
 - Liveness probe: `/metrics` endpoint
+
 - Readiness probe: `/metrics` endpoint
+
 - Startup probe: 60s initial delay
 
 ### Metrics
 
 Prometheus metrics are available at:
+
 - Endpoint: `/metrics`
+
 - Port: `8000`
 
 ### Logging
 
 View application logs:
+
 ```bash
 kubectl logs -f -l app=zerotoship,component=app -n zerotoship
+
 ```
 
 ## Scaling
@@ -129,16 +171,22 @@ kubectl logs -f -l app=zerotoship,component=app -n zerotoship
 ### Horizontal Pod Autoscaler
 
 The HPA automatically scales based on:
+
 - CPU utilization (70% target)
+
 - Memory utilization (80% target)
+
 - Min replicas: 3
+
 - Max replicas: 10
 
 ### Manual Scaling
 
 Scale manually:
+
 ```bash
 kubectl scale deployment zerotoship-app --replicas=5 -n zerotoship
+
 ```
 
 ## Access
@@ -146,15 +194,20 @@ kubectl scale deployment zerotoship-app --replicas=5 -n zerotoship
 ### Port Forward
 
 For local access:
+
 ```bash
 kubectl port-forward -n zerotoship svc/zerotoship-app 8000:8000
+
 ```
 
 ### Ingress
 
 The application is exposed via Ingress:
+
 - Host: `zerotoship.local` (update in k8s/ingress.yaml)
+
 - TLS: Automatic via cert-manager
+
 - Rate limiting: 100 requests per minute
 
 ## Troubleshooting
@@ -181,19 +234,25 @@ The application is exposed via Ingress:
 
 ```bash
 # Check pod status
+
 kubectl get pods -n zerotoship
 
 # Check events
+
 kubectl get events -n zerotoship --sort-by='.lastTimestamp'
 
 # Check resource usage
+
 kubectl top pods -n zerotoship
 
 # Check HPA status
+
 kubectl get hpa -n zerotoship
 
 # Check ingress status
+
 kubectl describe ingress zerotoship-ingress -n zerotoship
+
 ```
 
 ## Cleanup
@@ -202,11 +261,14 @@ To remove the deployment:
 
 ```bash
 ./k8s/cleanup.sh
+
 ```
 
 Or manually:
+
 ```bash
 kubectl delete namespace zerotoship
+
 ```
 
 ## Security Considerations

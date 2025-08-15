@@ -9,37 +9,57 @@ The **Advisory Board** is ZeroToShip's interactive AI-powered idea refinement sy
 The Advisory Board consists of five specialized AI agents that work together to:
 
 1. **Analyze** your initial idea using real-time market data
+
 2. **Refine** it into a specific, actionable mission statement
+
 3. **Validate** technical feasibility and market opportunity
+
 4. **Enhance** with creative innovations and differentiation strategies
+
 5. **Deliver** a comprehensive plan with next steps
 
 ## 👥 The Advisory Board Members
 
 ### 🎯 Chief Strategist & Orchestrator
+
 - **Role**: Leads the discussion and synthesizes insights
+
 - **Goal**: Transform vague ideas into hyper-targeted missions
+
 - **Expertise**: Venture strategy, prioritization, clarity
 
 ### 📊 Real-Time Market Analyst
+
 - **Role**: Provides data-driven market insights
+
 - **Goal**: Deliver objective market data and trends
+
 - **Tools**: Market Oracle Scanner (real-time data sources)
+
 - **Expertise**: SEO trends, Reddit sentiment, market sizing
 
 ### ❤️ User Champion & Empathy Advocate
+
 - **Role**: Ensures user-centric focus
+
 - **Goal**: Validate user desirability and pain points
+
 - **Expertise**: User research, empathy, customer validation
 
 ### 🔧 Tech Validator
+
 - **Role**: Assesses technical feasibility
+
 - **Goal**: Ensure ideas are technically viable
+
 - **Expertise**: Technology assessment, architecture planning
 
 ### 💡 Wild Card Innovator
+
 - **Role**: Introduces creative enhancements
+
 - **Goal**: Push boundaries and add unique value
+
 - **Expertise**: Innovation, differentiation, creative thinking
 
 ## 🚀 How to Use
@@ -47,6 +67,7 @@ The Advisory Board consists of five specialized AI agents that work together to:
 ### Option 1: Interactive Chat UI (Recommended)
 
 1. **Start the Chat UI**:
+
    ```bash
    streamlit run chat_ui.py
    ```
@@ -65,6 +86,7 @@ The Advisory Board consists of five specialized AI agents that work together to:
 from zerotoship.crews import AdvisoryBoardCrew
 
 # Initialize the crew
+
 project_data = {
     "idea": "I want to build an app that helps people manage their daily tasks",
     "user_id": "user_123",
@@ -74,18 +96,22 @@ project_data = {
 crew = AdvisoryBoardCrew(project_data)
 
 # Execute the advisory session
+
 result = await crew.run_async(project_data)
 
 # Access the results
+
 mission_statement = result.get("mission_statement")
 insights = result.get("insights")
 recommendations = result.get("recommendations")
+
 ```
 
 ### Option 3: API Integration
 
 ```bash
 # Start the workflow
+
 curl -X POST "http://localhost:8000/run-workflow/" \
   -H "Content-Type: application/json" \
   -d '{
@@ -94,7 +120,9 @@ curl -X POST "http://localhost:8000/run-workflow/" \
   }'
 
 # Check status
+
 curl "http://localhost:8000/task-status/{task_id}"
+
 ```
 
 ## 📊 Output Format
@@ -127,6 +155,7 @@ The Advisory Board returns structured results:
     "Start technical planning"
   ]
 }
+
 ```
 
 ## 🔧 Configuration
@@ -141,18 +170,22 @@ config = AdvisoryBoardCrewConfig(
     enable_interactive_refinement=True,
     max_refinement_iterations=3
 )
+
 ```
 
 ### Environment Variables
 
 ```bash
 # API Configuration
+
 ZEROTOSHIP_API_URL=http://localhost:8000
 ZEROTOSHIP_WORKFLOW_NAME=advisory_board_workflow
 
 # Market Oracle Configuration
+
 MARKET_ORACLE_ENABLED=true
 MARKET_ORACLE_TIMEOUT=30
+
 ```
 
 ## 🛠️ Development
@@ -161,22 +194,29 @@ MARKET_ORACLE_TIMEOUT=30
 
 ```bash
 # Test the Advisory Board Crew
+
 python test_advisory_board.py
 
 # Run all tests
+
 pytest tests/
+
 ```
 
 ### Adding New Market Data Sources
 
 1. **Extend MarketOracleTool** in `src/zerotoship/tools/market_oracle_tool.py`
+
 2. **Add new API integrations** for additional data sources
+
 3. **Update the tool's response format** to include new insights
 
 ### Customizing Agents
 
 1. **Modify agent definitions** in `src/zerotoship/crews/advisory_board_crew.py`
+
 2. **Add new tools** to specific agents
+
 3. **Adjust goals and backstories** for different use cases
 
 ## 🔍 Troubleshooting
@@ -207,7 +247,9 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Or in the crew configuration
+
 crew = AdvisoryBoardCrew(project_data, verbose=True)
+
 ```
 
 ## 🚀 Next Steps
@@ -215,14 +257,19 @@ crew = AdvisoryBoardCrew(project_data, verbose=True)
 After getting your refined mission statement:
 
 1. **Validate the idea** using the `ValidatorCrew`
+
 2. **Build the MVP** with the `BuilderCrew`
+
 3. **Launch and market** with the `LaunchCrew` and `MarketingCrew`
 
 ## 📚 Related Documentation
 
 - [ZeroToShip Overview](../README.md)
+
 - [Crew Architecture](CREW_ARCHITECTURE.md)
+
 - [API Documentation](API_GUIDE.md)
+
 - [Workflow Configuration](WORKFLOW_GUIDE.md)
 
 ## 🤝 Contributing
@@ -230,13 +277,19 @@ After getting your refined mission statement:
 To contribute to the Advisory Board:
 
 1. **Fork the repository**
+
 2. **Create a feature branch**
+
 3. **Make your changes**
+
 4. **Add tests**
+
 5. **Submit a pull request**
 
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/zerotoship/zerotoship/issues)
+
 - **Discussions**: [GitHub Discussions](https://github.com/zerotoship/zerotoship/discussions)
+
 - **Documentation**: [ZeroToShip Docs](https://zerotoship.dev)
