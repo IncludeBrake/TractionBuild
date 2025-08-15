@@ -14,6 +14,7 @@ from ..tools.celery_execution_tool import CeleryExecutionTool
 from ..models.task import Task as TaskModel
 from ..core.project_meta_memory import ProjectMetaMemoryManager
 from .base_crew import BaseCrew
+from ..utils.llm_factory import get_llm
 
 class ExecutionCrewConfig(BaseModel):
     """Configuration for the Execution Crew."""
@@ -35,12 +36,15 @@ class ExecutionCrew(BaseCrew):
 
     def _create_crew(self) -> Crew:
         """Create the Execution Crew with agents and tasks."""
+        # Get LLM from the factory
+        llm = get_llm()
+        
         agents = [
-            self.execution_agent(name="Task Decomposer", role="Task decomposition expert"),
-            self.execution_agent(name="Dependency Mapper", role="Dependency mapping specialist"),
-            self.execution_agent(name="Resource Planner", role="Resource allocation planner"),
-            self.execution_agent(name="Timeline Architect", role="Timeline construction expert"),
-            self.execution_agent(name="Execution Synthesizer", role="Execution plan synthesizer"),
+            self.execution_agent(name="Task Decomposer", role="Task decomposition expert", llm=llm),
+            self.execution_agent(name="Dependency Mapper", role="Dependency mapping specialist", llm=llm),
+            self.execution_agent(name="Resource Planner", role="Resource allocation planner", llm=llm),
+            self.execution_agent(name="Timeline Architect", role="Timeline construction expert", llm=llm),
+            self.execution_agent(name="Execution Synthesizer", role="Execution plan synthesizer", llm=llm),
         ]
 
         # Create tasks separately to avoid forward references

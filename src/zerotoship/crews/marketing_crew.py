@@ -15,6 +15,7 @@ from ..tools.market_oracle_tool import MarketOracleTool
 from ..tools.x_semantic_search_tool import XSemanticSearchTool
 from ..tools.celery_execution_tool import CeleryExecutionTool
 from ..core.project_meta_memory import ProjectMetaMemoryManager
+from ..utils.llm_factory import get_llm
 
 class MarketingCrewConfig(BaseModel):
     """Configuration for the Marketing Crew."""
@@ -36,12 +37,15 @@ class MarketingCrew(BaseCrew):
     def _create_crew(self) -> Crew:
         """Create the Marketing Crew with agents and tasks."""
         context = self.get_project_context()
+        # Get LLM from the factory
+        llm = get_llm()
+        
         agents = [
-            self.marketing_agent(name="Positioning Specialist", role="Market positioning expert", tools=[MarketOracleTool(), XSemanticSearchTool()]),
-            self.marketing_agent(name="Content Creator", role="Marketing content creator"),
-            self.marketing_agent(name="Channel Strategist", role="Distribution channel planner"),
-            self.marketing_agent(name="Launch Planner", role="Launch strategy developer"),
-            self.marketing_agent(name="Performance Analyst", role="Performance optimization expert"),
+            self.marketing_agent(name="Positioning Specialist", role="Market positioning expert", tools=[MarketOracleTool(), XSemanticSearchTool()], llm=llm),
+            self.marketing_agent(name="Content Creator", role="Marketing content creator", llm=llm),
+            self.marketing_agent(name="Channel Strategist", role="Distribution channel planner", llm=llm),
+            self.marketing_agent(name="Launch Planner", role="Launch strategy developer", llm=llm),
+            self.marketing_agent(name="Performance Analyst", role="Performance optimization expert", llm=llm),
         ]
 
         # Create tasks separately to avoid forward references

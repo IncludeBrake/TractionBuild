@@ -14,6 +14,7 @@ from ..tools.market_oracle_tool import MarketOracleTool
 from ..core.project_meta_memory import ProjectMetaMemoryManager
 from ..models.validation_result import ValidationResult
 from ..tools.celery_execution_tool import CeleryExecutionTool
+from ..utils.llm_factory import get_llm
 
 class ValidatorCrewConfig(BaseModel):
     """Configuration for the Validator Crew."""
@@ -39,6 +40,9 @@ class ValidatorCrew(BaseCrew):
         context = self.get_project_context()
         idea = context.get("idea", "")
 
+        # Get LLM from the factory
+        llm = get_llm()
+
         # Create agents
         market_researcher = Agent(
             role="Market Research Specialist",
@@ -46,7 +50,8 @@ class ValidatorCrew(BaseCrew):
             backstory="Expert with 15+ years in market analysis and trend identification",
             tools=[MarketOracleTool()],
             verbose=True,
-            allow_delegation=False
+            allow_delegation=False,
+            llm=llm
         )
 
         competitor_analyst = Agent(

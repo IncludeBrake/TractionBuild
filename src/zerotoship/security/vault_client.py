@@ -352,6 +352,35 @@ class VaultClient:
             logger.error(f"Decryption failed: {e}")
             return None
     
+    def read_llm_secrets(self, provider: str = "openai") -> Optional[Dict[str, str]]:
+        """Read LLM provider secrets from Vault.
+        
+        Args:
+            provider: LLM provider name (e.g., 'openai', 'anthropic', 'ollama')
+            
+        Returns:
+            Dictionary containing API keys and configuration
+        """
+        if not self._ensure_authenticated():
+            logger.error("Cannot read LLM secrets - not authenticated")
+            return None
+        
+        try:
+            # Read secrets from the LLM secrets path
+            secret_path = f"zerotoship/llm/{provider}"
+            secrets = self.get_secret(secret_path)
+            
+            if secrets:
+                logger.info(f"Successfully retrieved {provider} LLM secrets from Vault")
+                return secrets
+            else:
+                logger.warning(f"No {provider} LLM secrets found in Vault at {secret_path}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to read {provider} LLM secrets: {e}")
+            return None
+    
     def health_check(self) -> Dict[str, Any]:
         """Check Vault health and authentication status."""
         health_info = {

@@ -15,6 +15,7 @@ from ..tools.compliance_tool import ComplianceCheckerTool
 from ..tools.celery_execution_tool import CeleryExecutionTool
 from ..core.project_meta_memory import ProjectMetaMemoryManager
 from .base_crew import BaseCrew
+from ..utils.llm_factory import get_llm
 
 class BuilderCrewConfig(BaseModel):
     """Configuration for the Builder Crew."""
@@ -36,12 +37,15 @@ class BuilderCrew(BaseCrew):
 
     def _create_crew(self) -> Crew:
         """Create the Builder Crew with agents and tasks."""
+        # Get LLM from the factory
+        llm = get_llm()
+        
         agents = [
-            self.builder_agent(name="Code Architect", role="Code architect for system design", tools=[ComplianceCheckerTool()]),
-            self.builder_agent(name="Feature Implementer", role="Feature implementer for coding"),
-            self.builder_agent(name="Test Engineer", role="Test engineer for automated testing"),
-            self.builder_agent(name="Documentation Specialist", role="Documentation specialist"),
-            self.builder_agent(name="Code Reviewer", role="Code reviewer for quality assurance", tools=[ComplianceCheckerTool()]),
+            BuilderAgent(tools=[ComplianceCheckerTool()], llm=llm).agent,
+            BuilderAgent(llm=llm).agent,
+            BuilderAgent(llm=llm).agent,
+            BuilderAgent(llm=llm).agent,
+            BuilderAgent(tools=[ComplianceCheckerTool()], llm=llm).agent,
         ]
 
         # Create tasks separately to avoid forward references

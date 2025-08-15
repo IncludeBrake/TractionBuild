@@ -1,4 +1,19 @@
-version: '3.8'
+# In docker-compose.yml
+
+services:
+  # ... (neo4j, redis, api, worker, frontend services) ...
+
+  # NEW: The HashiCorp Vault Service
+  vault:
+    image: hashicorp/vault:latest
+    container_name: zerotoship-vault
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=my-root-token # For dev use only
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK # Required for Vault to function correctly
 
 services:
   zerotoship:

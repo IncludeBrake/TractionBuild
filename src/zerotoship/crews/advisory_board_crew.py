@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from .base_crew import BaseCrew
 from ..tools.market_oracle_tool import MarketOracleTool
 from ..core.project_meta_memory import ProjectMetaMemoryManager
+from ..utils.llm_factory import get_llm
 
 class AdvisoryBoardCrewConfig(BaseModel):
     """Configuration for the Advisory Board Crew."""
@@ -30,12 +31,16 @@ class AdvisoryBoardCrew(BaseCrew):
     def _create_crew(self) -> Crew:
         """Create the Advisory Board Crew with agents and tasks."""
         
+        # Get LLM from the factory
+        llm = get_llm()
+        
         # Define specialized agents
         strategist = Agent(
             role="Chief Strategist & Orchestrator",
             goal="Lead the advisory board discussion to transform a vague user idea into a hyper-targeted, data-validated mission. Enforce ruthless clarity and prioritization.",
             backstory="You are a seasoned venture catalyst. Your job is to cut through fluff, ask probing questions, and synthesize the board's insights into an actionable plan.",
             verbose=True,
+            llm=llm
         )
         
         market_analyst = Agent(
@@ -43,7 +48,8 @@ class AdvisoryBoardCrew(BaseCrew):
             goal="Provide immediate, data-driven insights on the market landscape, trends, and audience sentiment using the Market Oracle.",
             backstory="You are a data wizard with access to live market feeds. You provide the objective data the board needs to make informed decisions.",
             verbose=True,
-            tools=[MarketOracleTool()]
+            tools=[MarketOracleTool()],
+            llm=llm
         )
         
         user_champion = Agent(
@@ -51,6 +57,7 @@ class AdvisoryBoardCrew(BaseCrew):
             goal="Ensure the refined idea deeply resonates with a specific user pain point. Advocate for the user and maintain a motivational, collaborative tone.",
             backstory="You are the voice of the customer. You challenge the board to think from a user-centric perspective and ensure the final mission is desirable.",
             verbose=True,
+            llm=llm
         )
         
         tech_validator = Agent(
@@ -58,6 +65,7 @@ class AdvisoryBoardCrew(BaseCrew):
             goal="Validate the technical feasibility of the refined idea.",
             backstory="You are a tech expert ensuring the idea is technically viable.",
             verbose=True,
+            llm=llm
         )
         
         wild_card_innovator = Agent(
@@ -65,6 +73,7 @@ class AdvisoryBoardCrew(BaseCrew):
             goal="Introduce creative, out-of-the-box enhancements to the idea.",
             backstory="You are a creative thinker pushing the boundaries of innovation.",
             verbose=True,
+            llm=llm
         )
 
         # Define the refinement task

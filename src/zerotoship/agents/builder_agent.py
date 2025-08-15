@@ -34,22 +34,30 @@ class BuilderAgentConfig(BaseModel):
 class BuilderAgent:
     """Builder Agent for code generation and development."""
     
-    def __init__(self, config: Optional[BuilderAgentConfig] = None):
+    def __init__(self, config: Optional[BuilderAgentConfig] = None, llm=None, tools=None):
         """Initialize the Builder Agent."""
         self.config = config or BuilderAgentConfig()
-        self.tools = [CodeTools()]
+        self.llm = llm
+        self.tools = tools or [CodeTools()]
         self.agent = self._create_agent()
     
     def _create_agent(self) -> Agent:
         """Create the CrewAI agent instance."""
-        return Agent(
-            role=self.config.role,
-            goal=self.config.goal,
-            backstory=self.config.backstory,
-            verbose=self.config.verbose,
-            allow_delegation=self.config.allow_delegation,
-            max_iter=self.config.max_iterations
-        )
+        agent_kwargs = {
+            "role": self.config.role,
+            "goal": self.config.goal,
+            "backstory": self.config.backstory,
+            "verbose": self.config.verbose,
+            "allow_delegation": self.config.allow_delegation,
+            "max_iter": self.config.max_iterations,
+            "tools": self.tools
+        }
+        
+        # Add LLM if provided
+        if self.llm:
+            agent_kwargs["llm"] = self.llm
+        
+        return Agent(**agent_kwargs)
     
     async def generate_code(
         self, 
