@@ -173,4 +173,11 @@ Thumbs.db
 .env.production
 .env.staging
 secrets.json
-config.json 
+config.json
+
+# Large binary files
+hashicorp_vault/vault.exe
+*.exe
+*.dll
+*.so
+*.dylib 
