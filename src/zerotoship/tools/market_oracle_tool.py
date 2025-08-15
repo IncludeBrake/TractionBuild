@@ -4,7 +4,7 @@ Provides real-time market insights and trend analysis.
 """
 
 import asyncio
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from typing import Dict, Any
 
@@ -47,3 +47,7 @@ class MarketOracleTool(BaseTool):
                 "opportunity_score": 8.5
             }
         }
+
+    async def _arun(self, topic: str) -> Dict[str, Any]:
+        """Async version of the market oracle tool."""
+        return await self._run(topic)
