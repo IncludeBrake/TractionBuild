@@ -3,8 +3,7 @@ HashiCorp Vault integration for ZeroToShip.
 Provides secure secret management with zero-trust architecture.
 """
 
-import os
-import logging
+import os, logging
 from typing import Dict, Any, Optional
 import json
 from datetime import datetime, timedelta
@@ -26,165 +25,49 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 class VaultClient:
-    """Secure secrets management using HashiCorp Vault."""
-    
-    def __init__(self, vault_url: str = None, auth_method: str = "kubernetes"):
-        self.vault_url = vault_url or os.getenv('VAULT_ADDR', 'https://vault.zerotoship.ai')
-        self.auth_method = auth_method
-        self.client = None
-        self.authenticated = False
-        self.token_expiry = None
-        self.enabled = VAULT_AVAILABLE
-        
-        if not self.enabled:
-            logger.warning("Vault integration disabled - hvac not available")
-            return
-        
-        self._initialize_client()
-        logger.info(f"Vault client initialized for {self.vault_url}")
-    
-    def _initialize_client(self):
-        """Initialize the Vault client."""
-        if not VAULT_AVAILABLE:
-            return
-        
+    """Lazy, env-gated Vault client. Never connects at import time."""
+    def __init__(self):
+        self._enabled = str(os.getenv("ZTS_VAULT_ENABLED", "0")).lower() in ("1","true","yes")
+        self._client = None  # defer actual client init
+
+    def _ensure(self):
+        if not self._enabled:
+            return False
+        if self._client is not None:
+            return True
         try:
-            self.client = hvac.Client(url=self.vault_url)
-            
-            # Verify Vault is accessible
-            if self.client.sys.is_initialized() and not self.client.sys.is_sealed():
-                logger.info("Vault server is accessible and unsealed")
-            else:
-                logger.error("Vault server is not accessible or sealed")
-                self.enabled = False
-                
+            import hvac
+            addr = os.getenv("VAULT_ADDR", "")
+            token = os.getenv("VAULT_TOKEN", "")
+            if not addr or not token:
+                logger.warning("Vault disabled: missing VAULT_ADDR/VAULT_TOKEN")
+                self._enabled = False
+                return False
+            self._client = hvac.Client(url=addr, token=token)
+            return True
         except Exception as e:
-            logger.error(f"Failed to initialize Vault client: {e}")
-            self.enabled = False
-    
-    def authenticate(self) -> bool:
-        """Authenticate with Vault using the configured method."""
-        if not self.enabled:
+            logger.warning("Vault disabled: %s", e)
+            self._enabled = False
+            self._client = None
             return False
-        
-        try:
-            if self.auth_method == "kubernetes":
-                return self._authenticate_kubernetes()
-            elif self.auth_method == "token":
-                return self._authenticate_token()
-            else:
-                logger.error(f"Unsupported authentication method: {self.auth_method}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Vault authentication failed: {e}")
-            return False
-    
-    def _authenticate_kubernetes(self) -> bool:
-        """Authenticate using Kubernetes service account token."""
-        try:
-            # Read the service account token
-            token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-            if not os.path.exists(token_path):
-                logger.error("Kubernetes service account token not found")
-                return False
-            
-            with open(token_path, 'r') as f:
-                jwt_token = f.read().strip()
-            
-            # Authenticate with Vault
-            auth_path = os.getenv('VAULT_AUTH_PATH', 'auth/kubernetes')
-            role = os.getenv('VAULT_ROLE', 'zerotoship')
-            
-            response = self.client.auth.kubernetes.login(
-                role=role,
-                jwt=jwt_token,
-                mount_point=auth_path.replace('auth/', '')
-            )
-            
-            if response and response.get('auth'):
-                self.authenticated = True
-                # Calculate token expiry
-                lease_duration = response['auth'].get('lease_duration', 3600)
-                self.token_expiry = datetime.utcnow() + timedelta(seconds=lease_duration - 300)  # 5 min buffer
-                
-                logger.info(f"Successfully authenticated with Vault (expires: {self.token_expiry})")
-                return True
-            else:
-                logger.error("Vault authentication response invalid")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Kubernetes authentication failed: {e}")
-            return False
-    
-    def _authenticate_token(self) -> bool:
-        """Authenticate using Vault token."""
-        try:
-            token = os.getenv('VAULT_TOKEN')
-            if not token:
-                logger.error("VAULT_TOKEN environment variable not set")
-                return False
-            
-            self.client.token = token
-            
-            # Verify token is valid
-            if self.client.is_authenticated():
-                self.authenticated = True
-                logger.info("Successfully authenticated with Vault using token")
-                return True
-            else:
-                logger.error("Vault token is invalid")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Token authentication failed: {e}")
-            return False
-    
-    def _ensure_authenticated(self) -> bool:
-        """Ensure we have a valid authentication token."""
-        if not self.enabled:
-            return False
-        
-        # Check if we need to re-authenticate
-        if not self.authenticated or (self.token_expiry and datetime.utcnow() > self.token_expiry):
-            return self.authenticate()
-        
-        return self.authenticated
-    
-    def get_secret(self, path: str, key: str = None) -> Optional[Dict[str, Any]]:
-        """Retrieve a secret from Vault."""
-        if not self._ensure_authenticated():
-            logger.error("Cannot retrieve secret - not authenticated")
+
+    def get_secret(self, path: str):
+        if not self._ensure():
             return None
-        
         try:
-            # Read secret from KV v2 engine
-            response = self.client.secrets.kv.v2.read_secret_version(path=path)
-            
-            if response and 'data' in response and 'data' in response['data']:
-                secret_data = response['data']['data']
-                
-                if key:
-                    return secret_data.get(key)
-                else:
-                    return secret_data
-            else:
-                logger.error(f"Secret not found at path: {path}")
-                return None
-                
+            return self._client.secrets.kv.v2.read_secret_version(path=path)["data"]["data"]
         except Exception as e:
-            logger.error(f"Failed to retrieve secret from {path}: {e}")
+            logger.warning("Vault read failed for %s: %s", path, e)
             return None
     
     def set_secret(self, path: str, secret_data: Dict[str, Any]) -> bool:
         """Store a secret in Vault."""
-        if not self._ensure_authenticated():
+        if not self._ensure():
             logger.error("Cannot store secret - not authenticated")
             return False
         
         try:
-            response = self.client.secrets.kv.v2.create_or_update_secret(
+            response = self._client.secrets.kv.v2.create_or_update_secret(
                 path=path,
                 secret=secret_data
             )
@@ -202,12 +85,12 @@ class VaultClient:
     
     def get_database_credentials(self, database_name: str) -> Optional[Dict[str, str]]:
         """Get dynamic database credentials from Vault."""
-        if not self._ensure_authenticated():
+        if not self._ensure():
             return None
         
         try:
             # Request dynamic credentials from database engine
-            response = self.client.secrets.database.generate_credentials(name=database_name)
+            response = self._client.secrets.database.generate_credentials(name=database_name)
             
             if response and 'data' in response:
                 credentials = response['data']
@@ -228,7 +111,7 @@ class VaultClient:
     
     def get_pki_certificate(self, common_name: str, alt_names: list = None) -> Optional[Dict[str, str]]:
         """Generate a certificate from Vault PKI engine."""
-        if not self._ensure_authenticated():
+        if not self._ensure():
             return None
         
         try:
@@ -243,7 +126,7 @@ class VaultClient:
             if alt_names:
                 cert_data['alt_names'] = ','.join(alt_names)
             
-            response = self.client.secrets.pki.generate_certificate(
+            response = self._client.secrets.pki.generate_certificate(
                 name=role_name,
                 mount_point=pki_path,
                 extra_params=cert_data
@@ -268,7 +151,7 @@ class VaultClient:
     
     def get_encryption_key(self, key_name: str) -> Optional[str]:
         """Get or create an encryption key from Vault transit engine."""
-        if not self._ensure_authenticated():
+        if not self._ensure():
             return None
         
         try:
@@ -276,7 +159,7 @@ class VaultClient:
             
             # Try to read the key first
             try:
-                response = self.client.secrets.transit.read_key(
+                response = self._client.secrets.transit.read_key(
                     name=key_name,
                     mount_point=transit_path
                 )
@@ -287,7 +170,7 @@ class VaultClient:
                 pass  # Key doesn't exist, create it
             
             # Create the key if it doesn't exist
-            self.client.secrets.transit.create_key(
+            self._client.secrets.transit.create_key(
                 name=key_name,
                 mount_point=transit_path,
                 key_type='aes256-gcm96'
@@ -302,13 +185,13 @@ class VaultClient:
     
     def encrypt_data(self, key_name: str, plaintext: str) -> Optional[str]:
         """Encrypt data using Vault transit engine."""
-        if not self._ensure_authenticated():
+        if not self._ensure():
             return None
         
         try:
             transit_path = os.getenv('VAULT_TRANSIT_PATH', 'transit')
             
-            response = self.client.secrets.transit.encrypt_data(
+            response = self._client.secrets.transit.encrypt_data(
                 name=key_name,
                 mount_point=transit_path,
                 plaintext=plaintext
@@ -328,13 +211,13 @@ class VaultClient:
     
     def decrypt_data(self, key_name: str, ciphertext: str) -> Optional[str]:
         """Decrypt data using Vault transit engine."""
-        if not self._ensure_authenticated():
+        if not self._ensure():
             return None
         
         try:
             transit_path = os.getenv('VAULT_TRANSIT_PATH', 'transit')
             
-            response = self.client.secrets.transit.decrypt_data(
+            response = self._client.secrets.transit.decrypt_data(
                 name=key_name,
                 mount_point=transit_path,
                 ciphertext=ciphertext
@@ -361,7 +244,7 @@ class VaultClient:
         Returns:
             Dictionary containing API keys and configuration
         """
-        if not self._ensure_authenticated():
+        if not self._ensure():
             logger.error("Cannot read LLM secrets - not authenticated")
             return None
         
@@ -384,16 +267,16 @@ class VaultClient:
     def health_check(self) -> Dict[str, Any]:
         """Check Vault health and authentication status."""
         health_info = {
-            'vault_enabled': self.enabled,
-            'vault_url': self.vault_url,
-            'authenticated': self.authenticated,
-            'auth_method': self.auth_method,
+            'vault_enabled': self._enabled,
+            'vault_url': os.getenv('VAULT_ADDR', 'N/A'),
+            'authenticated': self._client is not None and self._client.is_authenticated(),
+            'auth_method': 'token', # Assuming token auth for this check
             'timestamp': datetime.utcnow().isoformat()
         }
         
-        if self.enabled and self.client:
+        if self._enabled and self._client:
             try:
-                health_response = self.client.sys.read_health_status()
+                health_response = self._client.sys.read_health_status()
                 health_info.update({
                     'vault_initialized': health_response.get('initialized', False),
                     'vault_sealed': health_response.get('sealed', True),

@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=
+
+###############################################################################
+# DEFAULT SOFTWARE BUILD
+# Full software development workflow with validation, build, marketing, and launch.
+###############################################################################
+default_software_build:
+  metadata:
+    description: "Full software development workflow with validation, build, marketing, and launch"
+    compliance: ["GDPR", "CCPA", "SOC2"]
+    visualize: true
+  sequence:
+    - state: IDEA_VALIDATION
+      crew: ValidatorCrew
+    - state: EXECUTION_PLANNING
+      crew: ExecutionCrew
+      conditions:
+        all:
+          - { field: "validation.confidence", operator: ">", value: 0.8 }
+          - { field: "validation.passed", operator: "==", value: true }
+    - state: PRODUCT_BUILD
+      crew: BuilderCrew
+    - state: COMPLETED
+      crew: null # Terminal states must have a null crew
+
+###############################################################################
+# VALIDATION AND LAUNCH
+# For non-software products or when the build is handled separately.
+###############################################################################
+validation_and_launch:
+  metadata:
+    description: "Validation-focused workflow with marketing and launch preparation"
+    compliance: ["GDPR", "CCPA"]
+    visualize: true
+  sequence:
+    - state: IDEA_VALIDATION
+      crew: ValidatorCrew
+    - parallel:
+        - state: MARKETING_PREPARATION
+          crew: MarketingCrew
+        - state: LAUNCH_PREPARATION
+          crew: LaunchCrew
+      conditions:
+        all:
+          - { field: "validation.confidence", operator: ">", value: 0.7 }
+          - { field: "validation.passed", operator: "==", value: true }
+    - state: FEEDBACK_COLLECTION
+      crew: FeedbackCrew
+    - state: COMPLETED
+      crew: null

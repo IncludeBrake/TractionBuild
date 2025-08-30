@@ -410,6 +410,25 @@ class ObservabilityCrew(BaseCrew):
         
         return recommendations
     
+    async def _execute_crew(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute the crew for detailed analysis."""
+        try:
+            # Create and run the crew
+            crew = self._create_crew()
+            result = await crew.kickoff()
+            
+            # Parse the result
+            if hasattr(result, 'raw') and result.raw:
+                return {"crew_output": result.raw}
+            elif hasattr(result, 'result') and result.result:
+                return {"crew_output": result.result}
+            else:
+                return {"crew_output": str(result)}
+                
+        except Exception as e:
+            logger.error(f"Error executing crew: {e}")
+            return {"crew_output": f"Error: {str(e)}"}
+
     async def run_async(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the observability analysis."""
         
@@ -428,7 +447,7 @@ class ObservabilityCrew(BaseCrew):
             
             # Combine results
             result = {
-                "metrics": metrics.dict(),
+                "metrics": metrics.model_dump(),
                 "anomalies": anomalies,
                 "recommendations": recommendations,
                 "crew_analysis": crew_result,

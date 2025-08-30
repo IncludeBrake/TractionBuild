@@ -37,7 +37,7 @@ async def test_observability_crew():
         
         # Test metrics collection
         metrics = await crew.collect_metrics()
-        print(f"✅ Metrics collected: {metrics.dict()}")
+        print(f"✅ Metrics collected: {metrics.model_dump()}")
         
         # Test anomaly detection
         anomalies = await crew.detect_anomalies(metrics)
@@ -90,7 +90,7 @@ async def test_metrics_model():
             compliance_score=0.95
         )
         
-        print(f"✅ Metrics model created: {metrics.dict()}")
+        print(f"✅ Metrics model created: {metrics.model_dump()}")
         return True
         
     except Exception as e:

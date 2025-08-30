@@ -21,10 +21,12 @@ class ComplianceCheckerTool(BaseTool):
     name: str = "GDPR Compliance Checker"
     description: str = "Scans text for Personally Identifiable Information (PII) and anonymizes it to ensure GDPR compliance."
     args_schema: type[BaseModel] = ComplianceArgs
+    analyzer: Any = Field(default=None, description="Presidio analyzer engine")
+    anonymizer: Any = Field(default=None, description="Presidio anonymizer engine")
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Initialize the Presidio engines."""
-        super().__init__()
+        super().__init__(**kwargs)
         self.analyzer = AnalyzerEngine()
         self.anonymizer = AnonymizerEngine()
 

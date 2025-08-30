@@ -1,0 +1,10 @@
+.PHONY: run test install
+
+install:
+	pip install fastapi uvicorn prometheus-client pytest httpx
+
+run:
+	uvicorn src.zerotoship.api.app_v1:app --host 0.0.0.0 --port 8000 --reload
+
+test:
+	python tests/test_e2e_min.py

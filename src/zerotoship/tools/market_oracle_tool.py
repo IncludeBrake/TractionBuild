@@ -19,12 +19,13 @@ class MarketOracleTool(BaseTool):
     description: str = "Scans real-time data sources like Reddit and SEO trends for insights on a given topic."
     args_schema: type[BaseModel] = MarketOracleArgs
 
-    async def _run(self, topic: str) -> Dict[str, Any]:
-        """Async execution to scan multiple sources without blocking."""
+    def _run(self, topic: str) -> Dict[str, Any]:
+        """Synchronous execution to scan multiple sources."""
         print(f"🔍 Oracle is scanning for topic: {topic}...")
         
         # Simulate API calls to real data sources
-        await asyncio.sleep(1.5)  # Simulate network delay
+        import time
+        time.sleep(0.5)  # Simulate network delay
         
         # Mock data - in production, this would be real API calls
         return {
@@ -50,4 +51,4 @@ class MarketOracleTool(BaseTool):
 
     async def _arun(self, topic: str) -> Dict[str, Any]:
         """Async version of the market oracle tool."""
-        return await self._run(topic)
+        return self._run(topic)

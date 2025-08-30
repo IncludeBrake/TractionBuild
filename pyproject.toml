@@ -1,8 +1,19 @@
 [tool.poetry]
 name = "zerotoship"
-version = "0.2.1"
+version = "2.0.0"
 description = "Zero to Ship AI-powered product development platform"
-authors = ["JessejThrift@gmail.com>"]
+authors = ["Jesse Thrift <JessejThrift@gmail.com>"]
+
+[project]
+name = "zerotoship"
+version = "2.0.0"
+description = "Zero to Ship AI-powered product development platform"
+authors = [
+    { name = "Jesse Thrift", email = "JessejThrift@gmail.com" }
+]
+# You can also add dependencies here, but since they're in the Poetry section,
+# it's not strictly necessary for uv to work.
+
 
 [tool.poetry.dependencies]
 python = "^3.12"

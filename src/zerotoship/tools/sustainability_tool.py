@@ -22,10 +22,12 @@ class SustainabilityTrackerTool(BaseTool):
     name: str = "Carbon Footprint Tracker"
     description: str = "Tracks the CO2 emissions of a given Python function call."
     args_schema: type[BaseModel] = SustainabilityArgs
+    tracking_mode: str = Field(default="offline", description="Tracking mode for emissions")
+    output_dir: str = Field(default="./emissions_data", description="Output directory for emissions data")
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Initialize the sustainability tracker."""
-        super().__init__()
+        super().__init__(**kwargs)
         self.tracking_mode = os.getenv('CODECARBON_MODE', 'offline')
         self.output_dir = os.getenv('CODECARBON_OUTPUT_DIR', './emissions_data')
 

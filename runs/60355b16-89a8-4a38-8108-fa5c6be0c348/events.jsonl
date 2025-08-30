@@ -1,0 +1,4 @@
+{"event": "status_update", "state": "IDEA_VALIDATION"}
+{"event": "step_complete", "agent": "validator", "duration_s": 2.002951000002213, "artifact_type": "validator"}
+{"event": "step_complete", "agent": "advisory", "duration_s": 2.010594899998978, "artifact_type": "advisory"}
+{"event": "status_update", "state": "COMPLETED"}

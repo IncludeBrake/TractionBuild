@@ -1,85 +1,46 @@
-# In docker-compose.yml
+version: '3.8'
 
 services:
-  # ... (neo4j, redis, api, worker, frontend services) ...
-
-  # NEW: The HashiCorp Vault Service
-  vault:
-    image: hashicorp/vault:latest
-    container_name: zerotoship-vault
-    ports:
-      - "8200:8200"
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=my-root-token # For dev use only
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
-    cap_add:
-      - IPC_LOCK # Required for Vault to function correctly
-
-services:
-  zerotoship:
+  api:
     build: .
-    container_name: zerotoship-app
-    environment:
-      - IDEA=${IDEA:-"Default Production Idea"}
-      - WORKFLOW=${WORKFLOW:-"validation_and_launch"}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-"test_password"}
-      - NEO4J_URI=${NEO4J_URI:-"neo4j://host.docker.internal:7687"}
-      - PROMETHEUS_PORT=8000
-      - MEMORY_FILE_PATH=/app/output/project_memory.json
-      - CREWAI_MEMORY_PATH=/app/output/crewai_memory
-      - HOME=/app
     ports:
-      - "8000:8000"  # Prometheus metrics
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app/src
     volumes:
-      - ./output:/app/output
-      - ./data:/app/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - ./src:/app/src
+      - ./config:/app/config
+    depends_on:
+      - postgres
+      - neo4j
+    command: ["uvicorn", "src.zerotoship.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
-  # Optional: Neo4j database for persistent storage
-  neo4j:
-    image: neo4j:5.15
-    container_name: zerotoship-neo4j
+  postgres:
+    image: postgres:15
     environment:
-      - NEO4J_AUTH=neo4j/test_password
-      - NEO4J_PLUGINS=["apoc"]
+      - POSTGRES_DB=zerotoship
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
     ports:
-      - "7474:7474"  # HTTP
-      - "7687:7687"  # Bolt
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+
+  neo4j:
+    image: neo4j:5
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_PLUGINS=["apoc"]
     volumes:
       - neo4j_data:/data
-      - neo4j_logs:/logs
-    restart: unless-stopped
-    profiles:
-      - with-database
-
-  # Alternative: Use external Neo4j (for when Neo4j runs on host)
-  zerotoship-external-neo4j:
-    build: .
-    container_name: zerotoship-app-external
-    environment:
-      - IDEA=${IDEA:-"Default Production Idea"}
-      - WORKFLOW=${WORKFLOW:-"validation_and_launch"}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-"test_password"}
-      - NEO4J_URI=neo4j://host.docker.internal:7687
-      - PROMETHEUS_PORT=8000
-      - MEMORY_FILE_PATH=/app/output/project_memory.json
-      - CREWAI_MEMORY_PATH=/app/output/crewai_memory
-      - HOME=/app
-    ports:
-      - "8000:8000"  # Prometheus metrics
-    volumes:
-      - ./output:/app/output
-      - ./data:/app/data
-    restart: unless-stopped
-    profiles:
-      - external-neo4j
 
 volumes:
+  postgres_data:
   neo4j_data:
-  neo4j_logs:

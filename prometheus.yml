@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s # How often to scrape targets
+  evaluation_interval: 15s # How often to evaluate rules
+
+scrape_configs:
+  - job_name: 'zerotoship'
+    static_configs:
+      - targets: ['api:8000'] # Tells Prometheus to scrape the service named 'api' on port 8000
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
