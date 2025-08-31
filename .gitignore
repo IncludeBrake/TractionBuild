@@ -181,3 +181,7 @@ hashicorp_vault/vault.exe
 *.dll
 *.so
 *.dylib 
+
+# Ignore large binaries and vendor directories
+/hashicorp_vault/
+*.exe
