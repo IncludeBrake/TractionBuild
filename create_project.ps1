@@ -97,7 +97,6 @@ try {
     Write-Host ""
     Write-Host "🔗 WebSocket URL: ws://localhost:8000/ws/projects/$projectId" -ForegroundColor Magenta
     Write-Host "📊 Status URL: $API_BASE/api/v1/projects/$projectId/status" -ForegroundColor Magenta
-    
 }
 catch {
     Write-Host "❌ Error creating project: $($_.Exception.Message)" -ForegroundColor Red

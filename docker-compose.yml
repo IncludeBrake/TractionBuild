@@ -1,46 +1,47 @@
-version: '3.8'
-
 services:
-  api:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - PYTHONPATH=/app/src
-    volumes:
-      - ./src:/app/src
-      - ./config:/app/config
-    depends_on:
-      - postgres
-      - neo4j
-    command: ["uvicorn", "src.zerotoship.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-
-  postgres:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=zerotoship
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command: >
-      postgres
-      -c shared_preload_libraries=pg_stat_statements
-      -c pg_stat_statements.track=all
-
   neo4j:
     image: neo4j:5
-    ports:
-      - "7474:7474"
-      - "7687:7687"
+    container_name: zerotoship-neo4j
     environment:
-      - NEO4J_AUTH=neo4j/password
-      - NEO4J_PLUGINS=["apoc"]
-    volumes:
-      - neo4j_data:/data
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+    ports: ["7474:7474", "7687:7687"]
+    volumes: [neo4j_data:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+
+  redis:
+    image: "redis:alpine"
+    container_name: zerotoship-redis
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+
+  api:
+    build: .
+    container_name: zerotoship-api
+    command: uvicorn zerotoship.api.app_v1:app --app-dir src --host 0.0.0.0 --port 8000 --reload
+    ports: ["8000:8000"]
+    env_file: .env
+
+  worker:
+    build: .
+    container_name: zerotoship-worker
+    command: celery -A src.zerotoship.tasks.celery_app worker --loglevel=info
+    env_file: .env
+    depends_on:
+      neo4j: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  frontend:
+    build: .
+    container_name: zerotoship-frontend
+    command: streamlit run chat_ui.py --server.port 8501 --server.address 0.0.0.0
+    ports: ["8501:8501"]
+    env_file: .env
+    depends_on:
+      api: { condition: service_started }
 
 volumes:
-  postgres_data:
   neo4j_data:

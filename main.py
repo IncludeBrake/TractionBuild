@@ -2,7 +2,8 @@
 Production-Ready Main Entry Point for ZeroToShip.
 Enhanced with workflow validation, tracking, monitoring, and comprehensive error handling.
 """
-
+from dotenv import load_dotenv
+load_dotenv()
 import asyncio
 import uuid
 import yaml

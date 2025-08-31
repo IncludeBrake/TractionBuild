@@ -13,4 +13,3 @@ class EventBus:
         await self.queues[project_id].put(event)
 
 bus = EventBus()  # import this, never re-instantiate
-

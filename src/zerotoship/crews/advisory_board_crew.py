@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from .base_crew import BaseCrew
 from ..tools.market_oracle_tool import MarketOracleTool
+from ..tools.graph_context_tool import GraphContextTool
 from ..core.project_meta_memory import ProjectMetaMemoryManager
 from ..utils.llm_factory import get_llm
 
@@ -40,6 +41,7 @@ class AdvisoryBoardCrew(BaseCrew):
             goal="Lead the advisory board discussion to transform a vague user idea into a hyper-targeted, data-validated mission. Enforce ruthless clarity and prioritization.",
             backstory="You are a seasoned venture catalyst. Your job is to cut through fluff, ask probing questions, and synthesize the board's insights into an actionable plan.",
             verbose=True,
+            tools=[GraphContextTool()],
             llm=llm
         )
         

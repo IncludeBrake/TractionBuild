@@ -6,9 +6,13 @@ Provides cost-effective text summarization using local LLM with cloud fallback.
 import os
 import requests
 from crewai.tools import BaseTool
-from openai import OpenAI
 from typing import Dict, Any
 from pydantic import BaseModel, Field
+
+# Import the unified LLM interface
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+from core.llm import chat as llm_chat
 
 class SummarizationArgs(BaseModel):
     """Arguments for the Summarization Tool."""
@@ -19,12 +23,12 @@ class SummarizationTool(BaseTool):
     """Hybrid summarization tool using local LLM with cloud fallback."""
     
     name: str = "Context Summarizer"
-    description: str = "Summarizes long text using a local LLM (Ollama) with a cloud fallback (OpenAI)."
+    description: str = "Summarizes long text using a local LLM (Ollama) with a unified LLM fallback."
     args_schema: type[BaseModel] = SummarizationArgs
 
     def _run(self, text: str, max_length: int = 150) -> str:
         """
-        Summarize text using local LLM first, fallback to OpenAI if needed.
+        Summarize text using local LLM first, fallback to unified LLM interface if needed.
         
         Args:
             text: The text to summarize
@@ -61,29 +65,26 @@ class SummarizationTool(BaseTool):
                 raise Exception("No response from Ollama")
                 
         except Exception as e:
-            # If Ollama fails or times out, fall back to OpenAI
-            print(f"🔄 Ollama failed: {e}. Falling back to OpenAI.")
+            # If Ollama fails or times out, fall back to unified LLM interface
+            print(f"🔄 Ollama failed: {e}. Falling back to unified LLM interface.")
             try:
-                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                completion = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "system", 
-                            "content": f"You are a helpful assistant that creates concise summaries of {max_length} words or less."
-                        },
-                        {
-                            "role": "user", 
-                            "content": f"Summarize this text: {text}"
-                        }
-                    ],
-                    max_tokens=max_length * 2,
-                    temperature=0.3
-                )
-                return completion.choices[0].message.content.strip()
+                messages = [
+                    {
+                        "role": "system", 
+                        "content": f"You are a helpful assistant that creates concise summaries of {max_length} words or less."
+                    },
+                    {
+                        "role": "user", 
+                        "content": f"Summarize this text: {text}"
+                    }
+                ]
                 
-            except Exception as openai_e:
-                error_msg = f"Both Ollama and OpenAI failed. Ollama error: {e}. OpenAI error: {openai_e}"
+                # Use the unified LLM interface - it will automatically use the configured provider
+                response = llm_chat(messages=messages, max_tokens=max_length * 2, temperature=0.3)
+                return response.strip()
+                
+            except Exception as llm_e:
+                error_msg = f"Both Ollama and unified LLM failed. Ollama error: {e}. LLM error: {llm_e}"
                 print(f"❌ {error_msg}")
                 return f"Summarization failed: {error_msg}"
 

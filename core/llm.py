@@ -13,18 +13,20 @@ PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()
 # This sets the specific model name for the chosen provider.
 MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
 
-# A simple in-memory cache
-_cache = {}
+# Import new cache system
+from .cache import cache_manager, generate_cache_key
 
-# Import token budget manager
+# Import new budget store
 try:
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from zerotoship.utils.token_budget import token_budget
-    TOKEN_BUDGET_AVAILABLE = True
+    from zerotoship.utils.budget_store import budget_store, UsageRecord
+    from zerotoship.utils.pricing import calculate_cost_usd
+    from zerotoship.utils.budget_errors import BudgetError, DailyBudgetExceededError, MonthlyBudgetExceededError
+    BUDGET_SYSTEM_AVAILABLE = True
 except ImportError:
-    TOKEN_BUDGET_AVAILABLE = False
-    print("--- Token budget tracking not available ---")
+    BUDGET_SYSTEM_AVAILABLE = False
+    print("--- Budget system not available ---")
 
 # Enhanced logging setup
 import logging
@@ -33,21 +35,30 @@ logger = logging.getLogger(__name__)
 def cache_result(func):
     @wraps(func)
     def wrapper(messages, **kwargs):
-        # Create a unique key based on the messages and model
-        message_str = json.dumps(messages, sort_keys=True)
-        key_str = f"{MODEL}:{message_str}"
-        key = hashlib.md5(key_str.encode()).hexdigest()
-
-        if key in _cache:
+        # Generate versioned cache key with TTL
+        key = generate_cache_key(messages, MODEL, **kwargs)
+        
+        # Check cache first
+        cached_result = cache_manager.get(key)
+        if cached_result is not None:
             logger.info("Returning response from cache for key: %s", key[:8] + "...")
-            # Record cache hit if budget tracking is available
-            if TOKEN_BUDGET_AVAILABLE:
-                token_budget.record_usage(0, is_cache_hit=True, model=MODEL)
-            return _cache[key]
+            # Record cache hit if budget system is available
+            if BUDGET_SYSTEM_AVAILABLE:
+                record = UsageRecord(
+                    scope="global",
+                    model=MODEL,
+                    tokens_input=0,
+                    tokens_output=0,
+                    cost_usd=0.0,
+                    is_cache_hit=True,
+                    provider=PROVIDER
+                )
+                budget_store.record_usage(record)
+            return cached_result
         
         # If not in cache, call the original function and store the result
         result = func(messages, **kwargs)
-        _cache[key] = result
+        cache_manager.set(key, result, MODEL)
         return result
     return wrapper
 
@@ -72,14 +83,52 @@ def chat(messages, **kwargs):
         # You need to install the openai library: pip install openai
         from openai import OpenAI
         client = OpenAI() # The client automatically looks for the OPENAI_API_KEY env var
-        response = client.chat.completions.create(model=MODEL, messages=messages, **kwargs)
         
-        # Track token usage if budget tracking is available
-        if TOKEN_BUDGET_AVAILABLE:
-            tokens_used = response.usage.total_tokens if hasattr(response, 'usage') else 0
-            token_budget.record_usage(tokens_used, is_cache_hit=False, model=MODEL)
+        # Check budget before making the call
+        if BUDGET_SYSTEM_AVAILABLE:
+            # Estimate cost based on input tokens (rough estimate)
+            input_tokens = sum(len(msg.get("content", "").split()) * 1.3 for msg in messages)
+            estimated_cost = calculate_cost_usd(MODEL, int(input_tokens), 0)
+            
+            # Create a temporary record to check budget
+            temp_record = UsageRecord(
+                scope="global",
+                model=MODEL,
+                tokens_input=int(input_tokens),
+                tokens_output=0,
+                cost_usd=estimated_cost,
+                is_cache_hit=False,
+                provider=PROVIDER
+            )
+            
+            if not budget_store.record_usage(temp_record):
+                raise BudgetError(f"Budget check failed for {MODEL}")
         
-        return response.choices[0].message.content
+        try:
+            response = client.chat.completions.create(model=MODEL, messages=messages, **kwargs)
+            
+            # Record actual usage
+            if BUDGET_SYSTEM_AVAILABLE:
+                input_tokens = response.usage.prompt_tokens if hasattr(response, 'usage') else 0
+                output_tokens = response.usage.completion_tokens if hasattr(response, 'usage') else 0
+                actual_cost = calculate_cost_usd(MODEL, input_tokens, output_tokens)
+                
+                record = UsageRecord(
+                    scope="global",
+                    model=MODEL,
+                    tokens_input=input_tokens,
+                    tokens_output=output_tokens,
+                    cost_usd=actual_cost,
+                    is_cache_hit=False,
+                    provider=PROVIDER
+                )
+                budget_store.record_usage(record)
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            logger.error(f"OpenAI API call failed: {e}")
+            raise
 
     # --- Provider 2: OpenAI-Compatible (Groq, Together, Fireworks, etc.) ---
     if PROVIDER == "openai_compat":
@@ -94,10 +143,24 @@ def chat(messages, **kwargs):
 
         response_data = response.json()
         
-        # Track token usage if budget tracking is available
-        if TOKEN_BUDGET_AVAILABLE:
-            tokens_used = response_data.get("usage", {}).get("total_tokens", 0)
-            token_budget.record_usage(tokens_used, is_cache_hit=False, model=MODEL)
+        # Track token usage if budget system is available
+        if BUDGET_SYSTEM_AVAILABLE:
+                tokens_used = response_data.get("usage", {}).get("total_tokens", 0)
+                # Estimate input/output split (rough approximation)
+                input_tokens = int(tokens_used * 0.7)
+                output_tokens = tokens_used - input_tokens
+                actual_cost = calculate_cost_usd(MODEL, input_tokens, output_tokens)
+                
+                record = UsageRecord(
+                    scope="global",
+                    model=MODEL,
+                    tokens_input=input_tokens,
+                    tokens_output=output_tokens,
+                    cost_usd=actual_cost,
+                    is_cache_hit=False,
+                    provider=PROVIDER
+                )
+                budget_store.record_usage(record)
 
         return response_data["choices"][0]["message"]["content"]
 
@@ -110,10 +173,22 @@ def chat(messages, **kwargs):
         # Anthropic's API has a slightly different structure
         response = client.messages.create(model=MODEL, max_tokens=1024, messages=messages, **kwargs)
         
-        # Track token usage if budget tracking is available
-        if TOKEN_BUDGET_AVAILABLE:
-            tokens_used = response.usage.input_tokens + response.usage.output_tokens if hasattr(response, 'usage') else 0
-            token_budget.record_usage(tokens_used, is_cache_hit=False, model=MODEL)
+        # Track token usage if budget system is available
+        if BUDGET_SYSTEM_AVAILABLE:
+            input_tokens = response.usage.input_tokens if hasattr(response, 'usage') else 0
+            output_tokens = response.usage.output_tokens if hasattr(response, 'usage') else 0
+            actual_cost = calculate_cost_usd(MODEL, input_tokens, output_tokens)
+            
+            record = UsageRecord(
+                scope="global",
+                model=MODEL,
+                tokens_input=input_tokens,
+                tokens_output=output_tokens,
+                cost_usd=actual_cost,
+                is_cache_hit=False,
+                provider=PROVIDER
+            )
+            budget_store.record_usage(record)
         
         return response.content[0].text
 
@@ -142,10 +217,22 @@ async def achat(messages, **kwargs):
             client = AsyncOpenAI()
             response = await client.chat.completions.create(model=MODEL, messages=messages, **kwargs)
             
-            # Track token usage if budget tracking is available
-            if TOKEN_BUDGET_AVAILABLE:
-                tokens_used = response.usage.total_tokens if hasattr(response, 'usage') else 0
-                token_budget.record_usage(tokens_used, is_cache_hit=False, model=MODEL)
+            # Track token usage if budget system is available
+            if BUDGET_SYSTEM_AVAILABLE:
+                input_tokens = response.usage.prompt_tokens if hasattr(response, 'usage') else 0
+                output_tokens = response.usage.completion_tokens if hasattr(response, 'usage') else 0
+                actual_cost = calculate_cost_usd(MODEL, input_tokens, output_tokens)
+                
+                record = UsageRecord(
+                    scope="global",
+                    model=MODEL,
+                    tokens_input=input_tokens,
+                    tokens_output=output_tokens,
+                    cost_usd=actual_cost,
+                    is_cache_hit=False,
+                    provider=PROVIDER
+                )
+                budget_store.record_usage(record)
             
             return response.choices[0].message.content
         except ImportError:
@@ -166,10 +253,24 @@ async def achat(messages, **kwargs):
             
             response_data = response.json()
             
-            # Track token usage if budget tracking is available
-            if TOKEN_BUDGET_AVAILABLE:
+            # Track token usage if budget system is available
+            if BUDGET_SYSTEM_AVAILABLE:
                 tokens_used = response_data.get("usage", {}).get("total_tokens", 0)
-                token_budget.record_usage(tokens_used, is_cache_hit=False, model=MODEL)
+                # Estimate input/output split (rough approximation)
+                input_tokens = int(tokens_used * 0.7)
+                output_tokens = tokens_used - input_tokens
+                actual_cost = calculate_cost_usd(MODEL, input_tokens, output_tokens)
+                
+                record = UsageRecord(
+                    scope="global",
+                    model=MODEL,
+                    tokens_input=input_tokens,
+                    tokens_output=output_tokens,
+                    cost_usd=actual_cost,
+                    is_cache_hit=False,
+                    provider=PROVIDER
+                )
+                budget_store.record_usage(record)
 
             return response_data["choices"][0]["message"]["content"]
         except ImportError:
@@ -185,10 +286,22 @@ async def achat(messages, **kwargs):
             # Anthropic's async API
             response = await client.messages.create(model=MODEL, max_tokens=1024, messages=messages, **kwargs)
             
-            # Track token usage if budget tracking is available
-            if TOKEN_BUDGET_AVAILABLE:
-                tokens_used = response.usage.input_tokens + response.usage.output_tokens if hasattr(response, 'usage') else 0
-                token_budget.record_usage(tokens_used, is_cache_hit=False, model=MODEL)
+            # Track token usage if budget system is available
+            if BUDGET_SYSTEM_AVAILABLE:
+                input_tokens = response.usage.input_tokens if hasattr(response, 'usage') else 0
+                output_tokens = response.usage.output_tokens if hasattr(response, 'usage') else 0
+                actual_cost = calculate_cost_usd(MODEL, input_tokens, output_tokens)
+                
+                record = UsageRecord(
+                    scope="global",
+                    model=MODEL,
+                    tokens_input=input_tokens,
+                    tokens_output=output_tokens,
+                    cost_usd=actual_cost,
+                    is_cache_hit=False,
+                    provider=PROVIDER
+                )
+                budget_store.record_usage(record)
             
             return response.content[0].text
         except ImportError:
@@ -199,17 +312,27 @@ async def achat(messages, **kwargs):
     raise ValueError(f"Async support not implemented for provider: {PROVIDER}")
 
 
-def get_usage_summary():
-    """Get current token usage summary if budget tracking is available."""
-    if TOKEN_BUDGET_AVAILABLE:
-        return token_budget.get_usage_summary()
-    return {"error": "Token budget tracking not available"}
+def get_usage_summary(scope: str = "global"):
+    """Get current token usage summary if budget system is available."""
+    if BUDGET_SYSTEM_AVAILABLE:
+        return budget_store.get_usage_summary(scope)
+    return {"error": "Budget system not available"}
 
 
-def reset_usage(period: str = "today"):
-    """Reset usage for specified period if budget tracking is available."""
-    if TOKEN_BUDGET_AVAILABLE:
-        token_budget.reset_usage(period)
-        logger.info("Reset usage for period: %s", period)
+def reset_usage(scope: str = "global", period: str = "today"):
+    """Reset usage for specified scope and period if budget system is available."""
+    if BUDGET_SYSTEM_AVAILABLE:
+        budget_store.reset_usage(scope, period)
+        logger.info("Reset usage for scope %s (%s)", scope, period)
     else:
-        logger.warning("Token budget tracking not available")
+        logger.warning("Budget system not available")
+
+
+def get_cache_stats():
+    """Get cache statistics."""
+    return cache_manager.get_stats()
+
+
+def cleanup_cache():
+    """Clean up expired cache entries."""
+    return cache_manager.cleanup_expired()

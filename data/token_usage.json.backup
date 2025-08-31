@@ -1,0 +1,16 @@
+{
+  "2025-08-30": {
+    "tokens_used": 20507,
+    "cost_usd": 0.24507000000000004,
+    "requests_made": 21,
+    "cache_hits": 1,
+    "last_reset": "2025-08-30"
+  },
+  "2025-08": {
+    "tokens_used": 20507,
+    "cost_usd": 0.24507000000000004,
+    "requests_made": 21,
+    "cache_hits": 1,
+    "last_reset": "2025-08"
+  }
+}
