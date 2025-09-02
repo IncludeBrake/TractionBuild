@@ -1,0 +1,40 @@
+#!/bin/bash
+
+echo "🐳 Testing TractionBuild Docker Container"
+
+# Build the image
+echo "📦 Building Docker image..."
+docker build -t TractionBuild-test .
+
+if [ $? -ne 0 ]; then
+    echo "❌ Docker build failed"
+    exit 1
+fi
+
+echo "✅ Docker build successful"
+
+# Test basic container startup
+echo "🚀 Testing container startup..."
+docker run --rm -d --name TractionBuild-test-container TractionBuild-test
+
+# Wait a moment for the container to start
+sleep 5
+
+# Check if container is running
+if docker ps | grep -q TractionBuild-test-container; then
+    echo "✅ Container started successfully"
+    
+    # Check container logs
+    echo "📋 Container logs:"
+    docker logs TractionBuild-test-container
+    
+    # Stop the container
+    docker stop TractionBuild-test-container
+    echo "✅ Container stopped successfully"
+else
+    echo "❌ Container failed to start"
+    docker logs TractionBuild-test-container
+    exit 1
+fi
+
+echo "🎉 All tests passed!"
