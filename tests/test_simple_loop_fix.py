@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple test script to demonstrate the infinite loop fix for ZeroToShip.
+Simple test script to demonstrate the infinite loop fix for tractionbuild.
 This script tests the marketing campaign workflow with the enhanced WorkflowEngine.
 """
 
@@ -17,14 +17,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Import ZeroToShip components
-from src.zerotoship.core.workflow_engine import WorkflowEngine
+# Import tractionbuild components
+from src.tractionbuild.core.workflow_engine import WorkflowEngine
 
 
 async def test_marketing_campaign_loop_fix():
     """Test the marketing campaign workflow with loop prevention."""
     
-    print("🚀 Testing ZeroToShip Marketing Campaign Workflow with Loop Prevention")
+    print("🚀 Testing tractionbuild Marketing Campaign Workflow with Loop Prevention")
     print("=" * 70)
     
     # Test idea
@@ -223,7 +223,7 @@ async def test_main_workflow():
 
 async def main():
     """Main test function."""
-    print("🧪 ZeroToShip Loop Prevention Test Suite")
+    print("🧪 tractionbuild Loop Prevention Test Suite")
     print("Testing infinite loop fix for marketing campaign workflow")
     print()
     

@@ -17,8 +17,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Import ZeroToShip components
-from src.zerotoship.core.workflow_engine import WorkflowEngine
+# Import tractionbuild components
+from src.tractionbuild.core.workflow_engine import WorkflowEngine
 
 
 async def test_hardened_workflow_engine():
@@ -167,7 +167,7 @@ async def test_schema_validation():
     print("🧪 TESTING SCHEMA VALIDATION")
     print("=" * 80)
     
-    from src.zerotoship.core.schema_validator import validate_workflows_against_schema
+    from src.tractionbuild.core.schema_validator import validate_workflows_against_schema
     
     # Test with valid workflow
     valid_workflow = {
@@ -248,7 +248,7 @@ async def test_main_workflow_integration():
 
 async def main():
     """Main test function."""
-    print("🧪 ZeroToShip Hardened Engine Test Suite")
+    print("🧪 tractionbuild Hardened Engine Test Suite")
     print("Testing the final, production-hardened WorkflowEngine")
     print()
     

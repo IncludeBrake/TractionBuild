@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zerotoship-neo4j
-  namespace: zerotoship
+  name: tractionbuild-neo4j
+  namespace: tractionbuild
   labels:
-    app: zerotoship
+    app: tractionbuild
     component: neo4j
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: zerotoship
+      app: tractionbuild
       component: neo4j
   template:
     metadata:
       labels:
-        app: zerotoship
+        app: tractionbuild
         component: neo4j
     spec:
       containers:
@@ -72,10 +72,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: zerotoship-neo4j
-  namespace: zerotoship
+  name: tractionbuild-neo4j
+  namespace: tractionbuild
   labels:
-    app: zerotoship
+    app: tractionbuild
     component: neo4j
 spec:
   type: ClusterIP
@@ -87,14 +87,14 @@ spec:
     targetPort: 7687
     name: bolt
   selector:
-    app: zerotoship
+    app: tractionbuild
     component: neo4j
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: neo4j-data-pvc
-  namespace: zerotoship
+  namespace: tractionbuild
 spec:
   accessModes:
     - ReadWriteOnce
@@ -106,7 +106,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: neo4j-logs-pvc
-  namespace: zerotoship
+  namespace: tractionbuild
 spec:
   accessModes:
     - ReadWriteOnce

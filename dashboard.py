@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-ZeroToShip Observability Dashboard
+tractionbuild Observability Dashboard
 ==================================
 
-A real-time dashboard for monitoring ZeroToShip performance, quality, and costs.
+A real-time dashboard for monitoring tractionbuild performance, quality, and costs.
 """
 
 import streamlit as st
@@ -18,7 +18,7 @@ import numpy as np
 
 # Configure Streamlit page
 st.set_page_config(
-    page_title="ZeroToShip Dashboard",
+    page_title="tractionbuild Dashboard",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -28,7 +28,7 @@ st.set_page_config(
 API_BASE_URL = "http://localhost:8000"
 
 def get_api_data(endpoint):
-    """Get data from the ZeroToShip API."""
+    """Get data from the tractionbuild API."""
     try:
         response = requests.get(f"{API_BASE_URL}{endpoint}", timeout=5)
         response.raise_for_status()
@@ -75,7 +75,7 @@ def main():
     """Main dashboard function."""
     
     # Header
-    st.title("🚀 ZeroToShip Observability Dashboard")
+    st.title("🚀 tractionbuild Observability Dashboard")
     st.markdown("Real-time monitoring of AI-powered product development")
     
     # Sidebar
@@ -90,7 +90,7 @@ def main():
     overview_data = get_api_data("/dashboard/overview")
     
     if overview_data is None:
-        st.error("Unable to connect to ZeroToShip API. Please ensure the API server is running.")
+        st.error("Unable to connect to tractionbuild API. Please ensure the API server is running.")
         return
     
     # Main dashboard layout

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Minimal E2E test for ZeroToShip glue patch
+Minimal E2E test for tractionbuild glue patch
 Tests the basic flow: create project → run workflow → get results
 """
 

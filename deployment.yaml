@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zerotoship-deployment
+  name: tractionbuild-deployment
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: zerotoship
+      app: tractionbuild
   template:
     metadata:
       labels:
-        app: zerotoship
+        app: tractionbuild
     spec:
       containers:
-      - name: zerotoship
-        image: zerotoship-test:latest # This now matches the name from your build log
+      - name: tractionbuild
+        image: tractionbuild-test:latest # This now matches the name from your build log
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000

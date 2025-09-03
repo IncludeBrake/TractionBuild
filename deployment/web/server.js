@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'healthy', 
-        service: 'ZeroToShip Web Interface',
+        service: 'tractionbuild Web Interface',
         version: '1.0.0'
     });
 });
@@ -76,7 +76,7 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚀 ZeroToShip Web Interface running on port ${PORT}`);
+    console.log(`🚀 tractionbuild Web Interface running on port ${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🌐 Web interface: http://localhost:${PORT}`);
 });

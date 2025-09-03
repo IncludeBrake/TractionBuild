@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# ZeroToShip Kubernetes Deployment Script
+# tractionbuild Kubernetes Deployment Script
 set -e
 
-echo "🚀 Deploying ZeroToShip to Kubernetes..."
+echo "🚀 Deploying tractionbuild to Kubernetes..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -12,8 +12,8 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-NAMESPACE="zerotoship"
-IMAGE_NAME="zerotoship"
+NAMESPACE="tractionbuild"
+IMAGE_NAME="tractionbuild"
 IMAGE_TAG="latest"
 REGISTRY="your-registry.com"  # Change this to your container registry
 
@@ -64,10 +64,10 @@ print_status "Deploying Neo4j..."
 kubectl apply -f k8s/neo4j-deployment.yaml
 
 print_status "Waiting for Neo4j to be ready..."
-kubectl wait --for=condition=ready pod -l app=zerotoship,component=neo4j -n ${NAMESPACE} --timeout=300s
+kubectl wait --for=condition=ready pod -l app=tractionbuild,component=neo4j -n ${NAMESPACE} --timeout=300s
 
-print_status "Deploying ZeroToShip application..."
-kubectl apply -f k8s/zerotoship-deployment.yaml
+print_status "Deploying tractionbuild application..."
+kubectl apply -f k8s/tractionbuild-deployment.yaml
 
 print_status "Creating Horizontal Pod Autoscaler..."
 kubectl apply -f k8s/hpa.yaml
@@ -76,7 +76,7 @@ print_status "Creating Ingress..."
 kubectl apply -f k8s/ingress.yaml
 
 print_status "Waiting for application to be ready..."
-kubectl wait --for=condition=ready pod -l app=zerotoship,component=app -n ${NAMESPACE} --timeout=300s
+kubectl wait --for=condition=ready pod -l app=tractionbuild,component=app -n ${NAMESPACE} --timeout=300s
 
 print_status "Deployment completed successfully!"
 
@@ -94,11 +94,11 @@ echo "🔗 Ingress:"
 kubectl get ingress -n ${NAMESPACE}
 
 print_status "To access the application:"
-echo "  1. Update your /etc/hosts file to point zerotoship.local to your cluster IP"
-echo "  2. Or use port-forward: kubectl port-forward -n ${NAMESPACE} svc/zerotoship-app 8000:8000"
+echo "  1. Update your /etc/hosts file to point tractionbuild.local to your cluster IP"
+echo "  2. Or use port-forward: kubectl port-forward -n ${NAMESPACE} svc/tractionbuild-app 8000:8000"
 echo ""
 print_status "To view logs:"
-echo "  kubectl logs -f -l app=zerotoship,component=app -n ${NAMESPACE}"
+echo "  kubectl logs -f -l app=tractionbuild,component=app -n ${NAMESPACE}"
 echo ""
 print_status "To scale the application:"
-echo "  kubectl scale deployment zerotoship-app --replicas=5 -n ${NAMESPACE}"
+echo "  kubectl scale deployment tractionbuild-app --replicas=5 -n ${NAMESPACE}"

@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# ZeroToShip Kubernetes Cleanup Script
+# tractionbuild Kubernetes Cleanup Script
 set -e
 
-echo "🧹 Cleaning up ZeroToShip from Kubernetes..."
+echo "🧹 Cleaning up tractionbuild from Kubernetes..."
 
 # Configuration
-NAMESPACE="zerotoship"
+NAMESPACE="tractionbuild"
 
 # Colors for output
 RED='\033[0;31m'
@@ -32,7 +32,7 @@ if ! command -v kubectl &> /dev/null; then
     exit 1
 fi
 
-print_warning "This will delete all ZeroToShip resources from the cluster!"
+print_warning "This will delete all tractionbuild resources from the cluster!"
 read -p "Are you sure you want to continue? (y/N): " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -46,8 +46,8 @@ kubectl delete -f k8s/ingress.yaml --ignore-not-found=true
 print_status "Deleting Horizontal Pod Autoscaler..."
 kubectl delete -f k8s/hpa.yaml --ignore-not-found=true
 
-print_status "Deleting ZeroToShip application..."
-kubectl delete -f k8s/zerotoship-deployment.yaml --ignore-not-found=true
+print_status "Deleting tractionbuild application..."
+kubectl delete -f k8s/tractionbuild-deployment.yaml --ignore-not-found=true
 
 print_status "Deleting Neo4j..."
 kubectl delete -f k8s/neo4j-deployment.yaml --ignore-not-found=true
@@ -65,5 +65,5 @@ print_status "Cleanup completed successfully!"
 
 echo ""
 print_status "Note: Persistent volumes may still exist. To delete them:"
-echo "  kubectl get pvc -A | grep zerotoship"
+echo "  kubectl get pvc -A | grep tractionbuild"
 echo "  kubectl delete pvc <pvc-name> -n <namespace>"

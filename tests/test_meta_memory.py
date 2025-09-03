@@ -6,7 +6,7 @@ import asyncio
 import tempfile
 import shutil
 from pathlib import Path
-from src.zerotoship.core.project_meta_memory import (
+from src.tractionbuild.core.project_meta_memory import (
     ProjectMetaMemoryManager, 
     ProjectMetaMemory, 
     MemoryType, 

@@ -20,9 +20,9 @@ from .cache import cache_manager, generate_cache_key
 try:
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from zerotoship.utils.budget_store import budget_store, UsageRecord
-    from zerotoship.utils.pricing import calculate_cost_usd
-    from zerotoship.utils.budget_errors import BudgetError, DailyBudgetExceededError, MonthlyBudgetExceededError
+    from tractionbuild.utils.budget_store import budget_store, UsageRecord
+    from tractionbuild.utils.pricing import calculate_cost_usd
+    from tractionbuild.utils.budget_errors import BudgetError, DailyBudgetExceededError, MonthlyBudgetExceededError
     BUDGET_SYSTEM_AVAILABLE = True
 except ImportError:
     BUDGET_SYSTEM_AVAILABLE = False

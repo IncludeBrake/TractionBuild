@@ -3,7 +3,7 @@ global:
   evaluation_interval: 15s # How often to evaluate rules
 
 scrape_configs:
-  - job_name: 'zerotoship'
+  - job_name: 'tractionbuild'
     static_configs:
       - targets: ['api:8000'] # Tells Prometheus to scrape the service named 'api' on port 8000
     metrics_path: '/metrics'

@@ -1,85 +1,115 @@
-# ZeroToShip Agent Configuration
-# Defines the roles, capabilities, and configurations for all agents
+# tractionbuild Agent Configuration
+# Defines roles, capabilities, and configurations for agents and crews
+# Optimized for minimal token usage, compliance, and xAI integration
+
+defaults:
+  model: "grok3"  # Use xAI's Grok 3 for cost efficiency
+  model_fallback: "gpt-4o-mini"  # Fallback for unavailable tasks
+  temperature: 0.3  # Default for balanced outputs
+  max_iterations: 5  # Reduced for efficiency
+  verbose: true
+  allow_delegation: false
+  compliance:
+    policies: ["GDPR", "CCPA", "SOC2"]
+    pii_redaction: true  # Enable PII redaction via cache.py
+    audit_logging: true  # Log via logs_dao in app.py
+
+tools:
+  market_tools:
+    version: "2.1"
+    endpoint: "https://api.marketdata.com/v2"
+    auth: "X_API_KEY"  # Reference env var from .env
+    llm: "grok3"  # xAI for real-time market data
+  web_search:
+    version: "1.0"
+    provider: "xai_search"  # Use xAI's DeepSearch if activated
+    llm: "grok3"  # xAI for current web search results
+  data_analysis:
+    version: "1.2"
+    library: "pandas"
+    llm: "gpt-3.5-turbo"  # Cheapest for structured data analysis
+  graph_tools:
+    version: "1.1"
+    backend: "neo4j"
+    llm: "gpt-3.5-turbo"  # Cheapest for graph operations
+  neo4j_tools:
+    version: "1.0"
+    uri: "neo4j://localhost:7687"
+    llm: "gpt-3.5-turbo"  # Cheapest for database operations
+  mermaid_tools:
+    version: "1.0"
+    output: "svg"
+    llm: "gpt-3.5-turbo"  # Cheapest for diagram generation
+  code_tools:
+    version: "2.0"
+    languages: ["python", "javascript"]
+    llm: "gpt-3.5-turbo"  # Cheapest capable for code generation
+  git_tools:
+    version: "1.1"
+    provider: "github"
+    llm: "gpt-3.5-turbo"  # Cheapest for git operations
+  testing_tools:
+    version: "1.2"
+    frameworks: ["pytest", "jest"]
+    llm: "gpt-4o-mini"  # Balanced: precision for testing + cost efficiency
+  design_tools:
+    version: "1.0"
+    formats: ["png", "svg"]
+    llm: "grok3"  # xAI for creative design decisions
+  social_media_tools:
+    version: "2.0"
+    platforms: ["x"]
+    auth: ["X_BEARER_TOKEN", "X_API_KEY", "X_ACCESS_TOKEN"]  # Aligned with X API keys
+    llm: "grok3"  # xAI for current social media trends and content
+  analytics_tools:
+    version: "1.1"
+    metrics: ["performance", "user_engagement"]
+    llm: "gpt-3.5-turbo"  # Cheapest for structured analytics
+  feedback_tools:
+    version: "1.0"
+    sources: ["user_feedback", "system_logs"]
+    llm: "gpt-3.5-turbo"  # Cheapest for feedback analysis
 
 agents:
   validator:
     name: "Validator Agent"
     role: "Market Research and Idea Validation"
-    description: "Validates ideas through market research, competitor analysis, and MVP scoping"
-    capabilities:
-      - market_research
-      - competitor_analysis
-      - mvp_scoping
-      - validation_reporting
-    tools:
-      - market_tools
-      - web_search
-      - data_analysis
-    model: "gpt-4-turbo-preview"
+    description: "Validates ideas via market research and MVP scoping"
+    capabilities: ["market_research", "competitor_analysis", "mvp_scoping", "validation_reporting"]
+    tools: ["market_tools", "web_search", "data_analysis"]
+    model: "grok3"  # xAI for real-time market insights
     temperature: 0.3
-
   execution_graph:
     name: "Execution Graph Agent"
     role: "Task Decomposition and Planning"
-    description: "Breaks down ideas into atomic tasks and creates execution graphs"
-    capabilities:
-      - task_decomposition
-      - priority_analysis
-      - dependency_mapping
-      - graph_generation
-    tools:
-      - graph_tools
-      - neo4j_tools
-      - mermaid_tools
-    model: "gpt-4-turbo-preview"
+    description: "Creates execution graphs from ideas"
+    capabilities: ["task_decomposition", "priority_analysis", "dependency_mapping", "graph_generation"]
+    tools: ["graph_tools", "neo4j_tools", "mermaid_tools"]
+    model: "gpt-3.5-turbo"  # Cheapest for structured planning
     temperature: 0.2
-
   builder:
     name: "Builder Agent"
     role: "Code Generation and Development"
-    description: "Generates code, implements features, and ensures code quality"
-    capabilities:
-      - code_generation
-      - testing
-      - refactoring
-      - documentation
-    tools:
-      - code_tools
-      - git_tools
-      - testing_tools
-    model: "gpt-4-turbo-preview"
+    description: "Generates and tests code"
+    capabilities: ["code_generation", "testing", "refactoring", "documentation"]
+    tools: ["code_tools", "git_tools", "testing_tools"]
+    model: "gpt-3.5-turbo"  # Cheapest capable for code generation
     temperature: 0.1
-
   marketing:
     name: "Marketing Agent"
     role: "Launch Preparation and Positioning"
-    description: "Creates marketing assets, positioning, and launch strategies"
-    capabilities:
-      - copywriting
-      - asset_creation
-      - positioning
-      - launch_planning
-    tools:
-      - market_tools
-      - design_tools
-      - social_media_tools
-    model: "gpt-4-turbo-preview"
+    description: "Creates marketing assets and strategies"
+    capabilities: ["copywriting", "asset_creation", "positioning", "launch_planning"]
+    tools: ["market_tools", "design_tools", "social_media_tools"]
+    model: "grok3"  # xAI for current trends and social media
     temperature: 0.4
-
   feedback:
     name: "Feedback Agent"
     role: "Learning and Improvement"
-    description: "Analyzes results, learns from feedback, and updates knowledge graphs"
-    capabilities:
-      - performance_analysis
-      - learning_extraction
-      - knowledge_updates
-      - optimization
-    tools:
-      - neo4j_tools
-      - analytics_tools
-      - feedback_tools
-    model: "gpt-4-turbo-preview"
+    description: "Analyzes feedback and updates knowledge graphs"
+    capabilities: ["performance_analysis", "learning_extraction", "knowledge_updates", "optimization"]
+    tools: ["neo4j_tools", "analytics_tools", "feedback_tools"]
+    model: "gpt-3.5-turbo"  # Cheapest for structured analysis
     temperature: 0.3
 
 crews:
@@ -87,34 +117,24 @@ crews:
     name: "Validator Crew"
     agents: ["validator"]
     workflow: "sequential"
-    max_iterations: 3
-
   execution_crew:
     name: "Execution Graph Crew"
     agents: ["execution_graph"]
     workflow: "sequential"
-    max_iterations: 5
-
   builder_crew:
     name: "Builder Crew"
     agents: ["builder"]
     workflow: "sequential"
-    max_iterations: 10
-
   marketing_crew:
     name: "Marketing Crew"
     agents: ["marketing"]
     workflow: "sequential"
-    max_iterations: 3
-
   feedback_crew:
     name: "Feedback Crew"
     agents: ["feedback"]
     workflow: "sequential"
-    max_iterations: 2
-
   main_crew:
-    name: "ZeroToShip Main Crew"
+    name: "TractionBuild Main Crew"
     agents: ["validator", "execution_graph", "builder", "marketing", "feedback"]
     workflow: "hierarchical"
-    max_iterations: 15 
+    max_iterations: 10  # Reduced for cost efficiency

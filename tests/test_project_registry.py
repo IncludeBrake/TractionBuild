@@ -6,7 +6,7 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
-from src.zerotoship.database.project_registry import ProjectRegistry
+from src.tractionbuild.database.project_registry import ProjectRegistry
 
 
 async def test_project_registry():

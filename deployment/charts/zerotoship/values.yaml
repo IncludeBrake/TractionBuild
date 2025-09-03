@@ -1,4 +1,4 @@
-# ZeroToShip Helm Chart Values
+# tractionbuild Helm Chart Values
 # Production-ready configuration for enterprise deployment
 
 # Global configuration
@@ -9,7 +9,7 @@ global:
 
 # Application configuration
 app:
-  name: zerotoship
+  name: tractionbuild
   version: "1.0.0"
   
 # API Gateway configuration
@@ -17,7 +17,7 @@ api:
   enabled: true
   replicaCount: 3
   image:
-    repository: zerotoship/api
+    repository: tractionbuild/api
     tag: "1.0.0"
     pullPolicy: IfNotPresent
   
@@ -34,14 +34,14 @@ api:
       nginx.ingress.kubernetes.io/rate-limit: "100"
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
     hosts:
-      - host: api.zerotoship.ai
+      - host: api.tractionbuild.ai
         paths:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: zerotoship-api-tls
+      - secretName: tractionbuild-api-tls
         hosts:
-          - api.zerotoship.ai
+          - api.tractionbuild.ai
   
   resources:
     limits:
@@ -63,7 +63,7 @@ worker:
   enabled: true
   replicaCount: 5
   image:
-    repository: zerotoship/worker
+    repository: tractionbuild/worker
     tag: "1.0.0"
     pullPolicy: IfNotPresent
   
@@ -93,7 +93,7 @@ scheduler:
   enabled: true
   replicaCount: 1
   image:
-    repository: zerotoship/scheduler
+    repository: tractionbuild/scheduler
     tag: "1.0.0"
     pullPolicy: IfNotPresent
   
@@ -111,7 +111,7 @@ redis:
   architecture: replication
   auth:
     enabled: true
-    password: "zerotoship-redis-password"
+    password: "tractionbuild-redis-password"
   master:
     persistence:
       enabled: true
@@ -126,8 +126,8 @@ redis:
 postgresql:
   enabled: true
   auth:
-    postgresPassword: "zerotoship-postgres-password"
-    database: "zerotoship"
+    postgresPassword: "tractionbuild-postgres-password"
+    database: "tractionbuild"
   primary:
     persistence:
       enabled: true
@@ -142,7 +142,7 @@ neo4j:
     repository: neo4j
     tag: "5.15.0"
   auth:
-    password: "zerotoship-neo4j-password"
+    password: "tractionbuild-neo4j-password"
   persistence:
     enabled: true
     size: 50Gi
@@ -179,7 +179,7 @@ spiffe:
       size: 10Gi
     
     config:
-      trustDomain: "zerotoship.ai"
+      trustDomain: "tractionbuild.ai"
       
   # SPIRE Agent
   agent:
@@ -209,21 +209,21 @@ monitoring:
         enabled: true
         size: 100Gi
     
-    # Custom scrape configs for ZeroToShip metrics
+    # Custom scrape configs for tractionbuild metrics
     extraScrapeConfigs: |
-      - job_name: 'zerotoship-api'
+      - job_name: 'tractionbuild-api'
         static_configs:
-          - targets: ['zerotoship-api:8080']
+          - targets: ['tractionbuild-api:8080']
         metrics_path: '/metrics'
         scrape_interval: 30s
       
-      - job_name: 'zerotoship-workers'
+      - job_name: 'tractionbuild-workers'
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
             action: keep
-            regex: zerotoship-worker
+            regex: tractionbuild-worker
           - source_labels: [__meta_kubernetes_pod_ip]
             target_label: __address__
             replacement: '${1}:8000'
@@ -231,7 +231,7 @@ monitoring:
   # Grafana
   grafana:
     enabled: true
-    adminPassword: "zerotoship-grafana-admin"
+    adminPassword: "tractionbuild-grafana-admin"
     
     persistence:
       enabled: true
@@ -242,30 +242,30 @@ monitoring:
       dashboardproviders.yaml:
         apiVersion: 1
         providers:
-        - name: 'zerotoship'
+        - name: 'tractionbuild'
           orgId: 1
-          folder: 'ZeroToShip'
+          folder: 'tractionbuild'
           type: file
           disableDeletion: false
           editable: true
           options:
-            path: /var/lib/grafana/dashboards/zerotoship
+            path: /var/lib/grafana/dashboards/tractionbuild
     
     dashboards:
-      zerotoship:
+      tractionbuild:
         workflow-performance:
-          url: https://raw.githubusercontent.com/zerotoship/monitoring/main/grafana/workflow-performance.json
+          url: https://raw.githubusercontent.com/tractionbuild/monitoring/main/grafana/workflow-performance.json
         system-health:
-          url: https://raw.githubusercontent.com/zerotoship/monitoring/main/grafana/system-health.json
+          url: https://raw.githubusercontent.com/tractionbuild/monitoring/main/grafana/system-health.json
         sustainability:
-          url: https://raw.githubusercontent.com/zerotoship/monitoring/main/grafana/sustainability.json
+          url: https://raw.githubusercontent.com/tractionbuild/monitoring/main/grafana/sustainability.json
   
   # AI Anomaly Detection Service
   anomalyDetector:
     enabled: true
     replicaCount: 1
     image:
-      repository: zerotoship/anomaly-detector
+      repository: tractionbuild/anomaly-detector
       tag: "1.0.0"
     
     resources:
@@ -300,16 +300,16 @@ security:
   # Secrets management
   vault:
     enabled: true
-    address: "https://vault.zerotoship.ai"
+    address: "https://vault.tractionbuild.ai"
     authPath: "auth/kubernetes"
-    role: "zerotoship"
+    role: "tractionbuild"
 
 # Sustainability and compliance
 sustainability:
   # CodeCarbon integration
   carbonTracking:
     enabled: true
-    projectName: "zerotoship-production"
+    projectName: "tractionbuild-production"
     
   # Resource optimization
   resourceOptimization:
@@ -367,5 +367,5 @@ affinity:
           - key: app.kubernetes.io/name
             operator: In
             values:
-            - zerotoship
+            - tractionbuild
         topologyKey: kubernetes.io/hostname

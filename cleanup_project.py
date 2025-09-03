@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-ZeroToShip Project Cleanup Script
+tractionbuild Project Cleanup Script
 =================================
 
-This script performs comprehensive cleanup of the ZeroToShip project:
+This script performs comprehensive cleanup of the tractionbuild project:
 - Removes temporary files and build artifacts
 - Cleans up test outputs and logs
 - Organizes project structure
@@ -37,8 +37,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class ZeroToShipCleanup:
-    """Comprehensive cleanup utility for ZeroToShip project."""
+class tractionbuildCleanup:
+    """Comprehensive cleanup utility for tractionbuild project."""
     
     def __init__(self, dry_run: bool = False, verbose: bool = False, force: bool = False):
         self.dry_run = dry_run
@@ -104,7 +104,7 @@ class ZeroToShipCleanup:
             "test_state_fix.py",
             "test_docker.ps1",
             "test_docker.sh",
-            "zerotoship-job.yaml",
+            "tractionbuild-job.yaml",
             "service.yaml",
             "deployment.yaml"
         ]
@@ -254,11 +254,11 @@ class ZeroToShipCleanup:
         logger.info("Checking project structure...")
         
         required_dirs = [
-            "src/zerotoship",
-            "src/zerotoship/agents",
-            "src/zerotoship/crews", 
-            "src/zerotoship/tools",
-            "src/zerotoship/core",
+            "src/tractionbuild",
+            "src/tractionbuild/agents",
+            "src/tractionbuild/crews", 
+            "src/tractionbuild/tools",
+            "src/tractionbuild/core",
             "tests",
             "docs",
             "config"
@@ -321,7 +321,7 @@ class ZeroToShipCleanup:
 
     def run_cleanup(self):
         """Run the complete cleanup process."""
-        logger.info("Starting ZeroToShip project cleanup...")
+        logger.info("Starting tractionbuild project cleanup...")
         logger.info(f"Project root: {self.project_root}")
         logger.info(f"Dry run: {self.dry_run}")
         logger.info(f"Verbose: {self.verbose}")
@@ -357,7 +357,7 @@ class ZeroToShipCleanup:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="ZeroToShip Project Cleanup Script")
+    parser = argparse.ArgumentParser(description="tractionbuild Project Cleanup Script")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be cleaned without actually doing it")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     parser.add_argument("--force", action="store_true", help="Force cleanup without confirmation")
@@ -370,7 +370,7 @@ def main():
             print("Cleanup cancelled.")
             return
     
-    cleanup = ZeroToShipCleanup(
+    cleanup = tractionbuildCleanup(
         dry_run=args.dry_run,
         verbose=args.verbose,
         force=args.force

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enterprise System Validation Test for ZeroToShip.
+Enterprise System Validation Test for tractionbuild.
 Tests the complete production-ready toolset including Celery, monitoring, security, and sustainability.
 """
 
@@ -19,15 +19,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ZeroToShip imports
-from src.zerotoship.core.workflow_engine import WorkflowEngine
-from src.zerotoship.monitoring.metrics import metrics
-from src.zerotoship.monitoring.anomaly_detector import anomaly_detector
-from src.zerotoship.security.vault_client import vault_client
+# tractionbuild imports
+from src.tractionbuild.core.workflow_engine import WorkflowEngine
+from src.tractionbuild.monitoring.metrics import metrics
+from src.tractionbuild.monitoring.anomaly_detector import anomaly_detector
+from src.tractionbuild.security.vault_client import vault_client
 
 
 class EnterpriseSystemValidator:
-    """Comprehensive validator for the enterprise-grade ZeroToShip system."""
+    """Comprehensive validator for the enterprise-grade tractionbuild system."""
     
     def __init__(self):
         self.test_results = {}
@@ -39,7 +39,7 @@ class EnterpriseSystemValidator:
         
         # Enable enterprise features for testing
         os.environ['CODECARBON_ENABLED'] = 'true'
-        os.environ['CODECARBON_PROJECT_NAME'] = 'ZeroToShip_Enterprise_Test'
+        os.environ['CODECARBON_PROJECT_NAME'] = 'tractionbuild_Enterprise_Test'
         
         logger.info("🚀 Enterprise System Validator initialized")
     
@@ -299,7 +299,7 @@ class EnterpriseSystemValidator:
             if codecarbon_available:
                 # Test emissions tracking
                 tracker = EmissionsTracker(
-                    project_name="ZeroToShip_Test",
+                    project_name="tractionbuild_Test",
                     measure_power_secs=1,
                     save_to_file=False
                 )
@@ -338,8 +338,8 @@ class EnterpriseSystemValidator:
             # Check if Celery is available
             celery_available = False
             try:
-                from src.zerotoship.tasks.celery_app import app
-                from src.zerotoship.tasks.crew_tasks import execute_crew_task
+                from src.tractionbuild.tasks.celery_app import app
+                from src.tractionbuild.tasks.crew_tasks import execute_crew_task
                 celery_available = True
             except ImportError:
                 pass
@@ -460,7 +460,7 @@ async def main():
                 print(f"   📊 Execution metadata captured")
         
         print("\n🎉 Enterprise system validation completed successfully!")
-        print("🚀 ZeroToShip is ready for production deployment!")
+        print("🚀 tractionbuild is ready for production deployment!")
         
         return results
         

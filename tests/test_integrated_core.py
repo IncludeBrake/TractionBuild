@@ -1,5 +1,5 @@
 """
-Integrated test script for core ZeroToShip components.
+Integrated test script for core tractionbuild components.
 Demonstrates TokenBudgetManager, OutputValidator, and ProjectMetaMemoryManager working together.
 """
 
@@ -7,9 +7,9 @@ import asyncio
 import tempfile
 import shutil
 from pathlib import Path
-from src.zerotoship.core.token_budget import TokenBudgetManager, BudgetLevel, BudgetAction
-from src.zerotoship.core.output_validator import OutputValidator, OutputValidatorConfig, ValidationSeverity
-from src.zerotoship.core.project_meta_memory import (
+from src.tractionbuild.core.token_budget import TokenBudgetManager, BudgetLevel, BudgetAction
+from src.tractionbuild.core.output_validator import OutputValidator, OutputValidatorConfig, ValidationSeverity
+from src.tractionbuild.core.project_meta_memory import (
     ProjectMetaMemoryManager, 
     ProjectMetaMemory, 
     MemoryType, 
@@ -75,7 +75,7 @@ async def test_integrated_core():
             crew_id=crew_id,
             project_id=project_id,
             estimated_tokens=2000,
-            model="gpt-4-turbo-preview"
+            model="gpt-4o-mini"
         )
         print(f"   Budget check: {budget_result['reason']}")
 
@@ -108,7 +108,7 @@ async def test_integrated_core():
             crew_id=crew_id,
             project_id=project_id,
             tokens_used=1800,
-            model="gpt-4-turbo-preview"
+            model="gpt-4o-mini"
         )
         print("   Token usage recorded")
 
@@ -175,7 +175,7 @@ async def test_integrated_core():
             crew_id=crew_id,
             project_id=project_id,
             estimated_tokens=4000,  # This should exceed per-agent limit
-            model="gpt-4-turbo-preview"
+            model="gpt-4o-mini"
         )
         print(f"   Budget check: {budget_result['reason']}")
 

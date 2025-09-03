@@ -1,10 +1,10 @@
 #!/bin/bash
 
-echo "🐳 Testing TractionBuild Docker Container"
+echo "🐳 Testing tractionbuild Docker Container"
 
 # Build the image
 echo "📦 Building Docker image..."
-docker build -t TractionBuild-test .
+docker build -t tractionbuild-test .
 
 if [ $? -ne 0 ]; then
     echo "❌ Docker build failed"
@@ -15,25 +15,25 @@ echo "✅ Docker build successful"
 
 # Test basic container startup
 echo "🚀 Testing container startup..."
-docker run --rm -d --name TractionBuild-test-container TractionBuild-test
+docker run --rm -d --name tractionbuild-test-container tractionbuild-test
 
 # Wait a moment for the container to start
 sleep 5
 
 # Check if container is running
-if docker ps | grep -q TractionBuild-test-container; then
+if docker ps | grep -q tractionbuild-test-container; then
     echo "✅ Container started successfully"
     
     # Check container logs
     echo "📋 Container logs:"
-    docker logs TractionBuild-test-container
+    docker logs tractionbuild-test-container
     
     # Stop the container
-    docker stop TractionBuild-test-container
+    docker stop tractionbuild-test-container
     echo "✅ Container stopped successfully"
 else
     echo "❌ Container failed to start"
-    docker logs TractionBuild-test-container
+    docker logs tractionbuild-test-container
     exit 1
 fi
 

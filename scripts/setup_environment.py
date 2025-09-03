@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Environment setup script for ZeroToShip tool ecosystem.
+Environment setup script for tractionbuild tool ecosystem.
 Automates the setup of all dependencies and infrastructure.
 """
 
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class EnvironmentSetup:
-    """Handles the complete environment setup for ZeroToShip."""
+    """Handles the complete environment setup for tractionbuild."""
     
     def __init__(self):
         """Initialize the setup process."""
@@ -67,19 +67,19 @@ class EnvironmentSetup:
         logger.info("Setting up Docker services...")
         
         # Stop existing containers
-        self.run_command("docker stop zerotoship-redis zerotoship-ollama 2>/dev/null || true", check=False)
-        self.run_command("docker rm zerotoship-redis zerotoship-ollama 2>/dev/null || true", check=False)
+        self.run_command("docker stop tractionbuild-redis tractionbuild-ollama 2>/dev/null || true", check=False)
+        self.run_command("docker rm tractionbuild-redis tractionbuild-ollama 2>/dev/null || true", check=False)
         
         # Start Redis
         if not self.run_command(
-            "docker run -d -p 6379:6379 --name zerotoship-redis redis:latest"
+            "docker run -d -p 6379:6379 --name tractionbuild-redis redis:latest"
         ):
             logger.error("Failed to start Redis container")
             return False
         
         # Start Ollama
         if not self.run_command(
-            "docker run -d -v ollama:/root/.ollama -p 11434:11434 --name zerotoship-ollama ollama/ollama:latest"
+            "docker run -d -v ollama:/root/.ollama -p 11434:11434 --name tractionbuild-ollama ollama/ollama:latest"
         ):
             logger.error("Failed to start Ollama container")
             return False
@@ -91,7 +91,7 @@ class EnvironmentSetup:
         
         # Pull Llama 3.1 model
         logger.info("Pulling Llama 3.1 8B model...")
-        if not self.run_command("docker exec -it zerotoship-ollama ollama pull llama3.1:8b"):
+        if not self.run_command("docker exec -it tractionbuild-ollama ollama pull llama3.1:8b"):
             logger.warning("Failed to pull Llama model. You can do this manually later.")
         
         logger.info("✅ Docker services are running")
@@ -101,7 +101,7 @@ class EnvironmentSetup:
         """Create .env file with default configuration."""
         logger.info("Creating .env file...")
         
-        env_content = """# ZeroToShip Environment Configuration
+        env_content = """# tractionbuild Environment Configuration
 
 # API Keys
 OPENAI_API_KEY="your_openai_api_key_here"
@@ -233,31 +233,31 @@ DEBUG="true"
         # Create startup script for Windows
         if self.is_windows:
             startup_script = """@echo off
-echo Starting ZeroToShip services...
+echo Starting tractionbuild services...
 
 REM Start Docker services
-docker start zerotoship-redis zerotoship-ollama
+docker start tractionbuild-redis tractionbuild-ollama
 
 REM Start the API server
-python -m uvicorn zerotoship.api.app:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn tractionbuild.api.app:app --host 0.0.0.0 --port 8000 --reload
 
 pause
 """
-            with open(self.project_root / "start_zerotoship.bat", 'w') as f:
+            with open(self.project_root / "start_tractionbuild.bat", 'w') as f:
                 f.write(startup_script)
         
         # Create startup script for Unix-like systems
         else:
             startup_script = """#!/bin/bash
-echo "Starting ZeroToShip services..."
+echo "Starting tractionbuild services..."
 
 # Start Docker services
-docker start zerotoship-redis zerotoship-ollama
+docker start tractionbuild-redis tractionbuild-ollama
 
 # Start the API server
-python -m uvicorn zerotoship.api.app:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn tractionbuild.api.app:app --host 0.0.0.0 --port 8000 --reload
 """
-            startup_file = self.project_root / "start_zerotoship.sh"
+            startup_file = self.project_root / "start_tractionbuild.sh"
             with open(startup_file, 'w') as f:
                 f.write(startup_script)
             
@@ -270,12 +270,12 @@ python -m uvicorn zerotoship.api.app:app --host 0.0.0.0 --port 8000 --reload
     def print_next_steps(self):
         """Print next steps for the user."""
         logger.info("\n" + "="*60)
-        logger.info("🎉 ZeroToShip Environment Setup Complete!")
+        logger.info("🎉 tractionbuild Environment Setup Complete!")
         logger.info("="*60)
         
         logger.info("\n📋 Next Steps:")
         logger.info("1. Update API keys in .env file")
-        logger.info("2. Start services: ./start_zerotoship.sh (or .bat on Windows)")
+        logger.info("2. Start services: ./start_tractionbuild.sh (or .bat on Windows)")
         logger.info("3. Test the chat UI: streamlit run chat_ui.py")
         logger.info("4. Run fine-tuning: python scripts/fine_tune_summarizer.py")
         
@@ -292,11 +292,11 @@ python -m uvicorn zerotoship.api.app:app --host 0.0.0.0 --port 8000 --reload
         logger.info("- API docs: docs/API_GUIDE.md")
         logger.info("- Troubleshooting: Check the logs in logs/ directory")
         
-        logger.info("\n🚀 Happy building with ZeroToShip!")
+        logger.info("\n🚀 Happy building with tractionbuild!")
     
     def setup(self) -> bool:
         """Run the complete setup process."""
-        logger.info("🚀 Starting ZeroToShip Environment Setup")
+        logger.info("🚀 Starting tractionbuild Environment Setup")
         logger.info("="*50)
         
         steps = [

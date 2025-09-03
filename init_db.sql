@@ -1,4 +1,4 @@
--- Initialize ZeroToShip database schema
+-- Initialize tractionbuild database schema
 
 -- Create projects table
 CREATE TABLE IF NOT EXISTS projects (

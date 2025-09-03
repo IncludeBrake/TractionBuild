@@ -1,8 +1,8 @@
-# 🚀 ZeroToShip Advisory Board Guide
+# 🚀 tractionbuild Advisory Board Guide
 
 ## Overview
 
-The **Advisory Board** is ZeroToShip's interactive AI-powered idea refinement system. It transforms vague user ideas into hyper-targeted, data-validated mission statements using real-time market insights and expert analysis.
+The **Advisory Board** is tractionbuild's interactive AI-powered idea refinement system. It transforms vague user ideas into hyper-targeted, data-validated mission statements using real-time market insights and expert analysis.
 
 ## 🎯 What It Does
 
@@ -83,7 +83,7 @@ The Advisory Board consists of five specialized AI agents that work together to:
 ### Option 2: Programmatic Usage
 
 ```python
-from zerotoship.crews import AdvisoryBoardCrew
+from tractionbuild.crews import AdvisoryBoardCrew
 
 # Initialize the crew
 
@@ -163,7 +163,7 @@ The Advisory Board returns structured results:
 ### AdvisoryBoardCrewConfig
 
 ```python
-from zerotoship.crews.advisory_board_crew import AdvisoryBoardCrewConfig
+from tractionbuild.crews.advisory_board_crew import AdvisoryBoardCrewConfig
 
 config = AdvisoryBoardCrewConfig(
     enable_memory_learning=True,
@@ -178,8 +178,8 @@ config = AdvisoryBoardCrewConfig(
 ```bash
 # API Configuration
 
-ZEROTOSHIP_API_URL=http://localhost:8000
-ZEROTOSHIP_WORKFLOW_NAME=advisory_board_workflow
+tractionbuild_API_URL=http://localhost:8000
+tractionbuild_WORKFLOW_NAME=advisory_board_workflow
 
 # Market Oracle Configuration
 
@@ -205,7 +205,7 @@ pytest tests/
 
 ### Adding New Market Data Sources
 
-1. **Extend MarketOracleTool** in `src/zerotoship/tools/market_oracle_tool.py`
+1. **Extend MarketOracleTool** in `src/tractionbuild/tools/market_oracle_tool.py`
 
 2. **Add new API integrations** for additional data sources
 
@@ -213,7 +213,7 @@ pytest tests/
 
 ### Customizing Agents
 
-1. **Modify agent definitions** in `src/zerotoship/crews/advisory_board_crew.py`
+1. **Modify agent definitions** in `src/tractionbuild/crews/advisory_board_crew.py`
 
 2. **Add new tools** to specific agents
 
@@ -264,7 +264,7 @@ After getting your refined mission statement:
 
 ## 📚 Related Documentation
 
-- [ZeroToShip Overview](../README.md)
+- [tractionbuild Overview](../README.md)
 
 - [Crew Architecture](CREW_ARCHITECTURE.md)
 
@@ -288,8 +288,8 @@ To contribute to the Advisory Board:
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/zerotoship/zerotoship/issues)
+- **Issues**: [GitHub Issues](https://github.com/tractionbuild/tractionbuild/issues)
 
-- **Discussions**: [GitHub Discussions](https://github.com/zerotoship/zerotoship/discussions)
+- **Discussions**: [GitHub Discussions](https://github.com/tractionbuild/tractionbuild/discussions)
 
-- **Documentation**: [ZeroToShip Docs](https://zerotoship.dev)
+- **Documentation**: [tractionbuild Docs](https://tractionbuild.dev)

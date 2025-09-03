@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 async def test_advisory_board():
     """Test the AdvisoryBoardCrew functionality."""
     try:
-        from TractionBuild.crews import CREW_REGISTRY
+        from tractionbuild.crews import CREW_REGISTRY
         print("✅ Successfully imported CREW_REGISTRY")
         print(f"📋 Available crews: {list(CREW_REGISTRY.keys())}")
         

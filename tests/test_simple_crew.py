@@ -3,7 +3,7 @@ Simple test for crew functionality.
 """
 
 import asyncio
-from src.zerotoship.crews.validator_crew import ValidatorCrew, ValidatorCrewConfig
+from src.tractionbuild.crews.validator_crew import ValidatorCrew, ValidatorCrewConfig
 
 
 async def test_simple_crew():

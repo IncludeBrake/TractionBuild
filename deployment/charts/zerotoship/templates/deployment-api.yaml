@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "zerotoship.fullname" . }}-api
+  name: {{ include "tractionbuild.fullname" . }}-api
   labels:
-    {{- include "zerotoship.labels" . | nindent 4 }}
+    {{- include "tractionbuild.labels" . | nindent 4 }}
     app.kubernetes.io/component: api
 spec:
   {{- if not .Values.api.autoscaling.enabled }}
@@ -11,7 +11,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "zerotoship.selectorLabels" . | nindent 6 }}
+      {{- include "tractionbuild.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: api
   template:
     metadata:
@@ -20,17 +20,17 @@ spec:
         prometheus.io/port: "8080"
         prometheus.io/path: "/metrics"
         {{- if .Values.spiffe.enabled }}
-        spiffe.io/spiffe-id: "spiffe://{{ .Values.spiffe.server.config.trustDomain }}/zerotoship/api"
+        spiffe.io/spiffe-id: "spiffe://{{ .Values.spiffe.server.config.trustDomain }}/tractionbuild/api"
         {{- end }}
       labels:
-        {{- include "zerotoship.selectorLabels" . | nindent 8 }}
+        {{- include "tractionbuild.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: api
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "zerotoship.serviceAccountName" . }}
+      serviceAccountName: {{ include "tractionbuild.serviceAccountName" . }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -47,16 +47,16 @@ spec:
               containerPort: 8000
               protocol: TCP
           env:
-            - name: ZEROTOSHIP_MODE
+            - name: tractionbuild_MODE
               value: "api"
             - name: REDIS_URL
-              value: "redis://{{ include "zerotoship.fullname" . }}-redis-master:6379/0"
+              value: "redis://{{ include "tractionbuild.fullname" . }}-redis-master:6379/0"
             - name: POSTGRES_URL
-              value: "postgresql://postgres:$(POSTGRES_PASSWORD)@{{ include "zerotoship.fullname" . }}-postgresql:5432/zerotoship"
+              value: "postgresql://postgres:$(POSTGRES_PASSWORD)@{{ include "tractionbuild.fullname" . }}-postgresql:5432/tractionbuild"
             - name: NEO4J_URI
-              value: "neo4j://{{ include "zerotoship.fullname" . }}-neo4j:7687"
+              value: "neo4j://{{ include "tractionbuild.fullname" . }}-neo4j:7687"
             - name: PROMETHEUS_URL
-              value: "http://{{ include "zerotoship.fullname" . }}-prometheus-server:80"
+              value: "http://{{ include "tractionbuild.fullname" . }}-prometheus-server:80"
             - name: VAULT_ADDR
               value: "{{ .Values.security.vault.address }}"
             - name: SPIFFE_ENDPOINT_SOCKET
@@ -69,7 +69,7 @@ spec:
             {{- end }}
           envFrom:
             - secretRef:
-                name: {{ include "zerotoship.fullname" . }}-secrets
+                name: {{ include "tractionbuild.fullname" . }}-secrets
           livenessProbe:
             httpGet:
               path: /health
@@ -110,7 +110,7 @@ spec:
         {{- end }}
         - name: config
           configMap:
-            name: {{ include "zerotoship.fullname" . }}-config
+            name: {{ include "tractionbuild.fullname" . }}-config
         - name: temp
           emptyDir: {}
       {{- with .Values.nodeSelector }}

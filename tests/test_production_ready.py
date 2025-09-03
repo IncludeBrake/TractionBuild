@@ -1,5 +1,5 @@
 """
-Comprehensive Test for Production-Ready ZeroToShip Implementation.
+Comprehensive Test for Production-Ready tractionbuild Implementation.
 Tests all enhanced features: crew registry, schema validation, project registry, and workflow engine.
 """
 
@@ -10,12 +10,12 @@ from pathlib import Path
 import json
 import logging
 
-# ZeroToShip imports
-from src.zerotoship.core.workflow_engine import WorkflowEngine
-from src.zerotoship.database.project_registry import ProjectRegistry
-from src.zerotoship.core.crew_registry import CREW_REGISTRY
-from src.zerotoship.core.schema_validator import validate_and_enrich_data, is_valid_project_data
-from main import ZeroToShipOrchestrator
+# tractionbuild imports
+from src.tractionbuild.core.workflow_engine import WorkflowEngine
+from src.tractionbuild.database.project_registry import ProjectRegistry
+from src.tractionbuild.core.crew_registry import CREW_REGISTRY
+from src.tractionbuild.core.schema_validator import validate_and_enrich_data, is_valid_project_data
+from main import tractionbuildOrchestrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 async def test_production_ready_implementation():
     """Test the production-ready implementation with all enhanced features."""
     
-    print("🚀 Testing Production-Ready ZeroToShip Implementation")
+    print("🚀 Testing Production-Ready tractionbuild Implementation")
     print("=" * 70)
     
     # Set up environment variables for testing
@@ -184,7 +184,7 @@ async def test_production_ready_implementation():
         # Test 5: Complete Orchestrator Integration
         print("\n🎯 Test 5: Complete Orchestrator Integration")
         try:
-            async with ZeroToShipOrchestrator() as orchestrator:
+            async with tractionbuildOrchestrator() as orchestrator:
                 # Test workflow listing
                 workflows = orchestrator.list_available_workflows()
                 print(f"   ✅ Orchestrator found {len(workflows)} workflows")
@@ -293,7 +293,7 @@ async def test_production_ready_implementation():
         print("   ✅ Load Testing: Concurrent execution")
         print("   ✅ Error Handling: Robust failure recovery")
         
-        print("\n🚀 ZeroToShip is ready for production deployment!")
+        print("\n🚀 tractionbuild is ready for production deployment!")
         print("   - Quantum-secure encryption enabled")
         print("   - Federated ML optimization ready")
         print("   - Conflict-resolving delta merges implemented")

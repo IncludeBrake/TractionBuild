@@ -1,14 +1,14 @@
-# ZeroToShip Kubernetes Deployment Script (PowerShell)
+# tractionbuild Kubernetes Deployment Script (PowerShell)
 param(
     [string]$Registry = "your-registry.com",
     [string]$ImageTag = "latest"
 )
 
-Write-Host "🚀 Deploying ZeroToShip to Kubernetes..." -ForegroundColor Green
+Write-Host "🚀 Deploying tractionbuild to Kubernetes..." -ForegroundColor Green
 
 # Configuration
-$Namespace = "zerotoship"
-$ImageName = "zerotoship"
+$Namespace = "tractionbuild"
+$ImageName = "tractionbuild"
 
 # Function to print colored output
 function Write-Status {
@@ -64,10 +64,10 @@ Write-Status "Deploying Neo4j..."
 kubectl apply -f k8s/neo4j-deployment.yaml
 
 Write-Status "Waiting for Neo4j to be ready..."
-kubectl wait --for=condition=ready pod -l app=zerotoship,component=neo4j -n $Namespace --timeout=300s
+kubectl wait --for=condition=ready pod -l app=tractionbuild,component=neo4j -n $Namespace --timeout=300s
 
-Write-Status "Deploying ZeroToShip application..."
-kubectl apply -f k8s/zerotoship-deployment.yaml
+Write-Status "Deploying tractionbuild application..."
+kubectl apply -f k8s/tractionbuild-deployment.yaml
 
 Write-Status "Creating Horizontal Pod Autoscaler..."
 kubectl apply -f k8s/hpa.yaml
@@ -76,7 +76,7 @@ Write-Status "Creating Ingress..."
 kubectl apply -f k8s/ingress.yaml
 
 Write-Status "Waiting for application to be ready..."
-kubectl wait --for=condition=ready pod -l app=zerotoship,component=app -n $Namespace --timeout=300s
+kubectl wait --for=condition=ready pod -l app=tractionbuild,component=app -n $Namespace --timeout=300s
 
 Write-Status "Deployment completed successfully!"
 
@@ -97,13 +97,13 @@ Write-Host "🔗 Ingress:" -ForegroundColor Cyan
 kubectl get ingress -n $Namespace
 
 Write-Status "To access the application:"
-Write-Host "  1. Update your /etc/hosts file to point zerotoship.local to your cluster IP"
-Write-Host "  2. Or use port-forward: kubectl port-forward -n $Namespace svc/zerotoship-app 8000:8000"
+Write-Host "  1. Update your /etc/hosts file to point tractionbuild.local to your cluster IP"
+Write-Host "  2. Or use port-forward: kubectl port-forward -n $Namespace svc/tractionbuild-app 8000:8000"
 
 Write-Host ""
 Write-Status "To view logs:"
-Write-Host "  kubectl logs -f -l app=zerotoship,component=app -n $Namespace"
+Write-Host "  kubectl logs -f -l app=tractionbuild,component=app -n $Namespace"
 
 Write-Host ""
 Write-Status "To scale the application:"
-Write-Host "  kubectl scale deployment zerotoship-app --replicas=5 -n $Namespace"
+Write-Host "  kubectl scale deployment tractionbuild-app --replicas=5 -n $Namespace"

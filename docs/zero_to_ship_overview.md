@@ -1,8 +1,8 @@
-# 🚀 ZeroToShip: Unified System Overview
+# 🚀 tractionbuild: Unified System Overview
 
 ## 🧭 Purpose
 
-ZeroToShip is a self-evolving AI-powered product studio. It validates ideas, builds MVPs, launches full products, and stores learnings to continuously improve. This document outlines:
+tractionbuild is a self-evolving AI-powered product studio. It validates ideas, builds MVPs, launches full products, and stores learnings to continuously improve. This document outlines:
 
 - What each component project is
 
@@ -99,7 +99,7 @@ ZeroToShip is a self-evolving AI-powered product studio. It validates ideas, bui
 
 ---
 
-## 🧠 Unified Architecture (ZeroToShip)
+## 🧠 Unified Architecture (tractionbuild)
 
 ### 🎯 Goal
 
@@ -238,7 +238,7 @@ Input Idea → Validation Crew → MVP or full plan
 
 ## 🧠 Codename
 
-**ZeroToShip** — the engine that turns ideas into launched, high-quality, compliance-ready software products — and evolves with every cycle.
+**tractionbuild** — the engine that turns ideas into launched, high-quality, compliance-ready software products — and evolves with every cycle.
 
 ---
 

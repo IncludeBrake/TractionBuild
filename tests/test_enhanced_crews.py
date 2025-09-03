@@ -7,11 +7,11 @@ import asyncio
 import tempfile
 import shutil
 from pathlib import Path
-from src.zerotoship.crews.validator_crew import ValidatorCrew, ValidatorCrewConfig
-from src.zerotoship.crews.execution_crew import ExecutionCrew, ExecutionCrewConfig
-from src.zerotoship.crews.builder_crew import BuilderCrew, BuilderCrewConfig
-from src.zerotoship.crews.marketing_crew import MarketingCrew, MarketingCrewConfig
-from src.zerotoship.crews.feedback_crew import FeedbackCrew, FeedbackCrewConfig
+from src.tractionbuild.crews.validator_crew import ValidatorCrew, ValidatorCrewConfig
+from src.tractionbuild.crews.execution_crew import ExecutionCrew, ExecutionCrewConfig
+from src.tractionbuild.crews.builder_crew import BuilderCrew, BuilderCrewConfig
+from src.tractionbuild.crews.marketing_crew import MarketingCrew, MarketingCrewConfig
+from src.tractionbuild.crews.feedback_crew import FeedbackCrew, FeedbackCrewConfig
 
 
 async def test_enhanced_crews():

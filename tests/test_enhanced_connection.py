@@ -8,8 +8,8 @@ import os
 import tempfile
 from pathlib import Path
 from check_connection import check_connection, get_connection_info, health_check
-from src.zerotoship.database.project_registry import ProjectRegistry
-from src.zerotoship.core.crew_controller import CrewController, CrewControllerConfig
+from src.tractionbuild.database.project_registry import ProjectRegistry
+from src.tractionbuild.core.crew_controller import CrewController, CrewControllerConfig
 
 
 async def test_enhanced_connection():

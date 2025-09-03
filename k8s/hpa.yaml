@@ -1,13 +1,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: zerotoship-app-hpa
-  namespace: zerotoship
+  name: tractionbuild-app-hpa
+  namespace: tractionbuild
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: zerotoship-app
+    name: tractionbuild-app
   minReplicas: 3
   maxReplicas: 10
   metrics:

@@ -19,7 +19,7 @@ COPY src/ ./src/
 # --- Stage 2: Final Production Image ---
 # This stage creates a lean final image with only what's needed to run.
 FROM python:3.12-slim
-RUN groupadd -r zerotoship && useradd --no-log-init -r -g zerotoship zerotoship
+RUN groupadd -r tractionbuild && useradd --no-log-init -r -g tractionbuild tractionbuild
 
 # Install only the necessary runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
@@ -28,21 +28,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 WORKDIR /app
 
 # Copy the installed Python packages from the builder stage
-COPY --from=builder --chown=zerotoship:zerotoship /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder --chown=tractionbuild:tractionbuild /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 # Copy the application source code from the builder stage
-COPY --from=builder --chown=zerotoship:zerotoship /app/src ./src
+COPY --from=builder --chown=tractionbuild:tractionbuild /app/src ./src
 
 # Copy all other necessary application files
-COPY --chown=zerotoship:zerotoship config/ ./config/
-COPY --chown=zerotoship:zerotoship runs/ ./runs/
-COPY --chown=zerotoship:zerotoship chat_ui.py ./
-COPY --chown=zerotoship:zerotoship entrypoint.sh ./
+COPY --chown=tractionbuild:tractionbuild config/ ./config/
+COPY --chown=tractionbuild:tractionbuild runs/ ./runs/
+COPY --chown=tractionbuild:tractionbuild chat_ui.py ./
+COPY --chown=tractionbuild:tractionbuild entrypoint.sh ./
 RUN chmod +x /app/entrypoint.sh
 
 # The PATH is now clean as packages are in the system Python path
 ENV PYTHONPATH="/app/src"
 
-USER zerotoship
+USER tractionbuild
 EXPOSE 8000 8501
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["--help"]

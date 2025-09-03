@@ -1,5 +1,5 @@
 {
-  "name": "zerotoship",
+  "name": "tractionbuild",
   "version": "1.0.0",
   "description": "AI-powered product studio that validates ideas, builds MVPs, and launches full products",
   "main": "web/index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zerotoship/zerotoship.git"
+    "url": "git+https://github.com/tractionbuild/tractionbuild.git"
   },
   "keywords": [
     "ai",
@@ -24,12 +24,12 @@
     "neo4j",
     "mermaid"
   ],
-  "author": "ZeroToShip Team",
+  "author": "tractionbuild Team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/zerotoship/zerotoship/issues"
+    "url": "https://github.com/tractionbuild/tractionbuild/issues"
   },
-  "homepage": "https://zerotoship.dev",
+  "homepage": "https://tractionbuild.dev",
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.4",

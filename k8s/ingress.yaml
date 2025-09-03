@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: zerotoship-ingress
-  namespace: zerotoship
+  name: tractionbuild-ingress
+  namespace: tractionbuild
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
@@ -13,16 +13,16 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - zerotoship.local  # Change this to your actual domain
-    secretName: zerotoship-tls
+    - tractionbuild.local  # Change this to your actual domain
+    secretName: tractionbuild-tls
   rules:
-  - host: zerotoship.local  # Change this to your actual domain
+  - host: tractionbuild.local  # Change this to your actual domain
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: zerotoship-app
+            name: tractionbuild-app
             port:
               number: 8000

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test suite for ZeroToShip custom tools.
+Test suite for tractionbuild custom tools.
 Tests all the new tools for functionality and error handling.
 """
 
@@ -13,12 +13,12 @@ from unittest.mock import patch, MagicMock
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from zerotoship.tools.summarization_tool import SummarizationTool
-from zerotoship.tools.compliance_tool import ComplianceCheckerTool
-from zerotoship.tools.sustainability_tool import SustainabilityTrackerTool, track_emissions
-from zerotoship.tools.celery_execution_tool import CeleryExecutionTool
-from zerotoship.tools.x_semantic_search_tool import XSemanticSearchTool
-from zerotoship.tools.market_oracle_tool import MarketOracleTool
+from tractionbuild.tools.summarization_tool import SummarizationTool
+from tractionbuild.tools.compliance_tool import ComplianceCheckerTool
+from tractionbuild.tools.sustainability_tool import SustainabilityTrackerTool, track_emissions
+from tractionbuild.tools.celery_execution_tool import CeleryExecutionTool
+from tractionbuild.tools.x_semantic_search_tool import XSemanticSearchTool
+from tractionbuild.tools.market_oracle_tool import MarketOracleTool
 
 class TestSummarizationTool:
     """Test cases for the SummarizationTool."""
@@ -255,7 +255,7 @@ class TestToolIntegration:
         celery_tool = CeleryExecutionTool()
         
         # Track emissions of a Celery task
-        result = sustainability_tool._run("celery_task_execution", "zerotoship_project")
+        result = sustainability_tool._run("celery_task_execution", "tractionbuild_project")
         
         assert "co2_emissions_kg" in result
         assert result["status"] == "success"

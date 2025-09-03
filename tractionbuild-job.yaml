@@ -1,0 +1,21 @@
+# tractionbuild-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tractionbuild-workflow-run
+spec:
+  template:
+    spec:
+      containers:
+      - name: tractionbuild
+        image: tractionbuild-test:latest
+        imagePullPolicy: IfNotPresent
+        # This new 'env' section securely injects the password
+        env:
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-credentials # The name of the secret we created
+              key: password          # The key inside the secret to use
+      restartPolicy: Never
+  backoffLimit: 4

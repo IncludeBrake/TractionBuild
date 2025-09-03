@@ -3,7 +3,7 @@ Test script for TokenBudgetManager functionality.
 """
 
 import asyncio
-from src.zerotoship.core.token_budget import TokenBudgetManager, BudgetLevel, BudgetAction
+from src.tractionbuild.core.token_budget import TokenBudgetManager, BudgetLevel, BudgetAction
 
 
 async def test_token_budget():
@@ -26,7 +26,7 @@ async def test_token_budget():
         crew_id="validator_crew", 
         project_id="test_project",
         estimated_tokens=1000,
-        model="gpt-4-turbo-preview"
+        model="gpt-4o-mini"
     )
     print(f"✅ Budget check result: {result}")
     
@@ -36,7 +36,7 @@ async def test_token_budget():
         crew_id="validator_crew",
         project_id="test_project", 
         tokens_used=2000,
-        model="gpt-4-turbo-preview"
+        model="gpt-4o-mini"
     )
     print("✅ Recorded 2000 tokens usage")
     
@@ -46,7 +46,7 @@ async def test_token_budget():
         crew_id="validator_crew",
         project_id="test_project",
         estimated_tokens=4000,  # This should exceed per-agent limit
-        model="gpt-4-turbo-preview"
+        model="gpt-4o-mini"
     )
     print(f"⚠️  Budget check after usage: {result}")
     
@@ -62,7 +62,7 @@ async def test_token_budget():
         crew_id="validator_crew", 
         project_id="test_project",
         estimated_tokens=10000,  # This should trigger throttling
-        model="gpt-4-turbo-preview"
+        model="gpt-4o-mini"
     )
     print(f"🚦 Throttling test: {result}")
     

@@ -1,4 +1,4 @@
-# ZeroToShip Crew Configuration
+# tractionbuild Crew Configuration
 # Defines all crews, agents, tasks, and compliance policies
 
 crews:
@@ -392,7 +392,7 @@ tools:
     real_time_checks: true
     
   secure_coder_gpt:
-    model: "gpt-4"
+    model: "gpt-3.5-turbo"  # Updated to match LLM strategy - cheapest capable for code
     security_focus: true
     code_review: true
     

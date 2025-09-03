@@ -1,8 +1,8 @@
-# 🚀 ZeroToShip
+# 🚀 tractionbuild
 
 **AI-powered product studio that validates ideas, builds MVPs, and launches full products**
 
-ZeroToShip is a self-evolving AI-powered product studio that validates ideas, builds MVPs, launches full products, and stores learnings to continuously improve.
+tractionbuild is a self-evolving AI-powered product studio that validates ideas, builds MVPs, launches full products, and stores learnings to continuously improve.
 
 ## 🎯 Features
 
@@ -61,8 +61,8 @@ ZeroToShip is a self-evolving AI-powered product studio that validates ideas, bu
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/zerotoship/zerotoship.git
-   cd zerotoship
+   git clone https://github.com/tractionbuild/tractionbuild.git
+   cd tractionbuild
    ```
 
 2. **Set up Python environment**
@@ -95,13 +95,13 @@ ZeroToShip is a self-evolving AI-powered product studio that validates ideas, bu
 ### Usage
 
 ```bash
-# Run the main ZeroToShip engine
+# Run the main tractionbuild engine
 
-python -m zerotoship.cli
+python -m tractionbuild.cli
 
 # Start the web interface
 
-uvicorn zerotoship.api:app --reload
+uvicorn tractionbuild.api:app --reload
 
 # Run tests
 
@@ -116,13 +116,13 @@ pytest
 1. **Build the image**
 
    ```bash
-   docker build -t zerotoship .
+   docker build -t tractionbuild .
    ```
 
 2. **Run with default settings**
 
    ```bash
-   docker run -p 8000:8000 zerotoship
+   docker run -p 8000:8000 tractionbuild
    ```
 
 3. **Run with custom idea and workflow**
@@ -131,7 +131,7 @@ pytest
    docker run -p 8000:8000 \
      -e IDEA="Build a task management app" \
      -e WORKFLOW="validation_and_launch" \
-     zerotoship
+     tractionbuild
    ```
 
 ### Using Docker Compose
@@ -204,7 +204,7 @@ The container uses the following volumes:
 
 #### Permission Issues
 
-If you encounter permission errors like `[Errno 13] Permission denied: '/home/zerotoship'`, the container is properly configured to handle this. The application now writes all files to `/app/output/` where the non-root user has proper permissions.
+If you encounter permission errors like `[Errno 13] Permission denied: '/home/tractionbuild'`, the container is properly configured to handle this. The application now writes all files to `/app/output/` where the non-root user has proper permissions.
 
 #### Memory File Issues
 
@@ -237,7 +237,7 @@ If you encounter `Neo4j service unavailable: Unable to retrieve routing informat
 ```bash
 # Test from within the container
 
-docker exec zerotoship-app python test_neo4j_connection.py
+docker exec tractionbuild-app python test_neo4j_connection.py
 
 # Or test from host (if Neo4j is running locally)
 
@@ -293,8 +293,8 @@ Input Idea → Validation → Execution Graph → Build → Launch → Feedback
 
 ```
 
-zerotoship/
-├── src/zerotoship/
+tractionbuild/
+├── src/tractionbuild/
 │   ├── agents/          # CrewAI agents
 │   ├── crews/           # Agent crews
 │   ├── tools/           # Custom tools
@@ -318,13 +318,13 @@ zerotoship/
 ```bash
 # Core Configuration
 
-PROJECT_NAME=ZeroToShip
+PROJECT_NAME=tractionbuild
 ENVIRONMENT=development
 
 # AI Providers
 
 OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-4-turbo-preview
+OPENAI_MODEL=gpt-4o-mini
 ANTHROPIC_API_KEY=your_anthropic_api_key
 
 # Database
@@ -349,7 +349,7 @@ pytest
 
 # Run with coverage
 
-pytest --cov=zerotoship
+pytest --cov=tractionbuild
 
 # Run specific test categories
 
@@ -387,11 +387,11 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🆘 Support
 
-- **Documentation**: [https://zerotoship.dev](https://zerotoship.dev)
+- **Documentation**: [https://tractionbuild.dev](https://tractionbuild.dev)
 
-- **Issues**: [GitHub Issues](https://github.com/zerotoship/zerotoship/issues)
+- **Issues**: [GitHub Issues](https://github.com/tractionbuild/tractionbuild/issues)
 
-- **Discussions**: [GitHub Discussions](https://github.com/zerotoship/zerotoship/discussions)
+- **Discussions**: [GitHub Discussions](https://github.com/tractionbuild/tractionbuild/discussions)
 
 ## 🚀 Roadmap
 
@@ -409,4 +409,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with ❤️ by the ZeroToShip team**
+**Built with ❤️ by the tractionbuild team**

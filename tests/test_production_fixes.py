@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Production-Ready Test for ZeroToShip CrewOutput Serialization Fix.
+Production-Ready Test for tractionbuild CrewOutput Serialization Fix.
 Validates the marketing campaign workflow with enhanced error handling and retry logic.
 """
 
@@ -20,15 +20,15 @@ logger = logging.getLogger(__name__)
 
 # Enable production features
 os.environ['CODECARBON_ENABLED'] = 'true'
-os.environ['CODECARBON_PROJECT_NAME'] = 'ZeroToShip_Production_Test'
+os.environ['CODECARBON_PROJECT_NAME'] = 'tractionbuild_Production_Test'
 
-# Import ZeroToShip components
-from src.zerotoship.core.workflow_engine import WorkflowEngine
-from src.zerotoship.core.output_serializer import output_serializer
+# Import tractionbuild components
+from src.tractionbuild.core.workflow_engine import WorkflowEngine
+from src.tractionbuild.core.output_serializer import output_serializer
 
 
 class ProductionFixValidator:
-    """Validator for production-ready fixes to ZeroToShip."""
+    """Validator for production-ready fixes to tractionbuild."""
     
     def __init__(self):
         self.test_idea = "Launch a new marketing campaign for our AI-powered noise-cancelling headphones for urban professionals"
@@ -395,7 +395,7 @@ async def main():
         # Final certification
         if report['production_certified']:
             print(f"\n🎉 🚀 PRODUCTION CERTIFICATION: APPROVED 🚀 🎉")
-            print("ZeroToShip is ready for enterprise deployment with:")
+            print("tractionbuild is ready for enterprise deployment with:")
             print("  ✅ Resolved CrewOutput serialization errors")
             print("  ✅ Enhanced retry logic and error handling")
             print("  ✅ GDPR-compliant data processing")

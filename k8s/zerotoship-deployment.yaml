@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zerotoship-app
-  namespace: zerotoship
+  name: tractionbuild-app
+  namespace: tractionbuild
   labels:
-    app: zerotoship
+    app: tractionbuild
     component: app
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: zerotoship
+      app: tractionbuild
       component: app
   template:
     metadata:
       labels:
-        app: zerotoship
+        app: tractionbuild
         component: app
     spec:
       containers:
-      - name: zerotoship
-        image: your-registry.com/zerotoship:latest  # Update this to your registry
+      - name: tractionbuild
+        image: your-registry.com/tractionbuild:latest  # Update this to your registry
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -30,68 +30,68 @@ spec:
         - name: NEO4J_URI
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: NEO4J_URI
         - name: NEO4J_USER
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: NEO4J_USER
         - name: PROMETHEUS_PORT
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: PROMETHEUS_PORT
         - name: MEMORY_FILE_PATH
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: MEMORY_FILE_PATH
         - name: CREWAI_MEMORY_PATH
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: CREWAI_MEMORY_PATH
         - name: HOME
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: HOME
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: LOG_LEVEL
         - name: CREWAI_LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: CREWAI_LOG_LEVEL
         - name: ENVIRONMENT
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: ENVIRONMENT
         - name: PROJECT_NAME
           valueFrom:
             configMapKeyRef:
-              name: zerotoship-config
+              name: tractionbuild-config
               key: PROJECT_NAME
         # From Secret
         - name: NEO4J_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: zerotoship-secrets
+              name: tractionbuild-secrets
               key: NEO4J_PASSWORD
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: zerotoship-secrets
+              name: tractionbuild-secrets
               key: OPENAI_API_KEY
         - name: ANTHROPIC_API_KEY
           valueFrom:
             secretKeyRef:
-              name: zerotoship-secrets
+              name: tractionbuild-secrets
               key: ANTHROPIC_API_KEY
         # Default values
         - name: IDEA
@@ -129,18 +129,18 @@ spec:
       volumes:
       - name: output-data
         persistentVolumeClaim:
-          claimName: zerotoship-output-pvc
+          claimName: tractionbuild-output-pvc
       - name: app-data
         persistentVolumeClaim:
-          claimName: zerotoship-data-pvc
+          claimName: tractionbuild-data-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: zerotoship-app
-  namespace: zerotoship
+  name: tractionbuild-app
+  namespace: tractionbuild
   labels:
-    app: zerotoship
+    app: tractionbuild
     component: app
 spec:
   type: ClusterIP
@@ -149,14 +149,14 @@ spec:
     targetPort: 8000
     name: metrics
   selector:
-    app: zerotoship
+    app: tractionbuild
     component: app
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: zerotoship-output-pvc
-  namespace: zerotoship
+  name: tractionbuild-output-pvc
+  namespace: tractionbuild
 spec:
   accessModes:
     - ReadWriteMany
@@ -167,8 +167,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: zerotoship-data-pvc
-  namespace: zerotoship
+  name: tractionbuild-data-pvc
+  namespace: tractionbuild
 spec:
   accessModes:
     - ReadWriteMany

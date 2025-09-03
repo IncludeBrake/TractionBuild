@@ -1,4 +1,4 @@
-# PowerShell script to create a ZeroToShip project
+# PowerShell script to create a tractionbuild project
 # Usage: .\create_project.ps1
 
 param(
@@ -21,7 +21,7 @@ $body = @{
     workflow = $Workflow
 } | ConvertTo-Json -Depth 5
 
-Write-Host "🚀 Creating ZeroToShip project..." -ForegroundColor Green
+Write-Host "🚀 Creating tractionbuild project..." -ForegroundColor Green
 Write-Host "Name: $Name" -ForegroundColor Yellow
 Write-Host "Description: $Description" -ForegroundColor Yellow
 Write-Host "Hypothesis: $Hypothesis" -ForegroundColor Yellow
@@ -100,5 +100,5 @@ try {
 }
 catch {
     Write-Host "❌ Error creating project: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "Make sure the ZeroToShip API is running on $API_BASE" -ForegroundColor Yellow
+    Write-Host "Make sure the tractionbuild API is running on $API_BASE" -ForegroundColor Yellow
 }

@@ -1,8 +1,8 @@
-# 🚀 ZeroToShip Agent Roster
+# 🚀 tractionbuild Agent Roster
 
 ## Execution Order & Capabilities Guide
 
-This roster details all agents in the ZeroToShip system, sorted by their execution order during a typical run. Each agent is designed to work in sequence, building upon the outputs of previous agents to create a complete product from idea to launch.
+This roster details all agents in the tractionbuild system, sorted by their execution order during a typical run. Each agent is designed to work in sequence, building upon the outputs of previous agents to create a complete product from idea to launch.
 
 ---
 
@@ -36,7 +36,7 @@ This roster details all agents in the ZeroToShip system, sorted by their executi
 
 ### **Description**
 
-Expert market researcher and business analyst with 15+ years of experience in startup validation, market analysis, and competitive intelligence. Helps hundreds of startups validate their ideas and pivot when necessary. Acts as the first gatekeeper in the ZeroToShip pipeline, determining whether an idea has market potential before proceeding with development.
+Expert market researcher and business analyst with 15+ years of experience in startup validation, market analysis, and competitive intelligence. Helps hundreds of startups validate their ideas and pivot when necessary. Acts as the first gatekeeper in the tractionbuild pipeline, determining whether an idea has market potential before proceeding with development.
 
 ### **Primary Tasks**
 
@@ -583,4 +583,4 @@ Validator Agent → Execution Agent → Builder Agent → Marketing Agent → Fe
 
 ---
 
-*This roster represents the current state of ZeroToShip agents. The system is designed to be modular and extensible, allowing for new agents to be added and existing agents to be enhanced as the platform evolves.*
+*This roster represents the current state of tractionbuild agents. The system is designed to be modular and extensible, allowing for new agents to be added and existing agents to be enhanced as the platform evolves.*

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script to validate the state KeyError fix for TractionBuild.
+Test script to validate the state KeyError fix for tractionbuild.
 Tests the marketing campaign workflow with the enhanced state management.
 """
 
@@ -12,9 +12,9 @@ from pathlib import Path
 # Add the src directory to the path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from TractionBuild.core.workflow_engine import WorkflowEngine
-from TractionBuild.core.schema_validator import validate_and_enrich_data
-from TractionBuild.models.crew_output import CrewOutputValidator
+from tractionbuild.core.workflow_engine import WorkflowEngine
+from tractionbuild.core.schema_validator import validate_and_enrich_data
+from tractionbuild.models.crew_output import CrewOutputValidator
 
 
 async def test_state_validation():
@@ -203,7 +203,7 @@ async def test_marketing_campaign_workflow():
 
 async def main():
     """Run all tests."""
-    print("🚀 TractionBuild State Management Fix Validation")
+    print("🚀 tractionbuild State Management Fix Validation")
     print("=" * 50)
     
     try:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced Chat UI for ZeroToShip
+Enhanced Chat UI for tractionbuild
 Integrates with API and WebSocket events for real-time project updates
 """
 
@@ -143,12 +143,12 @@ def render_advisory_result(artifact: Dict[str, Any]):
 
 def main():
     st.set_page_config(
-        page_title="ZeroToShip Chat",
+        page_title="tractionbuild Chat",
         page_icon="🚀",
         layout="wide"
     )
     
-    st.title("🚀 ZeroToShip AI Team")
+    st.title("🚀 tractionbuild AI Team")
     st.markdown("Chat with your AI team to validate and plan your next project.")
     
     # Initialize session state
@@ -277,7 +277,7 @@ def main():
     else:
         # Welcome screen
         st.markdown("""
-        ## Welcome to ZeroToShip! 🚀
+        ## Welcome to tractionbuild! 🚀
         
         **How it works:**
         1. **Create a project** using the form in the sidebar

@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: zerotoship
+  name: tractionbuild
   labels:
-    name: zerotoship
-    app: zerotoship
+    name: tractionbuild
+    app: tractionbuild
     environment: production

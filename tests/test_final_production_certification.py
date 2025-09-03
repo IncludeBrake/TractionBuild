@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Final Production Certification Test for ZeroToShip.
+Final Production Certification Test for tractionbuild.
 Validates complete enterprise-grade system with GDPR compliance, sustainability tracking,
 AI decision validation, and full production readiness certification.
 """
@@ -22,19 +22,19 @@ logger = logging.getLogger(__name__)
 
 # Enable all production features
 os.environ['CODECARBON_ENABLED'] = 'true'
-os.environ['CODECARBON_PROJECT_NAME'] = 'ZeroToShip_Final_Certification'
-os.environ['ZEROTOSHIP_GDPR_ENABLED'] = 'true'
-os.environ['ZEROTOSHIP_ENCRYPTION_KEY'] = 'production_test_key_2025'
+os.environ['CODECARBON_PROJECT_NAME'] = 'tractionbuild_Final_Certification'
+os.environ['tractionbuild_GDPR_ENABLED'] = 'true'
+os.environ['tractionbuild_ENCRYPTION_KEY'] = 'production_test_key_2025'
 
-# Import ZeroToShip components
-from src.zerotoship.core.workflow_engine import WorkflowEngine
-from src.zerotoship.core.decision_validator import decision_validator
-from src.zerotoship.security.gdpr_compliance import gdpr_manager
-from src.zerotoship.monitoring.metrics import metrics
+# Import tractionbuild components
+from src.tractionbuild.core.workflow_engine import WorkflowEngine
+from src.tractionbuild.core.decision_validator import decision_validator
+from src.tractionbuild.security.gdpr_compliance import gdpr_manager
+from src.tractionbuild.monitoring.metrics import metrics
 
 
 class FinalProductionCertifier:
-    """Complete production certification validator for ZeroToShip."""
+    """Complete production certification validator for tractionbuild."""
     
     def __init__(self):
         self.test_idea = "Launch a new marketing campaign for our AI-powered noise-cancelling headphones for urban professionals"
@@ -312,7 +312,7 @@ class FinalProductionCertifier:
             if codecarbon_available:
                 # Test actual carbon tracking
                 tracker = EmissionsTracker(
-                    project_name="ZeroToShip_Sustainability_Test",
+                    project_name="tractionbuild_Sustainability_Test",
                     measure_power_secs=1,
                     save_to_file=False
                 )
@@ -452,7 +452,7 @@ class FinalProductionCertifier:
             # Test Vault integration (if available)
             vault_available = False
             try:
-                from src.zerotoship.security.vault_client import vault_client
+                from src.tractionbuild.security.vault_client import vault_client
                 vault_health = vault_client.health_check()
                 vault_available = vault_client.enabled
             except:
@@ -693,7 +693,7 @@ async def main():
         # Final certification
         if final_assessment['enterprise_grade']:
             print(f"\n🎉 🚀 ENTERPRISE CERTIFICATION: GRANTED 🚀 🎉")
-            print("ZeroToShip is certified for enterprise deployment with:")
+            print("tractionbuild is certified for enterprise deployment with:")
             print("  ✅ Complete workflow orchestration")
             print("  ✅ AI-powered decision validation")
             print("  ✅ GDPR & data protection compliance")
@@ -703,7 +703,7 @@ async def main():
             print(f"\n🌟 DEPLOYMENT APPROVED for 1,000+ node enterprise environments")
         elif final_assessment['ready_for_deployment']:
             print(f"\n✅ PRODUCTION CERTIFICATION: APPROVED")
-            print("ZeroToShip is ready for production deployment")
+            print("tractionbuild is ready for production deployment")
         else:
             print(f"\n⚠️  CERTIFICATION: REQUIRES IMPROVEMENTS")
             print("Address identified issues before deployment")

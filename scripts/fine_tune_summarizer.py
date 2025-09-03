@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fine-tuning script for ZeroToShip summarization model.
+Fine-tuning script for tractionbuild summarization model.
 Uses Unsloth for efficient fine-tuning of Llama 3.1 8B.
 """
 
@@ -189,7 +189,7 @@ def fine_tune_model(
         logger.error(f"Fine-tuning failed: {e}")
         raise
 
-def create_ollama_model(model_path: str, model_name: str = "zerotoship-summarizer") -> None:
+def create_ollama_model(model_path: str, model_name: str = "tractionbuild-summarizer") -> None:
     """
     Create an Ollama model from the fine-tuned model.
     
@@ -219,7 +219,7 @@ SYSTEM You are a helpful assistant that creates concise summaries of text. Alway
 
 def main():
     """Main function to run the fine-tuning process."""
-    logger.info("Starting ZeroToShip summarization model fine-tuning")
+    logger.info("Starting tractionbuild summarization model fine-tuning")
     
     # Create output directory
     output_dir = "models/fine_tuned_summarizer"

@@ -1,6 +1,6 @@
-# ZeroToShip Kubernetes Deployment
+# tractionbuild Kubernetes Deployment
 
-This directory contains all the Kubernetes manifests and scripts needed to deploy ZeroToShip to a Kubernetes cluster.
+This directory contains all the Kubernetes manifests and scripts needed to deploy tractionbuild to a Kubernetes cluster.
 
 ## Prerequisites
 
@@ -24,8 +24,8 @@ This directory contains all the Kubernetes manifests and scripts needed to deplo
    # Edit k8s/deploy.sh and update the REGISTRY variable
    REGISTRY="your-registry.com"
    
-   # Edit k8s/zerotoship-deployment.yaml and update the image
-   image: your-registry.com/zerotoship:latest
+   # Edit k8s/tractionbuild-deployment.yaml and update the image
+   image: your-registry.com/tractionbuild:latest
    
    # Edit k8s/secret.yaml and add your API keys
    OPENAI_API_KEY: <base64-encoded-openai-key>
@@ -66,11 +66,11 @@ kubectl apply -f k8s/neo4j-deployment.yaml
 
 # Wait for Neo4j to be ready
 
-kubectl wait --for=condition=ready pod -l app=zerotoship,component=neo4j -n zerotoship
+kubectl wait --for=condition=ready pod -l app=tractionbuild,component=neo4j -n tractionbuild
 
-# Deploy ZeroToShip application
+# Deploy tractionbuild application
 
-kubectl apply -f k8s/zerotoship-deployment.yaml
+kubectl apply -f k8s/tractionbuild-deployment.yaml
 
 # Create HPA and Ingress
 
@@ -113,7 +113,7 @@ The application is configured through ConfigMaps and Secrets:
 
 ### Resource Requirements
 
-**ZeroToShip Application:**
+**tractionbuild Application:**
 
 - Requests: 500m CPU, 1Gi memory
 
@@ -162,7 +162,7 @@ Prometheus metrics are available at:
 View application logs:
 
 ```bash
-kubectl logs -f -l app=zerotoship,component=app -n zerotoship
+kubectl logs -f -l app=tractionbuild,component=app -n tractionbuild
 
 ```
 
@@ -185,7 +185,7 @@ The HPA automatically scales based on:
 Scale manually:
 
 ```bash
-kubectl scale deployment zerotoship-app --replicas=5 -n zerotoship
+kubectl scale deployment tractionbuild-app --replicas=5 -n tractionbuild
 
 ```
 
@@ -196,7 +196,7 @@ kubectl scale deployment zerotoship-app --replicas=5 -n zerotoship
 For local access:
 
 ```bash
-kubectl port-forward -n zerotoship svc/zerotoship-app 8000:8000
+kubectl port-forward -n tractionbuild svc/tractionbuild-app 8000:8000
 
 ```
 
@@ -204,7 +204,7 @@ kubectl port-forward -n zerotoship svc/zerotoship-app 8000:8000
 
 The application is exposed via Ingress:
 
-- Host: `zerotoship.local` (update in k8s/ingress.yaml)
+- Host: `tractionbuild.local` (update in k8s/ingress.yaml)
 
 - TLS: Automatic via cert-manager
 
@@ -219,39 +219,39 @@ The application is exposed via Ingress:
    - Check image pull secrets if using private registry
 
 2. **Neo4j Connection Issues:**
-   - Verify Neo4j pod is running: `kubectl get pods -n zerotoship`
-   - Check Neo4j logs: `kubectl logs -l app=zerotoship,component=neo4j -n zerotoship`
+   - Verify Neo4j pod is running: `kubectl get pods -n tractionbuild`
+   - Check Neo4j logs: `kubectl logs -l app=tractionbuild,component=neo4j -n tractionbuild`
 
 3. **Storage Issues:**
    - Ensure your cluster has default storage class
-   - Check PVC status: `kubectl get pvc -n zerotoship`
+   - Check PVC status: `kubectl get pvc -n tractionbuild`
 
 4. **Ingress Issues:**
    - Verify ingress controller is installed
-   - Check ingress status: `kubectl get ingress -n zerotoship`
+   - Check ingress status: `kubectl get ingress -n tractionbuild`
 
 ### Debug Commands
 
 ```bash
 # Check pod status
 
-kubectl get pods -n zerotoship
+kubectl get pods -n tractionbuild
 
 # Check events
 
-kubectl get events -n zerotoship --sort-by='.lastTimestamp'
+kubectl get events -n tractionbuild --sort-by='.lastTimestamp'
 
 # Check resource usage
 
-kubectl top pods -n zerotoship
+kubectl top pods -n tractionbuild
 
 # Check HPA status
 
-kubectl get hpa -n zerotoship
+kubectl get hpa -n tractionbuild
 
 # Check ingress status
 
-kubectl describe ingress zerotoship-ingress -n zerotoship
+kubectl describe ingress tractionbuild-ingress -n tractionbuild
 
 ```
 
@@ -267,7 +267,7 @@ To remove the deployment:
 Or manually:
 
 ```bash
-kubectl delete namespace zerotoship
+kubectl delete namespace tractionbuild
 
 ```
 

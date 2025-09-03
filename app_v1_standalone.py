@@ -163,7 +163,7 @@ class MockWorkflowEngine:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="ZeroToShip API v1", version="1.0.0")
+app = FastAPI(title="tractionbuild API v1", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(

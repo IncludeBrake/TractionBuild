@@ -7,8 +7,8 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
-from src.zerotoship.core.workflow_engine import WorkflowEngine
-from src.zerotoship.database.project_registry import ProjectRegistry
+from src.tractionbuild.core.workflow_engine import WorkflowEngine
+from src.tractionbuild.database.project_registry import ProjectRegistry
 
 
 async def test_enhanced_workflows():

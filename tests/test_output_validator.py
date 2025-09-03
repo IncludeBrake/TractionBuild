@@ -3,7 +3,7 @@ Test script for OutputValidator functionality.
 """
 
 import asyncio
-from src.zerotoship.core.output_validator import OutputValidator, OutputValidatorConfig, ValidationSeverity
+from src.tractionbuild.core.output_validator import OutputValidator, OutputValidatorConfig, ValidationSeverity
 
 
 async def test_output_validator():

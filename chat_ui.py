@@ -1,5 +1,5 @@
 """
-Interactive Chat UI for ZeroToShip Advisory Board.
+Interactive Chat UI for tractionbuild Advisory Board.
 Provides a user-friendly interface for idea refinement.
 """
 
@@ -12,7 +12,7 @@ import json
 
 # Page configuration
 st.set_page_config(
-    page_title="🚀 ZeroToShip Advisory Board",
+    page_title="🚀 tractionbuild Advisory Board",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -48,7 +48,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Header
-st.markdown('<h1 class="main-header">🚀 ZeroToShip Advisory Board</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">🚀 tractionbuild Advisory Board</h1>', unsafe_allow_html=True)
 
 # Sidebar for configuration
 with st.sidebar:
@@ -58,7 +58,7 @@ with st.sidebar:
     api_url = st.text_input(
         "API URL",
         value="http://localhost:8000",
-        help="URL of the ZeroToShip API"
+        help="URL of the tractionbuild API"
     )
     
     # Workflow selection
@@ -257,7 +257,7 @@ with col2:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666;'>
-    <p>🚀 ZeroToShip Advisory Board - Transform your ideas into validated missions</p>
+    <p>🚀 tractionbuild Advisory Board - Transform your ideas into validated missions</p>
     <p>Powered by AI agents and real-time market insights</p>
 </div>
 """, unsafe_allow_html=True)

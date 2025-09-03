@@ -1,15 +1,15 @@
 apiVersion: v2
-name: zerotoship
-description: ZeroToShip AI Product Studio - Enterprise-grade workflow orchestration platform
+name: tractionbuild
+description: tractionbuild AI Product Studio - Enterprise-grade workflow orchestration platform
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
-home: https://github.com/zerotoship/zerotoship
+home: https://github.com/tractionbuild/tractionbuild
 sources:
-  - https://github.com/zerotoship/zerotoship
+  - https://github.com/tractionbuild/tractionbuild
 maintainers:
-  - name: ZeroToShip Team
-    email: team@zerotoship.ai
+  - name: tractionbuild Team
+    email: team@tractionbuild.ai
 keywords:
   - ai
   - workflow
