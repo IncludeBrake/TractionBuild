@@ -11,3 +11,6 @@ class MockVaultClient:
         return None  # Force local key generation
 
 vault_client = MockVaultClient()
+
+# Alias for compatibility
+VaultClient = MockVaultClient

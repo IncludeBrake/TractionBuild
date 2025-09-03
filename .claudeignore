@@ -1,0 +1,30 @@
+# Dependencies and build artifacts
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+dist/
+build/
+
+# TractionBuild specific
+runs/
+output/
+data/summarization_dataset.json
+*.log
+
+# Documentation and tests
+docs/
+tests/
+README.md
+
+# Deployment configs
+deployment/
+k8s/
+docker-compose.yml
+Dockerfile
+
+# Environment and secrets
+.env
+.env.local
+prometheus.yml

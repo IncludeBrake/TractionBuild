@@ -23,7 +23,7 @@ except ImportError:
 # Sustainability tracking
 try:
     from codecarbon import EmissionsTracker
-    from tractionbuild.tools.sustainability_tool import SustainabilityTrackerTool
+    from ..tools.sustainability_tool import SustainabilityTrackerTool
 except ImportError:
     class EmissionsTracker:
         def __init__(self, *args, **kwargs):
