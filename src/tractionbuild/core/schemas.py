@@ -1,14 +1,14 @@
 from enum import Enum
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 class ProjectStatus(Enum):
-    PENDING = "pending"
+    IDEA_VALIDATION = "idea_validation"
     IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    COMPLETED = "completed" 
+    ERROR = "error"
 
 class ProjectCreate(BaseModel):
     name: str
-    description: Optional[str] = None
-    # Add other fields as needed
+    description: str
+    workflow: str = "default_software_build"

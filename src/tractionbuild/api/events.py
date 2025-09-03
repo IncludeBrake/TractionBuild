@@ -1,16 +1,21 @@
 import asyncio
-from collections import defaultdict
 from typing import Dict
+import logging
 
-# Simple event bus placeholder
+logger = logging.getLogger(__name__)
+
 class EventBus:
     def __init__(self):
-        self.listeners = {}
+        self.queues: Dict[str, asyncio.Queue] = {}
     
-    def emit(self, event, data=None):
-        pass
+    def queue(self, project_id: str) -> asyncio.Queue:
+        if project_id not in self.queues:
+            self.queues[project_id] = asyncio.Queue()
+        return self.queues[project_id]
     
-    def on(self, event, callback):
-        pass
+    async def emit(self, project_id: str, event: dict):
+        if project_id in self.queues:
+            await self.queues[project_id].put(event)
+            logger.info(f"Event emitted for project {project_id}: {event}")
 
-bus = EventBus()  # import this, never re-instantiate
+bus = EventBus()

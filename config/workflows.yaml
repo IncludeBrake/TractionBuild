@@ -1,0 +1,29 @@
+default_software_build:
+  metadata:
+    description: "Default software development workflow"
+    complexity: "medium"
+    estimated_duration: "2-4 hours"
+    compliance: ["security", "testing"]
+    visualize: true
+  sequence:
+    - state: "idea_validation"
+      description: "Validate the project idea"
+    - state: "IN_PROGRESS"
+      description: "Execute development workflow"
+    - state: "COMPLETED"
+      description: "Project completed successfully"
+
+validation_and_launch:
+  metadata:
+    description: "Validation and launch workflow"
+    complexity: "high"
+    estimated_duration: "4-8 hours"
+    compliance: ["security", "testing", "deployment"]
+    visualize: true
+  sequence:
+    - state: "idea_validation"
+      description: "Validate the project idea"
+    - state: "IN_PROGRESS"
+      description: "Execute validation and launch"
+    - state: "COMPLETED"
+      description: "Project launched successfully"

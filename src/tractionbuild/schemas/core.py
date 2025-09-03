@@ -13,7 +13,9 @@ class ProjectStatus(str, Enum):
     QUALITY_ASSURANCE="QUALITY_ASSURANCE"; COMPLETED="COMPLETED"; ERROR="ERROR"
 
 class ProjectCreate(BaseModel):
-    name: str; description: str; hypothesis: str
+    name: str
+    description: str
+    hypothesis: str
     target_avatars: List[AvatarType] = Field(min_items=1)
     workflow: str = "validation_and_launch"
 
