@@ -173,21 +173,24 @@ async def shutdown_event():
         except Exception as e:
             logger.error(f"Error closing ProjectRegistry: {e}")
 
-async def runner(project_id: str, project_data: ProjectCreate):
+async def runner(project_id: str, project_data_dict: dict):
     """Background task to run CrewController workflow."""
     try:
         logger.info(f"🏁 Starting CrewController workflow for project {project_id}")
         
         # Create project context for CrewController
+        hypothesis = project_data_dict.get("hypothesis", "No hypothesis provided")
+        target_avatars = project_data_dict.get("target_avatars", [])
+
         project_ctx = {
             "id": project_id,
-            "name": project_data.name,
-            "description": project_data.description,
-            "hypothesis": project_data.hypothesis,
-            "target_avatars": [str(a) for a in project_data.target_avatars],
-            "workflow": project_data.workflow,
+            "name": project_data_dict["name"],
+            "description": project_data_dict["description"],
+            "hypothesis": hypothesis,
+            "target_avatars": [str(a) for a in target_avatars],
+            "workflow": project_data_dict["workflow"],
             "state": ProjectStatus.IDEA_VALIDATION.value,
-            "idea": f"{project_data.name}: {project_data.description}. Hypothesis: {project_data.hypothesis}"
+            "idea": f"{project_data_dict['name']}: {project_data_dict['description']}. Hypothesis: {hypothesis}"
         }
         
         # Run CrewController workflow
@@ -230,7 +233,9 @@ async def create_project(project_data: ProjectCreate, background_tasks: Backgrou
     }
     
     # Start CrewController workflow in background
-    background_tasks.add_task(runner, project_id, project_data)
+    # Convert ProjectCreate to dict to ensure proper serialization
+    project_data_dict = project_data.model_dump()
+    background_tasks.add_task(runner, project_id, project_data_dict)
     
     return {
         "project_id": project_id, 

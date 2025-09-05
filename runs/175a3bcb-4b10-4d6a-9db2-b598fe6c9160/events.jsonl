@@ -1,0 +1,2 @@
+{"event": "workflow_started", "project_id": "175a3bcb-4b10-4d6a-9db2-b598fe6c9160", "initial_state": "idea_validation"}
+{"event": "crew_controller_complete", "duration_s": 154.92166150000412, "final_state": "IDEA_VALIDATION", "iterations": 1}

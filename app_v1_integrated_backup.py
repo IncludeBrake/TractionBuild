@@ -252,7 +252,7 @@ async def startup_event():
     workflow_engine = IntegratedWorkflowEngine(crew_registry, event_bus)
     logger.info("✅ TractionBuild API ready with integrated crews")
 
-async def runner(project_id: str, project_data: ProjectCreate):
+async def runner(project_id: str, project_data_dict: dict):
     """Background task to run the integrated workflow."""
     try:
         logger.info(f"🏁 Starting integrated workflow for project {project_id}")
@@ -261,10 +261,10 @@ async def runner(project_id: str, project_data: ProjectCreate):
         project_ctx = {
             "project": {
                 "id": project_id,
-                "name": project_data.name,
-                "description": project_data.description,
-                "hypothesis": project_data.hypothesis,
-                "target_avatars": [str(a) for a in project_data.target_avatars],
+                "name": project_data_dict["name"],
+                "description": project_data_dict["description"],
+                "hypothesis": project_data_dict["hypothesis"],
+                "target_avatars": [str(a) for a in project_data_dict["target_avatars"]],
                 "state": ProjectStatus.IDEA_VALIDATION.value
             },
             "artifacts": {}
@@ -310,7 +310,9 @@ async def create_project(project_data: ProjectCreate, background_tasks: Backgrou
     }
     
     # Start integrated workflow in background
-    background_tasks.add_task(runner, project_id, project_data)
+    # Convert ProjectCreate to dict to ensure proper serialization
+    project_data_dict = project_data.model_dump()
+    background_tasks.add_task(runner, project_id, project_data_dict)
     
     return {"project_id": project_id, "message": "Project created with integrated crew workflow"}
 

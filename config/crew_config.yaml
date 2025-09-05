@@ -1,3 +1,4 @@
+
 # tractionbuild Crew Configuration
 # Defines all crews, agents, tasks, and compliance policies
 
@@ -191,29 +192,29 @@ crews:
 
   marketing:
     name: "Marketing Crew"
-    description: "Positioning, asset generation, and launch strategy"
+    description: "Positioning, asset generation, and launch strategy using Salem AI"
     agents:
-      - role: "Content Creator"
-        goal: "Generate compelling marketing content and assets"
-        backstory: "Marketing expert with focus on conversions and user engagement"
-        tools: ["content_api", "copy_generator"]
+      - role: "Salem Marketing Specialist"
+        goal: "Generate high-quality marketing assets using Salem AI automation"
+        backstory: "Elite marketing specialist using Salem AI for automated asset generation and positioning"
+        tools: ["salem_marketing_tool", "content_api"]
         verbose: true
         allow_delegation: false
-        
+
       - role: "Brand Strategist"
         goal: "Develop brand positioning and messaging strategy"
         backstory: "Brand strategist with experience in startup positioning and market entry"
         tools: ["brand_analyzer", "positioning_tool"]
         verbose: true
         allow_delegation: false
-        
+
       - role: "Launch Coordinator"
         goal: "Coordinate launch strategy and go-to-market plan"
         backstory: "Launch specialist with experience in product launches and market entry"
         tools: ["launch_planner", "market_entry_tool"]
         verbose: true
         allow_delegation: false
-        
+
       - role: "Growth Hacker"
         goal: "Design growth strategies and user acquisition plans"
         backstory: "Growth hacker with expertise in viral marketing and user acquisition"
@@ -228,9 +229,9 @@ crews:
         agent: "Brand Strategist"
         
       - name: "content_creation"
-        description: "Create marketing content and launch assets"
-        expected_output: "Marketing content and launch assets"
-        agent: "Content Creator"
+        description: "Generate comprehensive marketing assets using Salem AI automation"
+        expected_output: "Complete marketing pack with positioning, landing copy, social media content, email sequence, and video scripts"
+        agent: "Salem Marketing Specialist"
         context: ["brand_positioning"]
         
       - name: "launch_strategy"
@@ -399,4 +400,11 @@ tools:
   content_api:
     endpoint: "https://api.content.com"
     templates_enabled: true
-    brand_guidelines: true 
+    brand_guidelines: true
+
+  salem_marketing_tool:
+    provider: "Salem Marketing Automation"
+    version: "1.0"
+    features: ["avatar_generation", "asset_creation", "positioning"]
+    ethical_guidelines: true
+    compliance_checked: true 

@@ -6,12 +6,18 @@ default_software_build:
     compliance: ["security", "testing"]
     visualize: true
   sequence:
-    - state: "idea_validation"
+    - state: "IDEA_VALIDATION"
+      crew: "ValidatorCrew"
       description: "Validate the project idea"
-    - state: "IN_PROGRESS"
+    - state: "TASK_EXECUTION"
+      crew: "BuilderCrew"
       description: "Execute development workflow"
-    - state: "COMPLETED"
-      description: "Project completed successfully"
+    - state: "MARKETING_PREPARATION"
+      crew: "MarketingCrew"
+      description: "Generate marketing assets with Salem AI"
+    - state: "FEEDBACK_COLLECTION"
+      crew: "FeedbackCrew"
+      description: "Collect feedback and finalize"
 
 validation_and_launch:
   metadata:
@@ -21,9 +27,18 @@ validation_and_launch:
     compliance: ["security", "testing", "deployment"]
     visualize: true
   sequence:
-    - state: "idea_validation"
+    - state: "IDEA_VALIDATION"
+      crew: "ValidatorCrew"
       description: "Validate the project idea"
-    - state: "IN_PROGRESS"
-      description: "Execute validation and launch"
-    - state: "COMPLETED"
-      description: "Project launched successfully"
+    - state: "EXECUTION_PLANNING"
+      crew: "ExecutionCrew"
+      description: "Plan execution strategy"
+    - state: "BUILD_PHASE"
+      crew: "BuilderCrew"
+      description: "Build the product"
+    - state: "MARKETING_LAUNCH"
+      crew: "LaunchCrew"
+      description: "Launch and market the product"
+    - state: "FEEDBACK_COLLECTION"
+      crew: "FeedbackCrew"
+      description: "Collect post-launch feedback"

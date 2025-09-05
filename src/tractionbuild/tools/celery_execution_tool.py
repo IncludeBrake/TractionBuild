@@ -20,10 +20,11 @@ class CeleryExecutionArgs(BaseModel):
 
 class CeleryExecutionTool(BaseTool):
     """Distributed task execution tool using Celery."""
-    
+
     name: str = "Celery Task Executor"
     description: str = "Executes tasks asynchronously using Celery for distributed processing."
     args_schema: type[BaseModel] = CeleryExecutionArgs
+    celery_app: Optional[Any] = Field(default=None, exclude=True)
 
     def __init__(self):
         """Initialize the Celery client."""

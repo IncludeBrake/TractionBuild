@@ -1,0 +1,6 @@
+{
+  "name": "Test Project",
+  "description": "Testing project creation and run directory generation",
+  "hypothesis": "Testing that new projects create run directories",
+  "workflow": "default_software_build"
+}

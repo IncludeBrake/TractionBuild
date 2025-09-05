@@ -195,17 +195,17 @@ async def startup_event():
     }
     workflow_engine = MockWorkflowEngine(agent_registry, event_bus)
 
-async def runner(project_id: str, project_data: ProjectCreate):
+async def runner(project_id: str, project_data_dict: dict):
     """Background task to run the workflow."""
     try:
         # Create project context
         project_ctx = {
             "project": {
                 "id": project_id,
-                "name": project_data.name,
-                "description": project_data.description,
-                "hypothesis": project_data.hypothesis,
-                "target_avatars": [a.value for a in project_data.target_avatars],
+                "name": project_data_dict["name"],
+                "description": project_data_dict["description"],
+                "hypothesis": project_data_dict["hypothesis"],
+                "target_avatars": [a for a in project_data_dict["target_avatars"]],
                 "state": ProjectStatus.IDEA_VALIDATION.value
             },
             "artifacts": {}
@@ -249,7 +249,9 @@ async def create_project(project_data: ProjectCreate, background_tasks: Backgrou
     }
     
     # Start background workflow
-    background_tasks.add_task(runner, project_id, project_data)
+    # Convert ProjectCreate to dict to ensure proper serialization
+    project_data_dict = project_data.model_dump()
+    background_tasks.add_task(runner, project_id, project_data_dict)
     
     return {"project_id": project_id}
 

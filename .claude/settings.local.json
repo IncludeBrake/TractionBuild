@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python:*)",
       "Bash(git checkout:*)",
-      "Bash(uv pip install:*)"
+      "Bash(uv pip install:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

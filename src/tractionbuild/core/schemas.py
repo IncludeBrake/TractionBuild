@@ -11,4 +11,6 @@ class ProjectStatus(Enum):
 class ProjectCreate(BaseModel):
     name: str
     description: str
+    hypothesis: Optional[str] = None
+    target_avatars: Optional[List[str]] = []
     workflow: str = "default_software_build"

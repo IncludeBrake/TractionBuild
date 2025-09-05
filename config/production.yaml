@@ -1,0 +1,71 @@
+# Production Configuration for TractionBuild
+# This file contains production-specific settings
+
+environment: production
+debug: false
+log_level: INFO
+
+# Server configuration
+server:
+  host: 0.0.0.0
+  port: 8000
+  workers: 4
+  reload: false
+
+# Database configuration
+database:
+  neo4j:
+    uri: ${NEO4J_URI}
+    user: ${NEO4J_USER}
+    password: ${NEO4J_PASSWORD}
+    max_connection_pool_size: 50
+    connection_timeout: 30
+
+# Redis configuration (optional)
+redis:
+  url: ${REDIS_URL}
+  enabled: false
+
+# LLM Configuration
+llm:
+  default_model: gpt-3.5-turbo
+  fallback_model: gpt-4o-mini
+  realtime_model: grok3
+  temperature: 0.7
+  max_tokens: 4000
+  timeout: 60
+
+# Feature flags
+features:
+  codecarbon_enabled: false
+  vault_enabled: false
+  streamlit_enabled: true
+  monitoring_enabled: true
+
+# Security
+security:
+  cors_origins: ["*"]  # Configure properly for production
+  session_secret: ${SESSION_SECRET}
+  jwt_secret: ${JWT_SECRET}
+
+# Monitoring
+monitoring:
+  prometheus_enabled: true
+  metrics_port: 9090
+  log_format: json
+
+# External APIs
+apis:
+  openai:
+    api_key: ${OPENAI_API_KEY}
+    timeout: 30
+  xai:
+    api_key: ${XAI_API_KEY}
+    timeout: 30
+
+# Workflow settings
+workflow:
+  max_concurrent_projects: 10
+  default_timeout: 3600  # 1 hour
+  retry_attempts: 3
+  retry_delay: 60

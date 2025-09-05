@@ -1,0 +1,6 @@
+{
+  "name": "Final Test Project",
+  "description": "Testing the complete workflow after all fixes",
+  "hypothesis": "This should create a run directory successfully",
+  "workflow": "default_software_build"
+}

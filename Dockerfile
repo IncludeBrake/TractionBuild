@@ -1,48 +1,38 @@
-# --- Stage 1: Builder ---
-# This stage builds your application and its dependencies.
-FROM python:3.12-slim AS builder
-WORKDIR /app
-
-# Install system dependencies needed for building some Python packages
-RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install dependencies
-COPY requirements.txt ./
-RUN pip install --upgrade pip==23.3.2 && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy the source code
-COPY src/ ./src/
-
-
-# --- Stage 2: Final Production Image ---
-# This stage creates a lean final image with only what's needed to run.
+# Use Python 3.12 slim image for smaller size
 FROM python:3.12-slim
-RUN groupadd -r tractionbuild && useradd --no-log-init -r -g tractionbuild tractionbuild
 
-# Install only the necessary runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
-
+# Set working directory
 WORKDIR /app
 
-# Copy the installed Python packages from the builder stage
-COPY --from=builder --chown=tractionbuild:tractionbuild /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-# Copy the application source code from the builder stage
-COPY --from=builder --chown=tractionbuild:tractionbuild /app/src ./src
+# Install system dependencies for Neo4j and other libraries
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    graphviz \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy all other necessary application files
-COPY --chown=tractionbuild:tractionbuild config/ ./config/
-COPY --chown=tractionbuild:tractionbuild runs/ ./runs/
-COPY --chown=tractionbuild:tractionbuild chat_ui.py ./
-COPY --chown=tractionbuild:tractionbuild entrypoint.sh ./
-RUN chmod +x /app/entrypoint.sh
+# Copy requirements first for better Docker layer caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# The PATH is now clean as packages are in the system Python path
-ENV PYTHONPATH="/app/src"
+# Copy the application code
+COPY . .
 
-USER tractionbuild
-EXPOSE 8000 8501
-ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["--help"]
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash app \
+    && chown -R app:app /app
+USER app
+
+# Expose ports
+EXPOSE 8000
+EXPOSE 8501
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command
+CMD ["python", "app_v1_real_integration.py"]

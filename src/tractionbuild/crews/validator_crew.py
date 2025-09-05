@@ -160,12 +160,13 @@ class ValidatorCrew(BaseCrew):
 
     async def _execute_crew(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the Validator Crew using distributed execution."""
-        task_type = next(iter(inputs.keys()), "validate_idea")
-        task_result = await self.celery_executor.execute_task(
-            lambda: self.crew.kickoff_async(inputs=inputs)
-        )
-        result = task_result.result() if task_result else {}
-        return result.get(task_type, {})
+        try:
+            # Execute the crew directly using CrewAI
+            result = await self.crew.kickoff_async(inputs=inputs)
+            return {"validation_result": result, "status": "success"}
+        except Exception as e:
+            logger.error(f"ValidatorCrew execution failed: {e}")
+            return {"error": str(e), "status": "failed"}
 
     async def validate_idea(self, idea: str, context: Optional[Dict[str, Any]] = None) -> ValidationResult:
         """
