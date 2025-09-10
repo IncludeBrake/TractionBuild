@@ -113,10 +113,8 @@ class LaunchCrew(BaseCrew):
     async def _execute_crew(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the Launch Crew using distributed execution."""
         task_type = next(iter(inputs.keys()), "prepare_launch")
-        task_result = await self.celery_executor.execute_task(
-            lambda: self.crew.kickoff_async(inputs=inputs)
-        )
-        result = task_result.result() if task_result else {}
+        # Execute crew directly instead of using Celery incorrectly
+        result = await asyncio.to_thread(self.crew.kickoff, inputs=inputs)
         return result.get(task_type, {})
 
     async def prepare_launch(self, product_info: Dict[str, Any], launch_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:

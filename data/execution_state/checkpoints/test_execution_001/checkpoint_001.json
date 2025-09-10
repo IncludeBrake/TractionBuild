@@ -1,0 +1,13 @@
+{
+  "step": 1,
+  "task_states": {
+    "persist_task_1": "completed"
+  },
+  "resource_usage": {
+    "cpu": 25.0
+  },
+  "checkpoint_id": "checkpoint_001",
+  "execution_id": "test_execution_001",
+  "timestamp": "2025-09-07T06:43:54.715765",
+  "checksum": "3f0482998d158a4e58742d7c20a93ffd6d589ed3bc96a6707b9c8095f24274f7"
+}

@@ -1,0 +1,23 @@
+# TractionBuild Code Owners
+# This file defines who owns and reviews code changes
+
+# Global owners - review all changes
+* @your-github-username
+
+# Security-related files
+/SECURITY.md @your-github-username
+/src/security/ @your-github-username
+/scripts/ci/ @your-github-username
+
+# Core application
+/app/ @your-github-username
+/src/tractionbuild/core/ @your-github-username
+
+# AI/ML components
+/src/tractionbuild/crews/ @your-github-username
+/src/tractionbuild/agents/ @your-github-username
+
+# Infrastructure
+/Dockerfile @your-github-username
+/docker-compose.yml @your-github-username
+/k8s/ @your-github-username

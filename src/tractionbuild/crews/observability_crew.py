@@ -417,11 +417,18 @@ class ObservabilityCrew(BaseCrew):
             crew = self._create_crew()
             result = await crew.kickoff()
             
-            # Parse the result
-            if hasattr(result, 'raw') and result.raw:
+            # Parse the result - handle different result types safely
+            if isinstance(result, dict):
+                return {"crew_output": result}
+            elif hasattr(result, 'raw') and result.raw:
                 return {"crew_output": result.raw}
-            elif hasattr(result, 'result') and result.result:
-                return {"crew_output": result.result}
+            elif hasattr(result, 'result') and callable(getattr(result, 'result', None)):
+                # Only call .result() if it's actually a method
+                try:
+                    result_value = result.result()
+                    return {"crew_output": result_value}
+                except (AttributeError, TypeError):
+                    return {"crew_output": str(result)}
             else:
                 return {"crew_output": str(result)}
                 

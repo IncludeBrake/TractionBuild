@@ -1,0 +1,120 @@
+# Cursor-specific ignore patterns for TractionBuild
+# This helps reduce context pollution by excluding files that could confuse AI completions
+
+# === Python Virtual Environments ===
+.venv/
+venv/
+env/
+ENV/
+
+# === Python Bytecode & Cache ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# === Build & Distribution ===
+build/
+dist/
+*.egg-info/
+*.egg
+
+# === IDE & Editor Files ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === OS Specific Files ===
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+*.lnk
+
+# === Logs & Temporary Files ===
+*.log
+*.tmp
+*.temp
+chaos_test_results.log
+
+# === Backup Files ===
+*.backup
+*.bak
+
+# === Database Files ===
+data/budget.db
+*.db
+*.sqlite
+*.sqlite3
+
+# === Generated Output & Execution Results ===
+output/
+runs/
+data/execution_state/
+data/execution_state/backups/
+data/execution_state/checkpoints/
+
+# === Test Artifacts ===
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+*.cover
+
+# === Node.js (if present) ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Docker & Deployment ===
+.dockerignore
+
+# === Documentation that might be outdated or legacy ===
+docs/legacy/
+docs/old/
+docs/archive/
+
+# === Cache Directories ===
+.cache/
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# === Environment & Secrets ===
+.env*
+secrets.json
+config.json
+
+# === Large Binary Files ===
+*.exe
+*.dll
+*.dylib
+hashicorp_vault/
+hashicorp_vault/vault.exe
+
+# === Temporary Project Files ===
+test_project*.json
+resource_manager_validation.py
+Cleanup_Project_Script_Outcome.txt
+
+# === CrewAI Specific ===
+.crewai/
+logs/
+temp/
+
+# === Kubernetes & Helm ===
+k8s/*.yaml.backup
+k8s/*.yaml.bak
+
+# === Specific files that are not core to development ===
+Makefile.patch
+uv.lock
+package-lock.json

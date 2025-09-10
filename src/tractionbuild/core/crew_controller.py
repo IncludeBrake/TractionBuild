@@ -10,7 +10,7 @@ from functools import lru_cache
 from typing import Dict, Any, List, Optional
 import logging
 from asyncio import Lock
-from dpath import get as dpath_get, merge as dpath_merge
+# Removed dpath import - using new registry system
 from uuid import uuid4  # For log IDs
 import json
 from datetime import datetime
@@ -20,6 +20,9 @@ from pathlib import Path
 from ..database.project_registry import ProjectRegistry
 from ..crews import CREW_REGISTRY
 from ..utils.mermaid_exporter import MermaidExporter
+from ..core.types import CrewResult, Artifact, create_success_result, create_error_result
+from ..services.artifact_store import ArtifactStore
+from ..services.project_registry import ProjectRegistry as NewProjectRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +41,86 @@ class CrewController:
         self.iteration_count = 0
         self.log_id = uuid4().hex  # Unique ID for logs
         self.state_history = []  # For cycle detection
-        
+
+        # New services for structured result handling
+        self.new_registry = NewProjectRegistry()
+        self.artifact_store = ArtifactStore()
+
         # ML loop detection (placeholder for sklearn)
         self.ml_model = None  # IsolationForest() if sklearn available
-        
+
         logger.info(f"CrewController initialized for project: {project_data.get('id', 'unknown')}")
-    
+
+    def _dict_to_crew_result(self, crew_name: str, result_dict: Dict[str, Any]) -> CrewResult:
+        """Convert a crew's dict result to a standardized CrewResult object."""
+        try:
+            # Extract basic information
+            content = result_dict.get('content', {})
+            execution_metadata = result_dict.get('execution_metadata', {})
+            state_transition = result_dict.get('state_transition', {})
+            sustainability = result_dict.get('sustainability', {})
+
+            # Determine success/failure
+            is_ok = state_transition.get('conditions_met', True) and state_transition.get('next_state') != 'ERROR'
+            summary = content.get('summary', f"{crew_name} execution {'successful' if is_ok else 'failed'}")
+
+            # Create artifacts from content
+            artifacts = []
+            for key, value in content.items():
+                if key not in ['summary', 'serialized_output']:
+                    # Create artifact from content
+                    artifact = Artifact(
+                        id=f"{key}_{uuid4().hex[:8]}",
+                        type="json",
+                        data=value if isinstance(value, (dict, list)) else str(value),
+                        meta={
+                            "source": "crew_output",
+                            "key": key,
+                            "crew_name": crew_name
+                        }
+                    )
+                    artifacts.append(artifact)
+
+            # Extract stats
+            stats = {
+                "duration_ms": execution_metadata.get("execution_duration_seconds", 0) * 1000,
+                "tokens_in": 0,  # Would be populated from actual LLM usage
+                "tokens_out": 0,
+                "cost_usd": 0.0,
+                "crew_name": crew_name
+            }
+
+            # Add sustainability stats if available
+            if sustainability:
+                stats["co2_emissions_kg"] = sustainability.get("co2_emissions_kg", 0.0)
+                stats["energy_consumed_kwh"] = sustainability.get("energy_consumed_kwh", 0.0)
+
+            # Extract warnings and errors
+            warnings = []
+            errors = []
+
+            if not is_ok:
+                error_info = content.get(crew_name.lower().replace("crew", ""), {})
+                if isinstance(error_info, dict):
+                    if "error" in error_info:
+                        errors.append(error_info["error"])
+                    if "warnings" in error_info:
+                        warnings.extend(error_info["warnings"])
+
+            return CrewResult(
+                crew_name=crew_name,
+                ok=is_ok,
+                summary=summary,
+                artifacts=artifacts,
+                stats=stats,
+                warnings=warnings,
+                errors=errors
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to convert dict result to CrewResult for {crew_name}: {e}")
+            return create_error_result(crew_name, f"Result conversion failed: {str(e)}")
+
     def set_registry(self, registry: ProjectRegistry):
         """Set the project registry for persistence."""
         self.registry = registry
@@ -102,7 +179,7 @@ class CrewController:
                 if 'parallel' in step:
                     # Check if current state is in parallel
                     for sub_step in step['parallel']:
-                        if sub_step.get('state') == current_state:
+                        if sub_step.get('state', '').upper() == current_state.upper():
                             current_index = i
                             break
                 elif 'loop' in step:
@@ -112,15 +189,15 @@ class CrewController:
                         if current_state.startswith(state_prefix):
                             current_index = i
                             break
-                elif step.get('state') == current_state:
+                elif step.get('state', '').upper() == current_state.upper():
                     current_index = i
                     break
-        
+
         if current_index == -1:
             logger.warning(f"Current state '{current_state}' not found in workflow")
-            # Try to find the first step that matches our current state
+            # Try to find the first step that matches our current state (case-insensitive)
             for i, step in enumerate(sequence):
-                if isinstance(step, dict) and step.get('state') == current_state:
+                if isinstance(step, dict) and step.get('state', '').upper() == current_state.upper():
                     current_index = i
                     break
         
@@ -294,15 +371,47 @@ class CrewController:
 
         async with self.data_lock:
             had_errors = False
-            for result in results:
+            crew_results = []
+
+            for i, result in enumerate(results):
+                crew_name = "UnknownCrew"
+                if i < len(tasks):
+                    # Try to extract crew name from the task
+                    task = tasks[i]
+                    if hasattr(task, 'get_coro'):
+                        coro = task.get_coro()
+                        if hasattr(coro, 'cr_frame') and coro.cr_frame:
+                            # Extract crew name from coroutine frame
+                            frame_locals = coro.cr_frame.f_locals
+                            if 'self' in frame_locals:
+                                crew_instance = frame_locals['self']
+                                crew_name = crew_instance.__class__.__name__
+
                 if isinstance(result, asyncio.TimeoutError):
-                    logger.error(f"{self.log_id}: Timeout in crew execution")
+                    logger.error(f"{self.log_id}: Timeout in {crew_name} execution")
+                    crew_result = create_error_result(crew_name, "Execution timeout")
+                    crew_results.append(crew_result)
                     had_errors = True
                 elif isinstance(result, Exception):
-                    logger.error(f"{self.log_id}: Crew failed: {result}")
+                    logger.error(f"{self.log_id}: {crew_name} failed: {result}")
+                    crew_result = create_error_result(crew_name, str(result))
+                    crew_results.append(crew_result)
                     had_errors = True
                 elif isinstance(result, dict):
-                    dpath_merge(self.project_data, result)  # Deep merge
+                    # Convert dict result to CrewResult and store using new registry
+                    crew_result = self._dict_to_crew_result(crew_name, result)
+                    crew_results.append(crew_result)
+
+                    # Store artifacts
+                    saved_paths = self.artifact_store.save_artifacts(self.project_data['id'], crew_result)
+                    logger.info(f"{self.log_id}: Saved {len(saved_paths)} artifacts for {crew_name}")
+
+                    # Update registry
+                    self.new_registry.append_crew_result(self.project_data['id'], crew_result)
+                    logger.info(f"{self.log_id}: Updated registry for {crew_name}")
+
+                    if not crew_result.ok:
+                        had_errors = True
             
             if had_errors:
                 self.project_data['state'] = 'ERROR'

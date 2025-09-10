@@ -48,6 +48,10 @@ class CeleryExecutionTool(BaseTool):
             task_soft_time_limit=25 * 60,  # 25 minutes
         )
 
+    async def execute_task(self, task_name: str, task_args: list = None, task_kwargs: dict = None, queue: str = "default") -> Dict[str, Any]:
+        """Execute a task asynchronously (for backward compatibility)."""
+        return self._run(task_name, task_args, task_kwargs, queue)
+
     def _run(self, task_name: str, task_args: list = None, task_kwargs: dict = None, queue: str = "default") -> Dict[str, Any]:
         """
         Execute a task asynchronously using Celery.

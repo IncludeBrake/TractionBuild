@@ -126,10 +126,8 @@ class MarketingCrew(BaseCrew):
     async def _execute_crew(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the Marketing Crew using distributed execution."""
         task_type = next(iter(inputs.keys()), "create_positioning")
-        task_result = await self.celery_executor.execute_task(
-            lambda: self.crew.kickoff_async(inputs=inputs)
-        )
-        result = task_result.result() if task_result else {}
+        # Execute crew directly instead of using Celery incorrectly
+        result = await asyncio.to_thread(self.crew.kickoff, inputs=inputs)
         return result.get(task_type, {})
 
     async def create_positioning(self, product_spec: Dict[str, Any], market_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:

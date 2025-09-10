@@ -8,47 +8,47 @@ param(
     [switch]$Test
 )
 
-Write-Host "🚀 TractionBuild Railway Deployment" -ForegroundColor Green
+    Write-Host "TractionBuild Railway Deployment" -ForegroundColor Green
 Write-Host "==================================" -ForegroundColor Cyan
 
 function Initialize-Railway {
-    Write-Host "📦 Initializing Railway project..." -ForegroundColor Blue
+    Write-Host "Initializing Railway project..." -ForegroundColor Blue
 
     # Check if Railway CLI is installed
     try {
         $railwayVersion = railway --version 2>$null
-        Write-Host "✅ Railway CLI found: $railwayVersion" -ForegroundColor Green
+        Write-Host "Railway CLI found: $railwayVersion" -ForegroundColor Green
     } catch {
-        Write-Host "❌ Railway CLI not found. Installing..." -ForegroundColor Yellow
+        Write-Host "Railway CLI not found. Installing..." -ForegroundColor Yellow
         npm install -g @railway/cli
     }
 
     # Login to Railway
-    Write-Host "🔐 Logging into Railway..." -ForegroundColor Blue
+    Write-Host "Logging into Railway..." -ForegroundColor Blue
     railway login
 
     # Initialize project
-    Write-Host "🏗️  Creating Railway project..." -ForegroundColor Blue
+    Write-Host "Creating Railway project..." -ForegroundColor Blue
     railway init tractionbuild
 
     # Set up environment
-    Write-Host "🌍 Setting up production environment..." -ForegroundColor Blue
+    Write-Host "Setting up production environment..." -ForegroundColor Blue
     railway environment production
 
     # Add Neo4j service
-    Write-Host "🗄️  Adding Neo4j database..." -ForegroundColor Blue
+    Write-Host "Adding Neo4j database..." -ForegroundColor Blue
     railway add neo4j
 
     # Add Redis (optional)
-    Write-Host "🔄 Adding Redis (optional caching)..." -ForegroundColor Blue
+    Write-Host "Adding Redis (optional caching)..." -ForegroundColor Blue
     railway add redis
 }
 
 function Deploy-Application {
-    Write-Host "🚀 Deploying TractionBuild application..." -ForegroundColor Blue
+    Write-Host "Deploying TractionBuild application..." -ForegroundColor Blue
 
     # Set environment variables
-    Write-Host "🔧 Configuring environment variables..." -ForegroundColor Blue
+    Write-Host "Configuring environment variables..." -ForegroundColor Blue
 
     $envVars = @(
         "OPENAI_API_KEY",
@@ -71,22 +71,22 @@ function Deploy-Application {
     }
 
     # Deploy
-    Write-Host "🚀 Starting deployment..." -ForegroundColor Green
+    Write-Host "Starting deployment..." -ForegroundColor Green
     railway up
 
     # Get deployment URL
-    Write-Host "🌐 Getting deployment URL..." -ForegroundColor Blue
+    Write-Host "Getting deployment URL..." -ForegroundColor Blue
     $deploymentUrl = railway domain
-    Write-Host "✅ Deployment complete!" -ForegroundColor Green
-    Write-Host "🌐 Application URL: $deploymentUrl" -ForegroundColor Cyan
-    Write-Host "🔗 API Health Check: $deploymentUrl/health" -ForegroundColor Cyan
+    Write-Host "Deployment complete!" -ForegroundColor Green
+    Write-Host "Application URL: $deploymentUrl" -ForegroundColor Cyan
+    Write-Host "API Health Check: $deploymentUrl/health" -ForegroundColor Cyan
 }
 
 function Setup-Database {
-    Write-Host "🗄️  Setting up Neo4j database..." -ForegroundColor Blue
+    Write-Host "Setting up Neo4j database..." -ForegroundColor Blue
 
     # Get database credentials from Railway
-    Write-Host "🔑 Getting database credentials..." -ForegroundColor Blue
+    Write-Host "Getting database credentials..." -ForegroundColor Blue
 
     try {
         $neo4jUrl = railway variables get NEO4J_URL
@@ -105,27 +105,27 @@ function Setup-Database {
 }
 
 function Test-Deployment {
-    Write-Host "🧪 Testing deployment..." -ForegroundColor Blue
+    Write-Host "Testing deployment..." -ForegroundColor Blue
 
     # Get deployment URL
     try {
         $deploymentUrl = railway domain
-        Write-Host "🌐 Testing deployment at: $deploymentUrl" -ForegroundColor Cyan
+        Write-Host "Testing deployment at: $deploymentUrl" -ForegroundColor Cyan
 
         # Test health endpoint
-        Write-Host "🔍 Testing health endpoint..." -ForegroundColor Blue
+        Write-Host "Testing health endpoint..." -ForegroundColor Blue
         $healthResponse = Invoke-RestMethod -Uri "$deploymentUrl/health" -TimeoutSec 30
-        Write-Host "✅ Health check passed!" -ForegroundColor Green
+        Write-Host "Health check passed!" -ForegroundColor Green
         Write-Host "System: $($healthResponse.system)" -ForegroundColor Gray
         Write-Host "Database: $($healthResponse.database)" -ForegroundColor Gray
 
         # Test API endpoints
-        Write-Host "🔍 Testing API endpoints..." -ForegroundColor Blue
+        Write-Host "Testing API endpoints..." -ForegroundColor Blue
         $apiResponse = Invoke-WebRequest -Uri "$deploymentUrl/docs" -TimeoutSec 30
-        Write-Host "✅ API documentation accessible" -ForegroundColor Green
+        Write-Host "API documentation accessible" -ForegroundColor Green
 
     } catch {
-        Write-Host "❌ Deployment test failed: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "Deployment test failed: $($_.Exception.Message)" -ForegroundColor Red
         Write-Host "Check Railway logs: railway logs" -ForegroundColor Yellow
     }
 }

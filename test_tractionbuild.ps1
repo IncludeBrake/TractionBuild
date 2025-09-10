@@ -21,7 +21,7 @@ function Test-ServerConnection {
         Write-Host "Database: $($response.database)" -ForegroundColor Cyan
         return $true
     } catch {
-        Write-Host "❌ Server is not responding. Run start_tractionbuild.ps1 first" -ForegroundColor Red
+        Write-Host "ERROR - Server is not responding. Run start_tractionbuild.ps1 first" -ForegroundColor Red
         return $false
     }
 }
@@ -46,7 +46,7 @@ function New-TestProject {
         Write-Host "Workflow: $Workflow" -ForegroundColor Cyan
         return $response.project_id
     } catch {
-        Write-Host "❌ Failed to create project: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "ERROR - Failed to create project - $($_.Exception.Message)" -ForegroundColor Red
         return $null
     }
 }
@@ -69,7 +69,7 @@ function New-SalemMarketingTest {
         Write-Host "🎯 This project will test Salem AI marketing asset generation" -ForegroundColor Cyan
         return $response.project_id
     } catch {
-        Write-Host "❌ Failed to create Salem test project: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "ERROR - Failed to create Salem test project - $($_.Exception.Message)" -ForegroundColor Red
         return $null
     }
 }
@@ -79,7 +79,7 @@ function Get-ProjectStatus {
     
     try {
         $status = Invoke-RestMethod -Uri "$baseUrl/api/v1/projects/$Id/status"
-        Write-Host "📊 Project Status for $Id" -ForegroundColor Blue
+        Write-Host "STATUS - Project Status for $Id" -ForegroundColor Blue
         Write-Host "State: $($status.state)" -ForegroundColor Cyan
         Write-Host "Progress: $($status.progress)%" -ForegroundColor Cyan
         Write-Host "Current Step: $($status.current_step)" -ForegroundColor Cyan
@@ -87,7 +87,7 @@ function Get-ProjectStatus {
         Write-Host "Has Error: $($status.has_error)" -ForegroundColor Cyan
         return $status
     } catch {
-        Write-Host "❌ Failed to get project status: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "ERROR - Failed to get project status - $($_.Exception.Message)" -ForegroundColor Red
         return $null
     }
 }
@@ -97,7 +97,7 @@ function Get-ProjectDetails {
     
     try {
         $project = Invoke-RestMethod -Uri "$baseUrl/api/v1/projects/$Id"
-        Write-Host "📋 Project Details for $Id" -ForegroundColor Blue
+        Write-Host "DETAILS - Project Details for $Id" -ForegroundColor Blue
         Write-Host "Project Data:" -ForegroundColor Cyan
         $project.project | ConvertTo-Json -Depth 3 | Write-Host
         Write-Host "`nArtifacts:" -ForegroundColor Cyan
@@ -108,7 +108,7 @@ function Get-ProjectDetails {
         }
         return $project
     } catch {
-        Write-Host "❌ Failed to get project details: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "ERROR - Failed to get project details - $($_.Exception.Message)" -ForegroundColor Red
         return $null
     }
 }
@@ -116,19 +116,19 @@ function Get-ProjectDetails {
 function Show-RunsDirectory {
     $runsPath = "C:\Users\jthri\Dev\MySauce\TractionBuild\runs"
     if (Test-Path $runsPath) {
-        Write-Host "📁 Runs Directory Contents:" -ForegroundColor Blue
+        Write-Host "RUNS - Runs Directory Contents:" -ForegroundColor Blue
         Get-ChildItem $runsPath | ForEach-Object {
             Write-Host "  $($_.Name)" -ForegroundColor Cyan
             if ($_.PSIsContainer) {
                 $eventsFile = Join-Path $_.FullName "events.jsonl"
                 if (Test-Path $eventsFile) {
                     $eventCount = (Get-Content $eventsFile | Measure-Object -Line).Lines
-                    Write-Host "    └── events.jsonl ($eventCount events)" -ForegroundColor Gray
+                    Write-Host "    --- events.jsonl ($($eventCount) events)" -ForegroundColor Gray
                 }
             }
         }
     } else {
-        Write-Host "❌ Runs directory not found" -ForegroundColor Red
+        Write-Host 'ERROR - Runs directory not found' -ForegroundColor Red
     }
 }
 
@@ -143,36 +143,36 @@ if ($Health) {
 }
 
 if ($SalemTest) {
-    Write-Host "🤖 Testing Salem AI Marketing Integration..." -ForegroundColor Magenta
+    Write-Host "SALEM - Testing Salem AI Marketing Integration..." -ForegroundColor Magenta
     Write-Host "============================================" -ForegroundColor Cyan
 
     $salemProjectId = New-SalemMarketingTest
     if ($salemProjectId) {
-        Write-Host "`n⏳ Monitoring Salem workflow progress..." -ForegroundColor Yellow
-        Write-Host "🎯 Salem will generate marketing assets in MARKETING_PREPARATION phase" -ForegroundColor Cyan
+        Write-Host "`nMONITOR - Monitoring Salem workflow progress..." -ForegroundColor Yellow
+        Write-Host "TARGET - Salem will generate marketing assets in MARKETING_PREPARATION phase" -ForegroundColor Cyan
 
         # Monitor workflow progress
         for ($i = 0; $i -lt 10; $i++) {
             Start-Sleep -Seconds 10
             try {
                 $statusResponse = Invoke-RestMethod -Uri "$baseUrl/api/v1/projects/$salemProjectId/status"
-                Write-Host "📊 Project Status for $salemProjectId" -ForegroundColor Blue
+                Write-Host "STATUS - Project Status for $salemProjectId" -ForegroundColor Blue
                 Write-Host "State: $($statusResponse.state)" -ForegroundColor Cyan
                 Write-Host "Progress: $($statusResponse.progress)%" -ForegroundColor Cyan
 
                 if ($statusResponse.state -eq "MARKETING_PREPARATION") {
-                    Write-Host "🎉 Salem Marketing Phase Reached!" -ForegroundColor Magenta
-                    Write-Host "🤖 Salem AI is generating marketing assets..." -ForegroundColor Cyan
+                    Write-Host "SUCCESS - Salem Marketing Phase Reached!" -ForegroundColor Magenta
+                    Write-Host "SALEM - Salem AI is generating marketing assets..." -ForegroundColor Cyan
                     break
                 } elseif ($statusResponse.state -eq "COMPLETED") {
-                    Write-Host "✅ Workflow completed! Check artifacts for Salem marketing assets." -ForegroundColor Green
+                    Write-Host "SUCCESS - Workflow completed! Check artifacts for Salem marketing assets." -ForegroundColor Green
                     break
                 } elseif ($statusResponse.has_error) {
-                    Write-Host "❌ Workflow encountered an error" -ForegroundColor Red
+                    Write-Host "ERROR - Workflow encountered an error" -ForegroundColor Red
                     break
                 }
             } catch {
-                Write-Host "❌ Failed to get status: $($_.Exception.Message)" -ForegroundColor Red
+                Write-Host "ERROR - Failed to get status - $($_.Exception.Message)" -ForegroundColor Red
                 break
             }
         }
@@ -182,31 +182,31 @@ if ($SalemTest) {
 }
 
 if ($WorkflowTest) {
-    Write-Host "🔄 Testing Complete Workflow with Salem..." -ForegroundColor Blue
+    Write-Host "WORKFLOW - Testing Complete Workflow with Salem..." -ForegroundColor Blue
     Write-Host "==========================================" -ForegroundColor Cyan
 
     $workflowProjectId = New-TestProject -Workflow "validation_and_launch"
     if ($workflowProjectId) {
-        Write-Host "`n⏳ Monitoring full workflow progress..." -ForegroundColor Yellow
-        Write-Host "📋 Phases: IDEA_VALIDATION → TASK_EXECUTION → MARKETING_PREPARATION → FEEDBACK_COLLECTION" -ForegroundColor Cyan
+        Write-Host "`nMONITOR - Monitoring full workflow progress..." -ForegroundColor Yellow
+        Write-Host "PHASES - Phases: IDEA_VALIDATION -> TASK_EXECUTION -> MARKETING_PREPARATION -> FEEDBACK_COLLECTION" -ForegroundColor Cyan
 
         # Monitor full workflow
         $lastState = ""
         for ($i = 0; $i -lt 20; $i++) {
             Start-Sleep -Seconds 15
-            $status = Get-ProjectStatus $workflowProjectId
+            $status = Get-ProjectStatus -Id $workflowProjectId
             if ($status) {
                 if ($status.state -ne $lastState) {
-                    Write-Host "🔄 Advanced to: $($status.state) ($($status.progress)% complete)" -ForegroundColor Yellow
+                    Write-Host "ADVANCE - Advanced to: $($status.state) ($($status.progress)% complete)" -ForegroundColor Yellow
                     $lastState = $status.state
                 }
 
                 if ($status.state -eq "COMPLETED") {
-                    Write-Host "🎉 Full workflow completed successfully!" -ForegroundColor Green
-                    Write-Host "📊 Final status: $($status.progress)% complete" -ForegroundColor Cyan
+                    Write-Host "SUCCESS - Full workflow completed successfully!" -ForegroundColor Green
+                    Write-Host "STATUS - Final status: $($status.progress)% complete" -ForegroundColor Cyan
                     break
                 } elseif ($status.has_error) {
-                    Write-Host "❌ Workflow encountered an error in $($status.state)" -ForegroundColor Red
+                    Write-Host "ERROR - Workflow encountered an error in $($status.state)" -ForegroundColor Red
                     break
                 }
             }
@@ -219,7 +219,7 @@ if ($WorkflowTest) {
 if ($CreateNew) {
     $newProjectId = New-TestProject
     if ($newProjectId) {
-        Write-Host "`n⏳ Waiting 5 seconds for workflow to start..." -ForegroundColor Yellow
+        Write-Host "`nWAIT - Waiting 5 seconds for workflow to start..." -ForegroundColor Yellow
         Start-Sleep -Seconds 5
         Get-ProjectStatus -Id $newProjectId
         Show-RunsDirectory
@@ -256,7 +256,7 @@ Write-Host "  .\test_tractionbuild.ps1 -ProjectId <id> -Status    # Get project 
 Write-Host "  .\test_tractionbuild.ps1 -ProjectId <id>            # Get full project details"
 Write-Host "  .\test_tractionbuild.ps1 -List                      # Show runs directory"
 Write-Host ""
-Write-Host "🤖 Salem AI Testing:" -ForegroundColor Magenta
+Write-Host "SALEM - Salem AI Testing" -ForegroundColor Magenta
 Write-Host "  -SalemTest: Creates project and monitors Salem marketing asset generation"
 Write-Host "  -WorkflowTest: Tests full workflow including Salem MARKETING_PREPARATION phase"
 Write-Host ""

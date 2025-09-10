@@ -1,0 +1,2 @@
+{"event": "workflow_started", "project_id": "b3f199b7-55ba-44fd-b0fb-0fd7781e3b66", "initial_state": "idea_validation"}
+{"event": "error", "message": "CrewController execution failed: 'ExecutionCrew' object has no attribute 'execution_agent'"}

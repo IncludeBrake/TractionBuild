@@ -7,14 +7,13 @@ from crewai.tools import BaseTool
 import json
 
 
-class CodeTools:
-    """Code generation and analysis tools for agents."""
-    
-    def __init__(self):
-        """Initialize code tools."""
-        pass
-    
-    def generate_code(self, specification: str, language: str = "python") -> Dict[str, Any]:
+class CodeGenerationTool(BaseTool):
+    """Tool for generating code from specifications."""
+
+    name: str = "Code Generation Tool"
+    description: str = "Generate code from natural language specifications"
+
+    def _run(self, specification: str, language: str = "python") -> str:
         """
         Generate code from specification.
         
@@ -26,12 +25,15 @@ class CodeTools:
             Generated code
         """
         # Placeholder implementation
-        return {
-            "code": f"# Generated {language} code\n# Specification: {specification}\n# TODO: Implement actual code generation",
-            "language": language,
-            "specification": specification,
-            "status": "placeholder"
-        }
+        code = f"""# Generated {language} code
+# Specification: {specification}
+# TODO: Implement actual code generation
+
+def generated_function():
+    \"\"\"Generated function based on specification.\"\"\"
+    return "Hello from generated code"
+"""
+        return code
     
     def analyze_code_quality(self, code: str, language: str = "python") -> Dict[str, Any]:
         """
@@ -54,20 +56,34 @@ class CodeTools:
         }
 
 
-# CrewAI Tool wrappers
-def create_code_generation_tool() -> BaseTool:
-    """Create a code generation tool for CrewAI."""
-    return BaseTool(
-        name="generate_code",
-        description="Generate code from specification",
-        func=CodeTools().generate_code
-    )
+class CodeAnalysisTool(BaseTool):
+    """Tool for analyzing code quality."""
+
+    name: str = "Code Analysis Tool"
+    description: str = "Analyze existing code for improvements and issues"
+
+    def _run(self, code: str) -> str:
+        """Analyze code and provide feedback."""
+        # Placeholder implementation
+        analysis = f"Code Analysis: Code length: {len(code)} characters"
+        return analysis
 
 
-def create_code_quality_tool() -> BaseTool:
-    """Create a code quality analysis tool for CrewAI."""
-    return BaseTool(
-        name="analyze_code_quality",
-        description="Analyze code quality",
-        func=CodeTools().analyze_code_quality
-    ) 
+class CodeOptimizationTool(BaseTool):
+    """Tool for optimizing code performance."""
+
+    name: str = "Code Optimization Tool"
+    description: str = "Optimize code for better performance"
+
+    def _run(self, code: str) -> str:
+        """Optimize code and return improved version."""
+        # Placeholder implementation
+        return f"# Optimized code\n{code}"
+
+
+# List of available code tools for agents
+CODE_TOOLS = [
+    CodeGenerationTool(),
+    CodeAnalysisTool(),
+    CodeOptimizationTool()
+] 

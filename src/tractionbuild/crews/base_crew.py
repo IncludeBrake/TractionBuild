@@ -134,7 +134,9 @@ class BaseCrew(ABC):
 
             execution_time = (datetime.utcnow() - execution_start).total_seconds()
             enhanced_result = {
-                output_key: primary_content,
+                'content': {
+                    output_key: primary_content
+                },
                 'serialized_output': serialized_result,
                 'execution_metadata': {
                     'crew_name': self.__class__.__name__,
@@ -179,11 +181,13 @@ class BaseCrew(ABC):
             logger.error(f"Error in {self.__class__.__name__}: {error_msg}")
 
             error_result = {
-                self._get_output_key(): {
-                    "error": error_msg,
-                    "error_type": type(e).__name__,
-                    "status": "failed",
-                    "retry_count": retry_count,
+                'content': {
+                    self._get_output_key(): {
+                        "error": error_msg,
+                        "error_type": type(e).__name__,
+                        "status": "failed",
+                        "retry_count": retry_count,
+                    }
                 },
                 'execution_metadata': {
                     'crew_name': self.__class__.__name__,
