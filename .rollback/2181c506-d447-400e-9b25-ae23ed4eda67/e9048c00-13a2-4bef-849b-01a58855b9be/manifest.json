@@ -1,0 +1,33 @@
+{
+  "tx_id": "e9048c00-13a2-4bef-849b-01a58855b9be",
+  "project_id": "2181c506-d447-400e-9b25-ae23ed4eda67",
+  "started_at": 1761932846.759725,
+  "ended_at": 1761932846.814627,
+  "created": [
+    "service\\service\\app\\__init__.py",
+    "service\\service\\app\\limits.py",
+    "service\\service\\app\\logging_conf.py",
+    "service\\service\\app\\main.py",
+    "service\\service\\app\\metrics.py",
+    "service\\service\\app\\routes\\health.py",
+    "service\\service\\app\\routes\\sample.py",
+    "service\\service\\app\\security.py",
+    "service\\service\\app\\settings.py",
+    "service\\service\\tests\\test_health.py",
+    "service\\service\\tests\\test_imports.py",
+    "service\\service\\tests\\test_rate_limit.py",
+    "service\\service\\tests\\test_security.py",
+    "service\\TB_GENERATED.json"
+  ],
+  "modified": [],
+  "pre_graph": {
+    "name": "demo",
+    "stage": "created"
+  },
+  "post_graph": {
+    "name": "demo",
+    "stage": "created"
+  },
+  "committed": true,
+  "rolled_back": false
+}

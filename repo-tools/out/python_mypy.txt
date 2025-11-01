@@ -1,0 +1,11 @@
+STDOUT:
+scripts\fine_tune_summarizer.py:203: error: invalid syntax  [syntax]
+    TEMPLATE """{{"Summarize the following text:\n\n{{.Input}}\n\nSummary:...
+                 ^
+Found 1 error in 1 file (errors prevented further checking)
+
+
+STDERR:
+
+
+EXIT CODE: 2

@@ -1,0 +1,18 @@
+{
+  "tx_id": "eb7f3103-854a-4d23-90bd-0af35eb3f111",
+  "project_id": "472b5733-abb4-4df7-a00d-98886e961f77",
+  "started_at": 1761932556.8512034,
+  "ended_at": 1761932556.8560965,
+  "created": [],
+  "modified": [],
+  "pre_graph": {
+    "name": "demo",
+    "stage": "created"
+  },
+  "post_graph": {
+    "name": "demo",
+    "stage": "created"
+  },
+  "committed": true,
+  "rolled_back": false
+}

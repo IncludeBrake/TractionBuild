@@ -31,6 +31,8 @@ try:
 except ImportError:
     VAULT_AVAILABLE = False
 
+from .key_manager import key_manager
+
 logger = logging.getLogger(__name__)
 
 class GDPRComplianceManager:
@@ -54,52 +56,16 @@ class GDPRComplianceManager:
             logger.warning("GDPR Compliance Manager disabled - cryptography not available")
     
     def _initialize_encryption(self):
-        """Initialize encryption with Vault or local key."""
+        """Initialize encryption with KeyManager."""
         try:
-            if self.vault_enabled and vault_client.enabled:
-                # Get encryption key from Vault
-                key_data = vault_client.get_encryption_key('tractionbuild_gdpr')
-                if key_data:
-                    self.encryption_key = key_data.encode()
-                    logger.info("Using Vault-managed encryption key")
-                else:
-                    self._generate_local_key()
-            else:
-                self._generate_local_key()
-            
-            if self.encryption_key:
-                self.cipher = Fernet(self.encryption_key)
-                
+            self.cipher = key_manager.cipher()
+            self.encryption_key = key_manager.load_key()
+            logger.info("GDPR Compliance Manager initialized with KeyManager")
         except Exception as e:
-            logger.error(f"Failed to initialize encryption: {e}")
-            self._generate_local_key()
-    
-    def _generate_local_key(self):
-        """Generate local encryption key for development/testing."""
-        try:
-            # Use environment variable or generate new key
-            key_env = os.getenv('tractionbuild_ENCRYPTION_KEY')
-            if key_env:
-                self.encryption_key = key_env.encode()
-            else:
-                # Generate from password and salt
-                password = os.getenv('tractionbuild_PASSWORD', 'default_dev_password').encode()
-                salt = b'tractionbuild_salt_2025'  # In production, use random salt
-                kdf = PBKDF2HMAC(
-                    algorithm=hashes.SHA256(),
-                    length=32,
-                    salt=salt,
-                    iterations=100000,
-                )
-                key = base64.urlsafe_b64encode(kdf.derive(password))
-                self.encryption_key = key
-            
-            logger.info("Using local encryption key")
-            
-        except Exception as e:
-            logger.error(f"Failed to generate local key: {e}")
-            # Fallback to Fernet generated key
-            self.encryption_key = Fernet.generate_key()
+            logger.error(f"Failed to initialize encryption with KeyManager: {e}")
+            self.enabled = False
+            self.cipher = None
+            self.encryption_key = None
     
     def anonymize_personal_data(self, data: Any) -> Any:
         """

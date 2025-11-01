@@ -1,4 +1,4 @@
-# Enhanced uv_auto.ps1 script with clean functionality
+﻿# Enhanced uv_auto.ps1 script with clean functionality
 # Usage: .\uv_auto.ps1 [clean]
 
 param(
@@ -8,7 +8,8 @@ param(
 # Define the name for the virtual environment directory
 $VENV_NAME = ".venv"
 
-# Function to clean virtual environment
+# --- Function Definition ---
+# Must be defined *before* it is called
 function Clean-Venv {
     if (Test-Path $VENV_NAME) {
         Write-Host "🧹 Deleting the virtual environment: $VENV_NAME" -ForegroundColor Yellow
@@ -19,13 +20,15 @@ function Clean-Venv {
     }
 }
 
-# Check if clean command is provided
+# --- Action Handler ---
+
+# 1. Check if clean command is provided
 if ($Action -eq "clean") {
     Clean-Venv
     exit 0
 }
 
-# Check if uv is installed
+# 2. Check if uv is installed
 try {
     $null = Get-Command uv -ErrorAction Stop
 } catch {
@@ -36,29 +39,42 @@ try {
 
 Write-Host "🚀 Starting uv_auto.ps1..." -ForegroundColor Cyan
 
-# Check if the virtual environment directory exists
-if (Test-Path $VENV_NAME) {
-    Write-Host "✅ Virtual environment already exists. Activating..." -ForegroundColor Green
-    & "$VENV_NAME\Scripts\Activate.ps1"
-} else {
-    Write-Host "🔨 Virtual environment not found. Creating and activating..." -ForegroundColor Yellow
-    uv venv
-    & "$VENV_NAME\Scripts\Activate.ps1"
-}
+# 3. Create or Activate Venv
+Write-Host "🔨 Creating/re-creating fresh virtual environment with Python 3.12..." -ForegroundColor Yellow
 
-# Check for a pyproject.toml file to install dependencies
-if (Test-Path "pyproject.toml") {
-    Write-Host "📋 pyproject.toml found. Syncing dependencies with uv sync..." -ForegroundColor Green
-    uv sync
-} elseif (Test-Path "requirements.txt") {
-    Write-Host "📋 requirements.txt found. Installing dependencies with uv pip install..." -ForegroundColor Green
-    uv pip install -r requirements.txt
+# We must clean first to prevent errors
+Clean-Venv
+# Now, create the venv using Python's standard library
+py -3.12 -m venv $VENV_NAME
+
+# Check if venv creation was successful
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Error: Failed to create venv with 'py -3.12 -m venv'. Make sure Python 3.12 is installed." -ForegroundColor Red
+    exit 1
+}
+& "$VENV_NAME\Scripts\Activate.ps1"
+
+
+# 4. Install dependencies (*** MODIFIED TO USE requirements.txt ***)
+# --- SET YOUR REQUIREMENTS FILE NAME HERE ---
+$ReqFile = "requirements.txt"
+
+if (Test-Path $ReqFile) {
+    Write-Host "📋 $ReqFile found. Installing dependencies..." -ForegroundColor Green
+    
+    # We use pip and --trusted-host to handle the network proxy
+    Write-Host "Running: pip install -r $ReqFile --no-cache --index-url https://pypi.org/simple --trusted-host pypi.org"
+    pip install -r $ReqFile --no-cache --index-url https://pypi.org/simple --trusted-host pypi.org
+    
+    # Check the exit code of the last command
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Error: Dependency installation failed. See output above." -ForegroundColor Red
+        exit 1
+    }
 } else {
-    Write-Host "⚠️  No pyproject.toml or requirements.txt found. Skipping dependency installation." -ForegroundColor Yellow
+    Write-Host "⚠️  No $ReqFile found. Cannot install dependencies." -ForegroundColor Yellow
 }
 
 Write-Host "✅ Setup complete! Virtual environment is active." -ForegroundColor Green
 Write-Host "💡 To clean the environment, run: .\uv_auto.ps1 clean" -ForegroundColor Cyan
 Write-Host "💡 To deactivate, run: deactivate" -ForegroundColor Cyan
-
-# Script will continue to run in the active shell.

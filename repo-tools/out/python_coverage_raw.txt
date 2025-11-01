@@ -1,0 +1,8 @@
+STDOUT:
+None
+
+STDERR:
+mainloop: caught unexpected SystemExit!
+
+
+EXIT CODE: 3

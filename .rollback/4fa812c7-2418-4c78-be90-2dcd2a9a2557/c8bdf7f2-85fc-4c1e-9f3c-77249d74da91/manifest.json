@@ -1,0 +1,22 @@
+{
+  "tx_id": "c8bdf7f2-85fc-4c1e-9f3c-77249d74da91",
+  "project_id": "4fa812c7-2418-4c78-be90-2dcd2a9a2557",
+  "started_at": 1761932556.8222513,
+  "ended_at": 1761932556.8380315,
+  "created": [
+    "new.txt"
+  ],
+  "modified": [
+    "keep.txt"
+  ],
+  "pre_graph": {
+    "name": "demo",
+    "stage": "seeded"
+  },
+  "post_graph": {
+    "name": "demo",
+    "stage": "seeded"
+  },
+  "committed": false,
+  "rolled_back": true
+}

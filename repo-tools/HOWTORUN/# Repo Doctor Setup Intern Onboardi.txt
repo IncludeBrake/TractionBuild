@@ -1,0 +1,507 @@
+# Repo Doctor Setup: Intern Onboarding Guide
+
+You're going to build a diagnostic machine that reads your codebase, runs every health check, and packages the results so an AI can prescribe exact fixes. Think of it as a blood panel for code.
+
+---
+
+## Step 1: Create the folder structure
+
+Open **PowerShell** in your project root (the folder with your main code).
+
+```powershell
+# Create the main repo-tools directory and subdirectories
+mkdir repo-tools
+cd repo-tools
+mkdir config, scripts, out
+cd ..
+```
+
+**What you just did:** Made a clean medical bay where all diagnostic tools will live, separate from your actual code.
+
+---
+
+## Step 2: Tell it what to ignore
+
+Create `repo-tools/config/ignore_globs.txt` and paste this:
+
+```
+node_modules/**
+dist/**
+build/**
+.next/**
+.vite/**
+out/**
+*.min.*
+*.lock
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.ipynb_checkpoints/**
+.env
+.env.*
+.venv/**
+venv/**
+.git/**
+.pytest_cache/**
+__pycache__/**
+```
+
+**Why:** Your AI doesn't need to read 50,000 npm dependencies or minified bundles. This filters to signal.
+
+---
+
+## Step 3: Install Python diagnostic tools
+
+Create `repo-tools/requirements.txt`:
+
+```
+ruff==0.6.9
+mypy==1.11.2
+pytest==8.3.3
+coverage==7.6.1
+bandit==1.7.9
+pip-audit==2.7.3
+```
+
+**What these do:**
+- `ruff`: catches style + logic bugs (fast)
+- `mypy`: catches type errors before runtime
+- `pytest`: runs your tests
+- `coverage`: finds untested code
+- `bandit`: finds security holes
+- `pip-audit`: finds vulnerable dependencies
+
+---
+
+## Step 4: Write the Python health checker
+
+Create `repo-tools/scripts/run_python_checks.py`:
+
+```python
+import json, subprocess, sys, pathlib
+
+OUT = pathlib.Path(__file__).resolve().parents[1] / "out"
+OUT.mkdir(parents=True, exist_ok=True)
+
+def run(cmd, out_file):
+    """Run a command and save output to a file"""
+    print("Running:", " ".join(cmd))
+    result = subprocess.run(cmd, capture_output=True, text=True, cwd=OUT.parents[1])
+    output = f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}\n\nEXIT CODE: {result.returncode}"
+    (OUT / out_file).write_text(output, encoding='utf-8')
+    return result.returncode
+
+print("\n=== PYTHON DIAGNOSTICS STARTING ===\n")
+
+exit_code = 0
+
+# 1. Check code style and common bugs
+exit_code |= run(["ruff", "check", "--output-format", "full", "."], "python_ruff.txt")
+
+# 2. Check types
+exit_code |= run(["mypy", "--pretty", "--show-error-codes", "."], "python_mypy.txt")
+
+# 3. Run tests
+exit_code |= run(["pytest", "-v", "--tb=short"], "python_pytest.txt")
+
+# 4. Measure test coverage
+run(["coverage", "run", "-m", "pytest", "-q"], "python_coverage_raw.txt")
+run(["coverage", "report", "-m"], "python_coverage.txt")
+
+# 5. Security scan
+exit_code |= run(["bandit", "-r", ".", "-f", "txt"], "python_bandit.txt")
+
+# 6. Check for vulnerable packages
+exit_code |= run(["pip-audit", "-r", "requirements.txt"], "python_pip_audit.txt")
+
+# Save summary
+with open(OUT / "python_summary.json", "w") as f:
+    json.dump({"overall_exit_code": exit_code}, f, indent=2)
+
+print(f"\n=== DIAGNOSTICS COMPLETE (exit code: {exit_code}) ===")
+print(f"Results saved to: {OUT.resolve()}")
+sys.exit(0)  # Always exit 0 so the pipeline continues
+```
+
+**What this does:** Runs 6 diagnostic passes and saves every output to `repo-tools/out/`. Even if tests fail, it keeps running.
+
+---
+
+## Step 5: (Optional) JavaScript health checker
+
+**Only do this if your project has `package.json`.**
+
+First, add these to your `package.json` scripts:
+
+```json
+{
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "audit": "npm audit --json > repo-tools/out/js_npm_audit.json || exit 0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "typescript": "^5.5.0"
+  }
+}
+```
+
+Then create `repo-tools/scripts/run_js_checks.mjs`:
+
+```javascript
+import { execSync } from "node:child_process";
+import { writeFileSync, mkdirSync } from "node:fs";
+import { dirname, resolve, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const OUT = resolve(__dirname, "..", "out");
+mkdirSync(OUT, { recursive: true });
+
+function run(cmd, file) {
+  console.log("Running:", cmd);
+  try {
+    const output = execSync(cmd, { encoding: "utf8", cwd: resolve(__dirname, "..", "..") });
+    writeFileSync(join(OUT, file), output);
+  } catch (e) {
+    const output = (e.stdout || "") + "\n" + (e.stderr || "");
+    writeFileSync(join(OUT, file), output);
+  }
+}
+
+console.log("\n=== JAVASCRIPT DIAGNOSTICS STARTING ===\n");
+
+run("npm run lint", "js_eslint.txt");
+run("npm run typecheck", "js_tsc.txt");
+run("npm audit --json", "js_npm_audit.json");
+
+console.log("\n=== JS DIAGNOSTICS COMPLETE ===");
+```
+
+---
+
+## Step 6: Package everything into a bundle
+
+Create `repo-tools/scripts/make_bundle.py`:
+
+```python
+import pathlib
+import tarfile
+import json
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+OUT = ROOT / "repo-tools" / "out"
+BUNDLE = ROOT / "repo-tools" / "repo_doctor_bundle"
+BUNDLE.mkdir(exist_ok=True)
+
+# File types we want to include
+KEEP_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".json", ".toml", ".yaml", ".yml", 
+                   ".md", ".txt", ".ini", ".cfg", ".sh", ".ps1", ".env.example"}
+KEEP_NAMES = {"Dockerfile", "requirements.txt", "package.json", "pyproject.toml", 
+              ".python-version", "README.md"}
+
+# Load ignore patterns
+ignore_file = ROOT / "repo-tools" / "config" / "ignore_globs.txt"
+ignore_patterns = []
+if ignore_file.exists():
+    ignore_patterns = [line.strip() for line in ignore_file.read_text().splitlines() 
+                      if line.strip() and not line.startswith("#")]
+
+def should_ignore(path_str):
+    """Check if path matches any ignore pattern"""
+    for pattern in ignore_patterns:
+        pattern_clean = pattern.rstrip("/**")
+        if pattern_clean in path_str.replace("\\", "/"):
+            return True
+    return False
+
+def should_keep(filepath):
+    """Decide if we should include this file"""
+    path_str = str(filepath.relative_to(ROOT)).replace("\\", "/")
+    
+    if should_ignore(path_str):
+        return False
+    
+    return filepath.suffix in KEEP_EXTENSIONS or filepath.name in KEEP_NAMES
+
+print("Scanning repository...")
+files = [p for p in ROOT.rglob("*") 
+         if p.is_file() 
+         and "repo-tools" not in str(p.relative_to(ROOT))
+         and should_keep(p)]
+
+print(f"Found {len(files)} source files to include")
+
+# Collect artifacts
+artifacts = list(OUT.glob("*")) if OUT.exists() else []
+print(f"Found {len(artifacts)} diagnostic artifacts")
+
+# Create manifest
+manifest = {
+    "files": [str(p.relative_to(ROOT)) for p in files],
+    "artifacts": [str(p.relative_to(OUT)) for p in artifacts]
+}
+(BUNDLE / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+# Create tarball
+print("Creating bundle...")
+with tarfile.open(BUNDLE / "repo_doctor.tar.gz", "w:gz") as tar:
+    for p in files:
+        tar.add(p, arcname=str(p.relative_to(ROOT)))
+    for a in artifacts:
+        tar.add(a, arcname=f"artifacts/{a.name}")
+
+# Create README
+(BUNDLE / "READ_ME_FIRST.md").write_text("""# Repo Doctor Bundle
+
+This archive contains:
+- Curated source files (no deps, no binaries)
+- artifacts/: all diagnostic outputs (tests, linters, security scans)
+- manifest.json: index of everything included
+
+## How to use
+Upload this bundle to your AI assistant with the prompt in PROMPT_repo_doctor.md
+""")
+
+# Create AI prompt
+(BUNDLE / "PROMPT_repo_doctor.md").write_text("""You are a senior software engineer performing a code health audit.
+
+**Your inputs:**
+- Source files (Python, JS, config)
+- artifacts/: test results, linter output, security scans, coverage reports
+
+**Your task:**
+1. Read all artifact files to understand what's failing
+2. Identify root causes (not symptoms)
+3. Create a prioritized fix plan (P0 = blocks everything, P1 = high impact, P2 = polish)
+4. For each fix, provide:
+   - Exact file path
+   - Unified diff patch
+   - Why this fixes the root cause
+5. If you need more info, list the exact command to run
+
+**Output format:**
+```
+## Summary
+[One paragraph: what's broken and why]
+
+## Priority 0 Fixes
+### Fix 1: [description]
+**File:** path/to/file.py
+**Patch:**
+```diff
+- old line
++ new line
+```
+**Rationale:** [why this works]
+
+[Repeat for each fix]
+
+## Missing Information
+[Commands to get more diagnostic data, if needed]
+```
+
+Start with artifacts/python_pytest.txt and work from there.
+""")
+
+print(f"\n✓ Bundle created: {BUNDLE / 'repo_doctor.tar.gz'}")
+print(f"  Size: {(BUNDLE / 'repo_doctor.tar.gz').stat().st_size / 1024:.1f} KB")
+print(f"\nNext: Upload the tarball and PROMPT_repo_doctor.md to your AI")
+```
+
+---
+
+## Step 7: Create the one-click runner
+
+Create `repo-tools/doctor.ps1`:
+
+```powershell
+# Repo Doctor - One-click diagnostics
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+Write-Host "`n=== REPO DOCTOR STARTING ===`n" -ForegroundColor Cyan
+
+# Move to project root
+$projectRoot = Split-Path -Parent $PSScriptRoot
+Set-Location $projectRoot
+
+# Create output directory
+New-Item -ItemType Directory -Force -Path "repo-tools\out" | Out-Null
+
+# Step 1: Python virtual environment
+Write-Host "[1/6] Setting up Python environment..." -ForegroundColor Yellow
+if (-not (Test-Path ".venv")) {
+    python -m venv .venv
+}
+
+& ".\.venv\Scripts\python.exe" -m pip install --quiet --upgrade pip
+& ".\.venv\Scripts\pip.exe" install --quiet -r repo-tools\requirements.txt
+
+# Step 2: Node packages (if needed)
+if (Test-Path "package.json") {
+    Write-Host "[2/6] Installing Node packages..." -ForegroundColor Yellow
+    npm install --silent
+} else {
+    Write-Host "[2/6] Skipping Node (no package.json found)" -ForegroundColor Gray
+}
+
+# Step 3: Run Python diagnostics
+Write-Host "[3/6] Running Python diagnostics..." -ForegroundColor Yellow
+& ".\.venv\Scripts\python.exe" repo-tools\scripts\run_python_checks.py
+
+# Step 4: Run JavaScript diagnostics (if applicable)
+if (Test-Path "package.json") {
+    Write-Host "[4/6] Running JavaScript diagnostics..." -ForegroundColor Yellow
+    node repo-tools\scripts\run_js_checks.mjs
+} else {
+    Write-Host "[4/6] Skipping JavaScript diagnostics" -ForegroundColor Gray
+}
+
+# Step 5: (Optional) Capture runtime logs
+# Uncomment if you have a start script you want to test:
+# Write-Host "[5/6] Capturing runtime logs..." -ForegroundColor Yellow
+# wsl bash repo-tools/scripts/collect_runtime_traces.sh
+Write-Host "[5/6] Skipping runtime capture (not configured)" -ForegroundColor Gray
+
+# Step 6: Create bundle
+Write-Host "[6/6] Packaging bundle..." -ForegroundColor Yellow
+& ".\.venv\Scripts\python.exe" repo-tools\scripts\make_bundle.py
+
+Write-Host "`n=== REPO DOCTOR COMPLETE ===`n" -ForegroundColor Green
+Write-Host "Bundle location: repo-tools\repo_doctor_bundle\repo_doctor.tar.gz" -ForegroundColor Cyan
+Write-Host "`nNext steps:" -ForegroundColor Yellow
+Write-Host "  1. Review artifacts in repo-tools\out\" -ForegroundColor White
+Write-Host "  2. Upload the .tar.gz + PROMPT_repo_doctor.md to your AI" -ForegroundColor White
+Write-Host "  3. Apply the patches it generates" -ForegroundColor White
+Write-Host "  4. Re-run this script to verify fixes`n" -ForegroundColor White
+```
+
+---
+
+## Step 8: RUN IT
+
+```powershell
+# From your project root
+powershell -ExecutionPolicy Bypass -File repo-tools\doctor.ps1
+```
+
+**What happens:**
+1. Installs all diagnostic tools
+2. Runs every health check
+3. Saves results to `repo-tools/out/`
+4. Packages everything into `repo_doctor.tar.gz`
+
+---
+
+## Step 9: Feed the AI
+
+1. Find `repo-tools/repo_doctor_bundle/repo_doctor.tar.gz`
+2. Open `repo-tools/repo_doctor_bundle/PROMPT_repo_doctor.md` 
+3. Upload **both** to me (or any AI) in a new message
+4. Paste any specific error messages you're seeing
+
+I'll return file-by-file patches with exact line changes.
+
+---
+
+## Step 10: Apply fixes and re-verify
+
+After you apply the patches:
+
+```powershell
+# Run diagnostics again
+powershell -ExecutionPolicy Bypass -File repo-tools\doctor.ps1
+
+# Check if issues are resolved
+Get-Content repo-tools\out\python_pytest.txt
+```
+
+---
+
+Copy this file into [project root]
+
+# Create fresh venv with Python 3.12
+C:\Python312\python.exe -m venv .venv
+
+# Or activate existing .venv
+
+# Activate the new venv
+.\.venv\Scripts\Activate.ps1
+
+# Verify it works now
+python --version
+# Should show: Python 3.12.x
+
+# Install your project dependencies
+pip install -r requirements.txt
+
+# Install diagnostic tools
+pip install -r repo-tools\requirements.txt
+
+# Run diagnostics
+python repo-tools\scripts\run_python_checks.py
+
+Complete the Diagnostic Run
+powershellcd C:\Users\jthri\Dev\FinancialFreedomApp\backend
+
+# Make sure venv is active
+.\.venv\Scripts\Activate.ps1
+
+# Run diagnostics
+python repo-tools\scripts\run_python_checks.py
+
+# Check if output files were created
+Get-ChildItem repo-tools\out\
+Expected result: You should see files like:
+
+python_ruff.txt
+python_pytest.txt
+python_mypy.txt
+python_coverage.txt
+python_bandit.txt
+python_pip_audit.txt
+
+
+Then Create the Bundle
+powershell# Run the bundle maker
+python repo-tools\scripts\make_bundle.py
+
+# Verify bundle was created
+Get-ChildItem repo-tools\repo_doctor_bundle\
+Expected output:
+
+repo_doctor.tar.gz (the bundle)
+READ_ME_FIRST.md
+PROMPT_repo_doctor.md
+manifest.json
+
+
+
+
+# Step 1: Run diagnostics
+python repo-tools\scripts\run_python_checks.py
+
+# Step 2: Check what was created
+Write-Host "`n=== Diagnostic Artifacts ===" -ForegroundColor Cyan
+Get-ChildItem repo-tools\out\ | Select-Object Name, Length
+
+# Step 3: Create bundle
+python repo-tools\scripts\make_bundle.py
+
+# Step 4: Verify bundle exists
+Write-Host "`n=== Bundle Contents ===" -ForegroundColor Cyan
+Get-ChildItem repo-tools\repo_doctor_bundle\ | Select-Object Name, Length
+Paste back:
+
+The list of files in repo-tools\out\
+The list of files in repo-tools\repo_doctor_bundle\
+Any errors from either script
+
+Once the bundle exists, you'll upload the .tar.gz file and prompt.md to LLM and it will analyze it.

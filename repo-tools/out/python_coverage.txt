@@ -1,0 +1,129 @@
+STDOUT:
+Name                                                 Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------------------
+src\__init__.py                                          0      0   100%
+src\core\types.py                                       34     10    71%   16-19, 32-35, 40, 52
+src\observability\__init__.py                            0      0   100%
+src\observability\metrics.py                             7      7     0%   1-9
+src\observability\tracing.py                             8      8     0%   1-10
+src\security\redact.py                                  25     17    32%   16-25, 29-41
+src\services\artifact_store.py                          61     49    20%   11, 14-44, 47-51, 54-81
+src\services\project_registry.py                        43     31    28%   10-11, 14-24, 27-60, 64-73, 77-83
+src\smm\__init__.py                                      3      3     0%   6-9
+src\smm\guardrails.py                                   85     85     0%   6-156
+src\smm\pipeline.py                                    106    106     0%   6-384
+src\tractionbuild\__init__.py                            0      0   100%
+src\tractionbuild\adapters\__init__.py                   0      0   100%
+src\tractionbuild\adapters\crew_adapters.py            157    157     0%   7-313
+src\tractionbuild\agents\__init__.py                     6      6     0%   5-11
+src\tractionbuild\agents\builder_agent.py               30     30     0%   6-127
+src\tractionbuild\agents\execution_agent.py             27     27     0%   6-131
+src\tractionbuild\agents\feedback_agent.py              41     41     0%   6-161
+src\tractionbuild\agents\launch_agent.py                23     23     0%   6-96
+src\tractionbuild\agents\marketing_agent.py             33     33     0%   6-73
+src\tractionbuild\agents\validator_agent.py             29     29     0%   6-138
+src\tractionbuild\api\__init__.py                        1      0   100%
+src\tractionbuild\api\app.py                            53     53     0%   1-91
+src\tractionbuild\api\events.py                         16     16     0%   1-21
+src\tractionbuild\api\health.py                         62     58     6%   10-135
+src\tractionbuild\api\routes.py                         23     23     0%   5-52
+src\tractionbuild\cli\__init__.py                        3      3     0%   5-8
+src\tractionbuild\cli\commands.py                       17     17     0%   5-74
+src\tractionbuild\cli\main.py                           81     81     0%   5-170
+src\tractionbuild\core\__init__.py                       0      0   100%
+src\tractionbuild\core\agent_registry.py                19     19     0%   1-33
+src\tractionbuild\core\config.py                        10     10     0%   1-13
+src\tractionbuild\core\config_generator.py              37     37     0%   6-179
+src\tractionbuild\core\crew_controller.py              272    258     5%   23-444
+src\tractionbuild\core\crew_registry.py                 97     97     0%   6-211
+src\tractionbuild\core\decision_validator.py           143    143     0%   6-364
+src\tractionbuild\core\output_serializer.py            170    170     0%   6-311
+src\tractionbuild\core\output_validator.py             160    160     0%   6-527
+src\tractionbuild\core\project_meta_memory.py          198    190     4%   17-489
+src\tractionbuild\core\schema_validator.py              22     22     0%   1-32
+src\tractionbuild\core\schemas.py                       14     14     0%   1-16
+src\tractionbuild\core\token_budget.py                 133    126     5%   16-368
+src\tractionbuild\core\types.py                         63     63     0%   6-107
+src\tractionbuild\core\workflow_engine.py               20     14    30%   8-10, 14-28
+src\tractionbuild\core\workflow_engine_1.py             19     19     0%   1-25
+src\tractionbuild\crews\__init__.py                     29      8    72%   29-35, 48-49
+src\tractionbuild\crews\adapters.py                     14     12    14%   4-20
+src\tractionbuild\crews\adapters_1.py                   14     12    14%   4-16
+src\tractionbuild\crews\advisory_board_crew.py          36     33     8%   9-133
+src\tractionbuild\crews\base_crew.py                   145    142     2%   6-334
+src\tractionbuild\crews\builder_crew.py                 79     75     5%   10-212
+src\tractionbuild\crews\execution_crew.py              950    936     1%   19-1777
+src\tractionbuild\crews\feedback_crew.py                47     44     6%   9-141
+src\tractionbuild\crews\launch_crew.py                  46     43     7%   9-133
+src\tractionbuild\crews\marketing_crew.py               51     48     6%   9-146
+src\tractionbuild\crews\observability_crew.py          177    171     3%   12-476
+src\tractionbuild\crews\validator_crew.py               90     86     4%   10-371
+src\tractionbuild\database\__init__.py                   0      0   100%
+src\tractionbuild\database\graph.py                     15     15     0%   1-33
+src\tractionbuild\database\graph_repository.py          19     19     0%   6-132
+src\tractionbuild\database\logs.py                      14     14     0%   1-30
+src\tractionbuild\database\neo4j.py                     21     21     0%   1-26
+src\tractionbuild\database\neo4j_client.py              27     27     0%   6-125
+src\tractionbuild\database\neo4j_writer.py              27     27     0%   1-62
+src\tractionbuild\database\postgres.py                  17     17     0%   1-28
+src\tractionbuild\database\project_registry.py          54     40    26%   12-16, 19-20, 23, 27-65, 69-77, 81-83
+src\tractionbuild\database\projects.py                  26     26     0%   1-67
+src\tractionbuild\database\repository.py                51     51     0%   6-117
+src\tractionbuild\graphs\__init__.py                     2      2     0%   5-7
+src\tractionbuild\graphs\graph_centric_agent.py        166    166     0%   6-360
+src\tractionbuild\main.py                              279    279     0%   5-505
+src\tractionbuild\models\__init__.py                     6      6     0%   5-11
+src\tractionbuild\models\agent.py                       26     26     0%   5-38
+src\tractionbuild\models\crew_output.py                 66     66     0%   6-168
+src\tractionbuild\models\execution_graph.py             49     49     0%   5-69
+src\tractionbuild\models\market_data.py                 54     54     0%   5-80
+src\tractionbuild\models\project.py                     24     24     0%   5-36
+src\tractionbuild\models\task.py                        34     34     0%   5-49
+src\tractionbuild\models\validation_result.py           35     35     0%   6-93
+src\tractionbuild\monitoring\metrics.py                121    108    11%   17, 28-289
+src\tractionbuild\schemas\__init__.py                    2      1    50%   11
+src\tractionbuild\schemas\core.py                       33     32     3%   2-40
+src\tractionbuild\security\__init__.py                   0      0   100%
+src\tractionbuild\security\gdpr_compliance.py          180    180     0%   6-446
+src\tractionbuild\security\guard.py                     28     28     0%   1-34
+src\tractionbuild\security\vault_client.py              21     21     0%   1-35
+src\tractionbuild\tasks\__init__.py                      2      2     0%   5-7
+src\tractionbuild\tasks\atomic_execution_engine.py     148    148     0%   6-487
+src\tractionbuild\tasks\celery_app.py                   24     24     0%   6-67
+src\tractionbuild\tasks\crew_tasks.py                   84     84     0%   5-245
+src\tractionbuild\tools\__init__.py                      6      6     0%   5-11
+src\tractionbuild\tools\advanced_tools.py                4      4     0%   2-6
+src\tractionbuild\tools\celery_execution_tool.py        69     69     0%   6-214
+src\tractionbuild\tools\code_tools.py                   23     23     0%   5-85
+src\tractionbuild\tools\compliance_tool.py              37     37     0%   6-135
+src\tractionbuild\tools\graph_context_tool.py           22     22     0%   1-36
+src\tractionbuild\tools\graph_tools.py                  14     14     0%   5-68
+src\tractionbuild\tools\market_oracle_tool.py           17     17     0%   6-54
+src\tractionbuild\tools\market_tools.py                 27     27     0%   5-164
+src\tractionbuild\tools\mermaid_tools.py                34     34     0%   5-85
+src\tractionbuild\tools\neo4j_tools.py                  14     14     0%   5-70
+src\tractionbuild\tools\salem_marketing_tool.py         23     23     0%   1-38
+src\tractionbuild\tools\summarization_tool.py           37     37     0%   6-95
+src\tractionbuild\tools\sustainability_tool.py          53     53     0%   6-156
+src\tractionbuild\tools\x_semantic_search_tool.py       88     88     0%   6-268
+src\tractionbuild\utils\__init__.py                      5      4    20%   6-10
+src\tractionbuild\utils\budget_errors.py                28     28     0%   5-46
+src\tractionbuild\utils\budget_store.py                137    137     0%   6-366
+src\tractionbuild\utils\config.py                       85     82     4%   8-168
+src\tractionbuild\utils\llm_config.py                  152    152     0%   6-303
+src\tractionbuild\utils\llm_factory.py                 109    109     0%   1-195
+src\tractionbuild\utils\logging.py                       9      9     0%   5-53
+src\tractionbuild\utils\mermaid.py                      62     62     0%   5-114
+src\tractionbuild\utils\mermaid_exporter.py            157    157     0%   6-364
+src\tractionbuild\utils\pricing.py                      63     63     0%   6-290
+src\tractionbuild\utils\schema_validator.py             87     87     0%   6-262
+src\tractionbuild\utils\token_budget.py                 92     92     0%   6-203
+src\tractionbuild\utils\yaml_loader.py                  26     26     0%   5-77
+----------------------------------------------------------------------------------
+TOTAL                                                 7164   6967     3%
+
+
+STDERR:
+
+
+EXIT CODE: 0

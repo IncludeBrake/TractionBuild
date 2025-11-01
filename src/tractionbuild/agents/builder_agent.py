@@ -8,7 +8,8 @@ from crewai import Agent
 from pydantic import BaseModel, Field
 
 from ..models.task import Task, TaskStatus
-from ..tools.code_tools import CODE_TOOLS
+from ..tools.code_tools import CodeGenerator
+from ..database.project_registry import ProjectRegistry
 
 
 class BuilderAgentConfig(BaseModel):
@@ -38,7 +39,8 @@ class BuilderAgent:
         """Initialize the Builder Agent."""
         self.config = config or BuilderAgentConfig()
         self.llm = llm
-        self.tools = tools or CODE_TOOLS
+        self.registry = ProjectRegistry()
+        self.tools = tools or [CodeGenerator(self.registry)]
         self.agent = self._create_agent()
     
     def _create_agent(self) -> Agent:
@@ -130,4 +132,4 @@ class BuilderAgent:
             "tests_failed": 1,
             "coverage": 0.85,
             "status": "completed"
-        } 
+        }

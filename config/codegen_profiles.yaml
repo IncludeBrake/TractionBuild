@@ -1,0 +1,30 @@
+profiles:
+  elite:
+    auth: api_key            # future: oidc
+    rate_limit_rpm: 60       # per-IP
+    cors_allowed_origins: ["http://localhost:3000"]
+    structured_logging: true
+    pii_redaction: true
+    prometheus_metrics: true
+    health_endpoints: true
+    openapi_enabled: true
+    otel_enabled: true
+    token_budget:
+      max_model_calls: 50
+      max_input_tokens: 120_000
+      max_output_tokens: 32_000
+    cache:
+      enabled: true
+      layer: "memory"        # or redis (future)
+    tests:
+      api: true
+      security: true
+      import_clean: true
+    ci_minimum:
+      coverage: 0.80
+  mvp:
+    # a lighter version you can keep if you really want it
+    inherits: elite
+    rate_limit_rpm: 30
+    token_budget:
+      max_model_calls: 20

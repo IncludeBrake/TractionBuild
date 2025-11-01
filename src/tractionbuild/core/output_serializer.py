@@ -40,12 +40,11 @@ class CrewOutputSerializer:
         self.cipher = None
         if enable_encryption:
             try:
-                from cryptography.fernet import Fernet
-                key = Fernet.generate_key()  # In production, load from Vault
-                self.cipher = Fernet(key)
+                from ..security.key_manager import key_manager
+                self.cipher = key_manager.cipher()
                 logger.info("Output encryption enabled")
-            except ImportError:
-                logger.warning("cryptography not available - encryption disabled")
+            except (ImportError, RuntimeError) as e:
+                logger.warning(f"Failed to initialize encryption: {e}")
                 self.enable_encryption = False
     
     def serialize_crew_output(self, output: Any, project_id: str = None) -> Dict[str, Any]:
@@ -228,12 +227,18 @@ class CrewOutputSerializer:
         """Encrypt sensitive data fields."""
         if not self.cipher:
             return data
-        
-        # In production, encrypt specific sensitive fields
-        # For demo, we'll just mark as encrypted
-        data['metadata']['encryption_applied'] = True
-        return data
-    
+
+        try:
+            content_bytes = json.dumps(data['content']).encode('utf-8')
+            encrypted_content = self.cipher.encrypt(content_bytes)
+            data['encrypted_content'] = encrypted_content.decode('utf-8')
+            del data['content']
+            data['metadata']['encryption_applied'] = True
+            return data
+        except Exception as e:
+            logger.error(f"Encryption failed in output_serializer: {e}")
+            return data
+
     def deserialize_output(self, serialized_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Deserialize previously serialized output.
@@ -262,8 +267,18 @@ class CrewOutputSerializer:
     
     def _decrypt_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Decrypt encrypted data fields."""
-        # In production, implement actual decryption
-        return data
+        if not self.cipher or 'encrypted_content' not in data:
+            return data
+
+        try:
+            encrypted_content = data['encrypted_content'].encode('utf-8')
+            decrypted_bytes = self.cipher.decrypt(encrypted_content)
+            data['content'] = json.loads(decrypted_bytes.decode('utf-8'))
+            del data['encrypted_content']
+            return data
+        except Exception as e:
+            logger.error(f"Decryption failed in output_serializer: {e}")
+            return data
     
     def validate_serialization(self, original: Any, serialized: Dict[str, Any]) -> bool:
         """

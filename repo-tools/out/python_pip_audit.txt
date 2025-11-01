@@ -1,0 +1,17 @@
+STDOUT:
+
+
+STDERR:
+ERROR:pip_audit._virtual_env:internal pip failure: ERROR: Ignored the following yanked versions: 1.10a0, 1.12.0rc1
+
+ERROR: Ignored the following versions that require a different python version: 0.14.0rc0 Requires-Python >=3.10,<3.12; 0.55.2 Requires-Python <3.5
+
+ERROR: Could not find a version that satisfies the requirement opentelemetry-exporter-prometheus<2.0.0,>=1.20.0 (from versions: 0.12b0, 0.13b0, 0.14b0, 0.15b0, 0.16b0, 0.16b1, 0.17b0, 0.29b0, 0.30b0, 0.30b1, 0.32b0, 0.33b0, 0.34b0, 0.35b0, 0.36b0, 0.37b0, 0.38b0, 0.39b0, 0.40b0, 0.41b0, 0.42b0, 0.43b0, 0.44b0, 0.45b0, 0.46b0, 0.47b0, 0.48b0, 0.49b0, 0.49b1, 0.49b2, 0.50b0, 0.51b0, 0.52b0, 0.52b1, 0.53b0, 0.53b1, 0.54b0, 0.54b1, 0.55b0, 0.55b1, 0.56b0, 0.57b0, 0.58b0, 0.59b0)
+
+ERROR: No matching distribution found for opentelemetry-exporter-prometheus<2.0.0,>=1.20.0
+
+
+ERROR:pip_audit._cli:Failed to install packages: ['C:\\Users\\jthri\\AppData\\Local\\Temp\\tmping1qx5t\\Scripts\\python.exe', '-m', 'pip', 'install', '--no-input', '--keyring-provider=subprocess', '--dry-run', '--report', 'C:\\Users\\jthri\\AppData\\Local\\Temp\\tmpwj_21q58\\tmpygys_5qo', '-r', 'requirements.txt']
+
+
+EXIT CODE: 1

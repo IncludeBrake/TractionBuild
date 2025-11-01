@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 import time
+from cryptography.fernet import Fernet
 
 # Configure logging
 logging.basicConfig(
@@ -23,8 +24,7 @@ logger = logging.getLogger(__name__)
 # Enable all production features
 os.environ['CODECARBON_ENABLED'] = 'true'
 os.environ['CODECARBON_PROJECT_NAME'] = 'tractionbuild_Final_Certification'
-os.environ['tractionbuild_GDPR_ENABLED'] = 'true'
-os.environ['tractionbuild_ENCRYPTION_KEY'] = 'production_test_key_2025'
+os.environ['ZEROTOSHIP_FERNET_KEY'] = Fernet.generate_key().decode()
 
 # Import tractionbuild components
 from src.tractionbuild.core.workflow_engine import WorkflowEngine
