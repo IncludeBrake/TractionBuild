@@ -1,5 +1,5 @@
 """
-Output Validator for ZeroToShip.
+Output Validator for tractionbuild.
 Validates agent outputs to catch hallucinations, bad formatting, and invalid content.
 """
 

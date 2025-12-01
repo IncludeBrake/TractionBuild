@@ -1,0 +1,76 @@
+STDOUT:
+Name                                              Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------------------
+src\zerotoship\__init__.py                            5      5     0%   5-11
+src\zerotoship\agents\__init__.py                     6      6     0%   5-11
+src\zerotoship\agents\builder_agent.py               26     26     0%   6-119
+src\zerotoship\agents\execution_agent.py             27     27     0%   6-131
+src\zerotoship\agents\feedback_agent.py              41     41     0%   6-161
+src\zerotoship\agents\launch_agent.py                23     23     0%   6-96
+src\zerotoship\agents\marketing_agent.py             26     26     0%   6-135
+src\zerotoship\agents\validator_agent.py             29     29     0%   6-138
+src\zerotoship\api\__init__.py                        3      3     0%   5-8
+src\zerotoship\api\app.py                            33     33     0%   1-44
+src\zerotoship\api\routes.py                         23     23     0%   5-52
+src\zerotoship\cli\__init__.py                        3      3     0%   5-8
+src\zerotoship\cli\commands.py                       17     17     0%   5-74
+src\zerotoship\cli\main.py                           79     79     0%   5-166
+src\zerotoship\core\__init__.py                       4      4     0%   5-9
+src\zerotoship\core\config_generator.py              32     32     0%   1-103
+src\zerotoship\core\crew_controller.py              216    216     0%   6-335
+src\zerotoship\core\crew_registry.py                 97     97     0%   6-211
+src\zerotoship\core\data_handler.py                  49     49     0%   1-85
+src\zerotoship\core\decision_validator.py           143    143     0%   6-364
+src\zerotoship\core\output_serializer.py            153    153     0%   6-296
+src\zerotoship\core\output_validator.py             160    160     0%   6-527
+src\zerotoship\core\project_meta_memory.py          198    198     0%   6-489
+src\zerotoship\core\schema_validator.py             120    120     0%   6-336
+src\zerotoship\core\token_budget.py                 133    133     0%   6-368
+src\zerotoship\core\workflow_engine.py              141    141     0%   1-195
+src\zerotoship\crews\__init__.py                     23     23     0%   6-43
+src\zerotoship\crews\base_crew.py                   115    115     0%   3-282
+src\zerotoship\crews\builder_crew.py                 44     44     0%   6-141
+src\zerotoship\crews\execution_crew.py               43     43     0%   1-123
+src\zerotoship\crews\feedback_crew.py                38     38     0%   6-127
+src\zerotoship\crews\launch_crew.py                  40     40     0%   1-120
+src\zerotoship\crews\marketing_crew.py               39     39     0%   6-124
+src\zerotoship\crews\validator_crew.py               14     14     0%   1-90
+src\zerotoship\database\__init__.py                   5      5     0%   5-10
+src\zerotoship\database\graph_repository.py          19     19     0%   6-132
+src\zerotoship\database\neo4j_client.py              27     27     0%   6-125
+src\zerotoship\database\project_registry.py          79     79     0%   1-138
+src\zerotoship\database\repository.py                36     36     0%   6-117
+src\zerotoship\graphs\__init__.py                     2      2     0%   5-7
+src\zerotoship\graphs\graph_centric_agent.py        166    166     0%   6-360
+src\zerotoship\models\__init__.py                     6      6     0%   5-11
+src\zerotoship\models\agent.py                       26     26     0%   5-38
+src\zerotoship\models\crew_output.py                 66     66     0%   6-168
+src\zerotoship\models\execution_graph.py             49     49     0%   5-69
+src\zerotoship\models\market_data.py                 54     54     0%   5-80
+src\zerotoship\models\project.py                     24     24     0%   5-36
+src\zerotoship\models\task.py                        34     34     0%   5-49
+src\zerotoship\tasks\__init__.py                      2      2     0%   5-7
+src\zerotoship\tasks\atomic_execution_engine.py     148    148     0%   6-487
+src\zerotoship\tasks\celery_app.py                   19     19     0%   1-45
+src\zerotoship\tasks\crew_tasks.py                   44     44     0%   1-76
+src\zerotoship\tools\__init__.py                      6      6     0%   5-11
+src\zerotoship\tools\code_tools.py                   14     14     0%   5-69
+src\zerotoship\tools\graph_tools.py                  14     14     0%   5-68
+src\zerotoship\tools\market_tools.py                 27     27     0%   5-164
+src\zerotoship\tools\mermaid_tools.py                34     34     0%   5-85
+src\zerotoship\tools\neo4j_tools.py                  14     14     0%   5-70
+src\zerotoship\utils\__init__.py                      5      5     0%   5-10
+src\zerotoship\utils\config.py                       85     85     0%   5-168
+src\zerotoship\utils\logging.py                       9      9     0%   5-53
+src\zerotoship\utils\mermaid.py                      62     62     0%   5-114
+src\zerotoship\utils\mermaid_exporter.py            157    157     0%   6-364
+src\zerotoship\utils\schema_validator.py             87     87     0%   6-262
+src\zerotoship\utils\yaml_loader.py                  26     26     0%   5-77
+-------------------------------------------------------------------------------
+TOTAL                                              3489   3489     0%
+
+
+STDERR:
+
+
+EXIT CODE: 0

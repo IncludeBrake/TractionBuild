@@ -1,5 +1,5 @@
 """
-Feedback Agent for ZeroToShip.
+Feedback Agent for tractionbuild.
 Handles quality assurance, feedback collection, and output validation.
 """
 

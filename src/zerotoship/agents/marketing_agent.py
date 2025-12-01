@@ -1,23 +1,25 @@
 """
-Marketing Agent for ZeroToShip.
-Handles launch preparation, positioning, and marketing assets.
+Marketing Agent for tractionbuild.
+Generates marketing assets using Salem.
 """
 
-from typing import Dict, List, Optional, Any
+import asyncio
+import logging
+from typing import Dict, Any, Optional
 from crewai import Agent
 from pydantic import BaseModel, Field
 
-from ..models.project import Project
-from ..tools.market_tools import MarketTools
+from ..tools.salem_marketing_tool import SalemMarketingTool
 
+logger = logging.getLogger(__name__)
 
 class MarketingAgentConfig(BaseModel):
     """Configuration for the Marketing Agent."""
     
     name: str = Field(default="Marketing Agent", description="Agent name")
-    role: str = Field(default="Launch Preparation and Positioning", description="Agent role")
+    role: str = Field(default="Marketing Asset Generation", description="Agent role")
     goal: str = Field(
-        default="Create compelling marketing assets and launch strategies",
+        default="Generate high-quality marketing assets using Salem",
         description="Agent goal"
     )
     backstory: str = Field(
@@ -30,14 +32,13 @@ class MarketingAgentConfig(BaseModel):
     allow_delegation: bool = Field(default=False, description="Allow task delegation")
     max_iterations: int = Field(default=3, description="Maximum iterations for marketing")
 
-
 class MarketingAgent:
-    """Marketing Agent for launch preparation and positioning."""
+    """Marketing Agent that generates marketing assets using Salem."""
     
     def __init__(self, config: Optional[MarketingAgentConfig] = None):
         """Initialize the Marketing Agent."""
         self.config = config or MarketingAgentConfig()
-        self.tools = [MarketTools()]
+        self.tool = SalemMarketingTool()
         self.agent = self._create_agent()
     
     def _create_agent(self) -> Agent:
@@ -50,106 +51,23 @@ class MarketingAgent:
             allow_delegation=self.config.allow_delegation,
             max_iter=self.config.max_iterations
         )
-    
-    async def create_positioning(
-        self, 
-        project: Project, 
-        market_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Create product positioning strategy.
-        
-        Args:
-            project: Project information
-            market_data: Market analysis data
+
+    async def execute(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute the marketing agent to generate marketing assets."""
+        try:
+            logger.info(f"Starting marketing agent for project {project_data.get('id', 'unknown')}")
             
-        Returns:
-            Positioning strategy
-        """
-        # Placeholder implementation
-        return {
-            "target_audience": "Tech-savvy professionals",
-            "value_proposition": "Streamlined productivity solution",
-            "competitive_advantage": "AI-powered automation",
-            "messaging_framework": {
-                "headline": "Transform Your Workflow",
-                "subheadline": "AI-powered automation for modern teams",
-                "benefits": ["Save 10+ hours per week", "Reduce errors by 90%", "Scale effortlessly"]
-            }
-        }
-    
-    async def generate_marketing_assets(
-        self, 
-        project: Project, 
-        positioning: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Generate marketing assets.
-        
-        Args:
-            project: Project information
-            positioning: Positioning strategy
+            # Extract project information
+            avatar = (project_data.get("target_avatars") or ["startup_entrepreneur"])[0]
+            desc = project_data.get("hypothesis") or project_data.get("description") or project_data.get("name")
             
-        Returns:
-            Marketing assets
-        """
-        # Placeholder implementation
-        return {
-            "landing_page_copy": {
-                "headline": positioning["messaging_framework"]["headline"],
-                "subheadline": positioning["messaging_framework"]["subheadline"],
-                "benefits": positioning["messaging_framework"]["benefits"]
-            },
-            "social_media_posts": [
-                "🚀 Excited to launch our new AI-powered solution!",
-                "💡 Transform your workflow with intelligent automation",
-                "🎯 Built for modern teams who value efficiency"
-            ],
-            "press_release": {
-                "title": f"{project.name} Launches Revolutionary AI Solution",
-                "summary": "New platform promises to transform how teams work",
-                "key_points": [
-                    "AI-powered automation",
-                    "10x productivity improvement",
-                    "Enterprise-grade security"
-                ]
-            }
-        }
-    
-    async def create_launch_strategy(
-        self, 
-        project: Project, 
-        assets: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Create comprehensive launch strategy.
-        
-        Args:
-            project: Project information
-            assets: Marketing assets
+            # Generate marketing assets
+            result = await self.tool._run(product_description=desc, avatar=avatar, hooks=3)
             
-        Returns:
-            Launch strategy
-        """
-        # Placeholder implementation
-        return {
-            "launch_phases": [
-                {
-                    "phase": "Pre-launch",
-                    "duration": "2 weeks",
-                    "activities": ["Beta testing", "Influencer outreach", "Press preparation"]
-                },
-                {
-                    "phase": "Launch",
-                    "duration": "1 week", 
-                    "activities": ["Official launch", "Social media campaign", "Press release"]
-                },
-                {
-                    "phase": "Post-launch",
-                    "duration": "4 weeks",
-                    "activities": ["User feedback collection", "Iteration", "Scale marketing"]
-                }
-            ],
-            "channels": ["Social media", "Email marketing", "PR", "Content marketing"],
-            "success_metrics": ["User signups", "Engagement rate", "Press mentions", "Conversion rate"]
-        } 
+            logger.info(f"Marketing agent completed for project {project_data.get('id', 'unknown')}")
+            
+            return result["artifact"]  # normalized dict
+            
+        except Exception as e:
+            logger.error(f"Marketing agent failed: {str(e)}")
+            raise e 

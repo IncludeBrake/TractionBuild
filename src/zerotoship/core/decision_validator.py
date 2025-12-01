@@ -1,5 +1,5 @@
 """
-AI-powered decision validation for ZeroToShip.
+AI-powered decision validation for tractionbuild.
 Uses machine learning to validate and enhance campaign recommendations with real-time market sentiment.
 """
 

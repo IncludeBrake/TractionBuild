@@ -1,5 +1,5 @@
 """
-Market research tools for ZeroToShip agents.
+Market research tools for tractionbuild agents.
 """
 
 from typing import List, Dict, Any, Optional

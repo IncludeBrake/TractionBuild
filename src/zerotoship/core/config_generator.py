@@ -1,3 +1,8 @@
+"""
+Configuration generator for tractionbuild.
+Ensures default config files exist to prevent warnings and make the system more reliable.
+"""
+
 import os
 import yaml
 from pathlib import Path
@@ -5,99 +10,170 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def _create_yaml_if_not_exists(path: Path, data: dict, description: str):
-    """Helper function to create a YAML file if it doesn't exist."""
-    if not path.exists():
-        try:
-            with open(path, 'w') as f:
-                yaml.dump(data, f, default_flow_style=False, sort_keys=False)
-            logger.info(f"Generated default {description} at: {path}")
-        except Exception as e:
-            logger.error(f"Failed to generate {description}: {e}")
 
 def generate_default_configs():
-    """Ensures default configuration files for agents, tasks, and workflows exist."""
+    """Ensures default config files exist to prevent warnings."""
     config_dir = Path('config/')
     config_dir.mkdir(exist_ok=True)
-
-    # --- 1. Default agents.yaml (Template for users) ---
-    default_agents = {
-        'validator_agent': {
-            'role': 'Market Research and Validation Specialist',
-            'goal': 'Conduct comprehensive market research and validate business ideas',
-            'backstory': 'An expert market researcher with 15+ years of experience...'
-        },
-        # Add other generic agent examples if desired
-    }
-    _create_yaml_if_not_exists(config_dir / 'agents.yaml', {'agents': default_agents}, "agents.yaml")
-
-    # --- 2. Default tasks.yaml (Template for users) ---
-    default_tasks = {
-        'market_research': {
-            'description': 'Conduct comprehensive market research and analysis for an idea.',
-            'expected_output': 'A detailed market analysis report with insights and recommendations.',
-            'agent': 'validator_agent'
-        },
-        # Add other generic task examples if desired
-    }
-    _create_yaml_if_not_exists(config_dir / 'tasks.yaml', {'tasks': default_tasks}, "tasks.yaml")
-
-    # --- 3. Default workflows.yaml (Crucial for the engine) ---
-    default_workflows = {
-        'validation_and_launch': {
-            'metadata': {
-                'description': 'A complete validation and marketing launch workflow for non-software products.',
-                'compliance': ['GDPR', 'CCPA'],
-                'visualize': True
-            },
-            'sequence': [
-                {'state': 'IDEA_VALIDATION', 'crew': 'ValidatorCrew'},
-                {'state': 'MARKETING_PREPARATION', 'crew': 'MarketingCrew'},
-                {'state': 'LAUNCH_PREPARATION', 'crew': 'LaunchCrew'},
-                {'state': 'FEEDBACK_COLLECTION', 'crew': 'FeedbackCrew'},
-                {'state': 'COMPLETED'}
-            ]
-        },
-        'default_software_build': {
-            'metadata': {
-                'description': 'The standard end-to-end workflow for building a new software product.',
-                'compliance': ['SOC2'],
-                'visualize': True
-            },
-            'sequence': [
-                {'state': 'IDEA_VALIDATION', 'crew': 'ValidatorCrew'},
-                {
-                    'state': 'EXECUTION_PLANNING', 
-                    'crew': 'ExecutionCrew',
-                    'conditions': {
-                        'all': [
-                            {'field': 'validation.passed', 'operator': '==', 'value': True},
-                            {'field': 'validation.confidence', 'operator': '>=', 'value': 0.75}
-                        ]
-                    },
-                    'on_fail': {'action': 'escalate_to', 'workflow': 'human_review'}
+    
+    # Generate default agents.yaml if it doesn't exist
+    agents_config_path = config_dir / 'agents.yaml'
+    if not agents_config_path.exists():
+        default_agents = {
+            'agents': {
+                'validator_agent': {
+                    'role': 'Market Research and Validation Specialist',
+                    'goal': 'Conduct comprehensive market research and validate business ideas',
+                    'backstory': 'Expert market researcher with 15+ years of experience in startup validation',
+                    'verbose': True,
+                    'allow_delegation': False
                 },
-                {'state': 'PRODUCT_BUILD', 'crew': 'BuilderCrew'},
-                {'state': 'FEEDBACK_COLLECTION', 'crew': 'FeedbackCrew'},
-                {'state': 'COMPLETED'}
-            ]
+                'feedback_agent': {
+                    'role': 'Quality Assurance and Feedback Specialist',
+                    'goal': 'Ensure quality outputs and collect actionable feedback',
+                    'backstory': 'Expert quality assurance specialist with experience in product testing and feedback analysis',
+                    'verbose': True,
+                    'allow_delegation': False
+                },
+                'marketing_agent': {
+                    'role': 'Marketing Strategy Specialist',
+                    'goal': 'Develop comprehensive marketing strategies and campaigns',
+                    'backstory': 'Experienced marketing strategist with expertise in digital marketing and brand development',
+                    'verbose': True,
+                    'allow_delegation': False
+                },
+                'builder_agent': {
+                    'role': 'Technical Implementation Specialist',
+                    'goal': 'Build and implement technical solutions',
+                    'backstory': 'Senior software engineer with expertise in full-stack development and system architecture',
+                    'verbose': True,
+                    'allow_delegation': False
+                },
+                'launch_agent': {
+                    'role': 'Product Launch Specialist',
+                    'goal': 'Orchestrate successful product launches and go-to-market strategies',
+                    'backstory': 'Product launch expert with experience in scaling products from concept to market',
+                    'verbose': True,
+                    'allow_delegation': False
+                }
+            }
         }
-    }
-    _create_yaml_if_not_exists(config_dir / 'workflows.yaml', default_workflows, "workflows.yaml")
+        
+        with open(agents_config_path, 'w') as f:
+            yaml.dump(default_agents, f, default_flow_style=False)
+        logger.info("Generated default agents.yaml configuration")
+    
+    # Generate default tasks.yaml if it doesn't exist
+    tasks_config_path = config_dir / 'tasks.yaml'
+    if not tasks_config_path.exists():
+        default_tasks = {
+            'tasks': {
+                'market_research': {
+                    'description': 'Conduct comprehensive market research and analysis',
+                    'expected_output': 'Detailed market analysis report with insights and recommendations',
+                    'agent': 'validator_agent'
+                },
+                'idea_validation': {
+                    'description': 'Validate business idea feasibility and market fit',
+                    'expected_output': 'Validation report with go/no-go recommendation',
+                    'agent': 'validator_agent'
+                },
+                'quality_assessment': {
+                    'description': 'Assess quality of deliverables and outputs',
+                    'expected_output': 'Quality assessment report with improvement recommendations',
+                    'agent': 'feedback_agent'
+                },
+                'feedback_collection': {
+                    'description': 'Collect and analyze stakeholder feedback',
+                    'expected_output': 'Comprehensive feedback analysis with actionable insights',
+                    'agent': 'feedback_agent'
+                },
+                'marketing_strategy': {
+                    'description': 'Develop comprehensive marketing strategy and campaign plan',
+                    'expected_output': 'Detailed marketing strategy with implementation roadmap',
+                    'agent': 'marketing_agent'
+                },
+                'technical_implementation': {
+                    'description': 'Implement technical solutions and build deliverables',
+                    'expected_output': 'Technical implementation with code and documentation',
+                    'agent': 'builder_agent'
+                },
+                'product_launch': {
+                    'description': 'Orchestrate successful product launch and go-to-market execution',
+                    'expected_output': 'Launch plan with execution timeline and success metrics',
+                    'agent': 'launch_agent'
+                }
+            }
+        }
+        
+        with open(tasks_config_path, 'w') as f:
+            yaml.dump(default_tasks, f, default_flow_style=False)
+        logger.info("Generated default tasks.yaml configuration")
+    
+    # Generate default workflows.yaml if it doesn't exist
+    workflows_config_path = config_dir / 'workflows.yaml'
+    if not workflows_config_path.exists():
+        default_workflows = {
+            'validation_and_launch': {
+                'metadata': {
+                    'description': 'Complete validation and launch workflow',
+                    'compliance': ['GDPR', 'CCPA'],
+                    'audit': True,
+                    'visualize': True
+                },
+                'sequence': [
+                    {'state': 'IDEA_VALIDATION', 'crew': 'ValidatorCrew'},
+                    {'state': 'FEEDBACK_COLLECTION', 'crew': 'FeedbackCrew'},
+                    {'state': 'COMPLETED'}
+                ]
+            },
+            'default_software_build': {
+                'metadata': {
+                    'description': 'Default software development workflow',
+                    'compliance': ['SOC2'],
+                    'audit': False,
+                    'visualize': False
+                },
+                'sequence': [
+                    {'state': 'IDEA_VALIDATION', 'crew': 'ValidatorCrew'},
+                    {'state': 'TASK_EXECUTION', 'crew': 'BuilderCrew'},
+                    {'state': 'FEEDBACK_COLLECTION', 'crew': 'FeedbackCrew'},
+                    {'state': 'COMPLETED'}
+                ]
+            }
+        }
+        
+        with open(workflows_config_path, 'w') as f:
+            yaml.dump(default_workflows, f, default_flow_style=False)
+        logger.info("Generated default workflows.yaml configuration")
+    
+    logger.info("✅ All default configuration files generated successfully")
+
 
 def ensure_output_directories():
-    """Ensures all necessary output directories exist."""
-    directories = ['output/workflows', 'output/test_results', 'output/diagrams', 'output/logs']
+    """Ensure all necessary output directories exist."""
+    directories = [
+        'output',
+        'output/workflows',
+        'output/test_results',
+        'output/diagrams',
+        'output/logs'
+    ]
+    
     for directory in directories:
         Path(directory).mkdir(parents=True, exist_ok=True)
-    logger.info("Verified all output directories exist.")
+    
+    logger.info("✅ All output directories created successfully")
+
 
 def initialize_system():
-    """
-    A single entry point to initialize the ZeroToShip system, ensuring all
-    necessary configurations and directories are in place.
-    """
-    logger.info("🚀 Initializing ZeroToShip system...")
+    """Initialize the tractionbuild system with all necessary configurations."""
+    logger.info("🚀 Initializing tractionbuild system...")
+    
+    # Generate default configs
     generate_default_configs()
+    
+    # Ensure output directories exist
     ensure_output_directories()
-    logger.info("✅ ZeroToShip system initialization complete.")
+    
+    logger.info("✅ tractionbuild system initialization complete") 

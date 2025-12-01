@@ -1,5 +1,5 @@
 """
-Production-grade output serializer for ZeroToShip.
+Production-grade output serializer for tractionbuild.
 Handles CrewOutput serialization and ensures GDPR-compliant data processing.
 """
 

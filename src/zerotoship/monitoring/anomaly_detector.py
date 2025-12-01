@@ -1,5 +1,5 @@
 """
-AI-powered anomaly detection for ZeroToShip monitoring.
+AI-powered anomaly detection for tractionbuild monitoring.
 Uses TensorFlow to detect performance anomalies and predict potential system failures.
 """
 
@@ -40,7 +40,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 class AnomalyDetector:
-    """AI-powered anomaly detection for ZeroToShip metrics."""
+    """AI-powered anomaly detection for tractionbuild metrics."""
     
     def __init__(self, prometheus_url: str = "http://localhost:9090"):
         self.prometheus_url = prometheus_url
@@ -168,10 +168,10 @@ class AnomalyDetector:
         
         # Query multiple metrics for training
         metrics_queries = [
-            'zerotoship_workflow_duration_seconds',
-            'zerotoship_crew_duration_seconds',
-            'zerotoship_celery_task_duration_seconds',
-            'zerotoship_errors_total'
+            'tractionbuild_workflow_duration_seconds',
+            'tractionbuild_crew_duration_seconds',
+            'tractionbuild_celery_task_duration_seconds',
+            'tractionbuild_errors_total'
         ]
         
         all_training_data = []
@@ -230,10 +230,10 @@ class AnomalyDetector:
         anomalies_detected = []
         
         metrics_to_check = [
-            ('workflow_latency', 'rate(zerotoship_workflow_duration_seconds_sum[5m]) / rate(zerotoship_workflow_duration_seconds_count[5m])'),
-            ('crew_latency', 'rate(zerotoship_crew_duration_seconds_sum[5m]) / rate(zerotoship_crew_duration_seconds_count[5m])'),
-            ('error_rate', 'rate(zerotoship_errors_total[5m])'),
-            ('active_workflows', 'zerotoship_active_workflows')
+            ('workflow_latency', 'rate(tractionbuild_workflow_duration_seconds_sum[5m]) / rate(tractionbuild_workflow_duration_seconds_count[5m])'),
+            ('crew_latency', 'rate(tractionbuild_crew_duration_seconds_sum[5m]) / rate(tractionbuild_crew_duration_seconds_count[5m])'),
+            ('error_rate', 'rate(tractionbuild_errors_total[5m])'),
+            ('active_workflows', 'tractionbuild_active_workflows')
         ]
         
         for metric_name, query in metrics_to_check:

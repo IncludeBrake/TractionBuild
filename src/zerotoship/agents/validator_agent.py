@@ -1,5 +1,5 @@
 """
-Validator Agent for ZeroToShip.
+Validator Agent for tractionbuild.
 Handles market research, competitor analysis, and idea validation.
 """
 

@@ -1,5 +1,5 @@
 """
-Graph repository for ZeroToShip.
+Graph repository for tractionbuild.
 Handles execution graph operations and queries.
 """
 

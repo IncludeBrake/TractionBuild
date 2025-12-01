@@ -1,0 +1,12 @@
+STDOUT:
+repo-tools\scripts\make_bundle.py:80: error: unterminated triple-quoted string
+literal (detected at line 96)  [syntax]
+    (BUNDLE / "PROMPT_repo_doctor.md").write_text("""You are a senior soft...
+                                                   ^
+Found 1 error in 1 file (errors prevented further checking)
+
+
+STDERR:
+
+
+EXIT CODE: 2

@@ -1,8 +1,8 @@
-"""Base Crew class for ZeroToShip. Provides a standardized interface for all crews to ensure consistent method signatures and proper data flow between the WorkflowEngine and crew implementations, with advanced features like retry logic, sustainability tracking, and state management."""
+"""Base Crew class for tractionbuild. Provides a standardized interface for all crews to ensure consistent method signatures and proper data flow between the WorkflowEngine and crew implementations, with advanced features like retry logic, sustainability tracking, and state management."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, Callable
-from crewai import Crew, Agent, Task
+from typing import Dict, Any, Optional
+from crewai import Crew
 import logging
 from datetime import datetime
 import asyncio
@@ -15,13 +15,15 @@ try:
 except ImportError:
     TENACITY_AVAILABLE = False
     def retry(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
         return decorator
     RetryError = Exception
 
 # Sustainability tracking
 try:
     from codecarbon import EmissionsTracker
+    from ..tools.sustainability_tool import SustainabilityTrackerTool
 except ImportError:
     class EmissionsTracker:
         def __init__(self, *args, **kwargs):
@@ -30,16 +32,17 @@ except ImportError:
             pass
         def stop(self):
             return 0.0
+    SustainabilityTrackerTool = None
 
-# Import custom modules (adjust paths as needed)
+# Import custom modules
 from ..core.output_serializer import output_serializer
 from ..models.crew_output import CrewOutputValidator
-from ..security.vault_client import VaultClient  # Assume Vault client for audit
+from ..security.vault_client import VaultClient
 
 logger = logging.getLogger(__name__)
 
 class BaseCrew(ABC):
-    """An abstract base class for all crews in ZeroToShip. It standardizes the run_async method signature and ensures that crews are instantiated with the necessary project context, with advanced features for reliability and compliance."""
+    """An abstract base class for all crews in tractionbuild. It standardizes the run_async method signature and ensures that crews are instantiated with the necessary project context, with advanced features for reliability and compliance."""
 
     def __init__(self, project_data: Dict[str, Any]):
         """Initializes the crew with the current project data.
@@ -50,6 +53,7 @@ class BaseCrew(ABC):
         self.project_data = project_data
         self.crew = self._create_crew()
         self.vault_client = VaultClient()  # Vault for audit and secrets
+        self.sustainability_tracker = SustainabilityTrackerTool() if SustainabilityTrackerTool else None
         logger.info(f"Initialized {self.__class__.__name__} with project data")
 
     @abstractmethod
@@ -60,6 +64,18 @@ class BaseCrew(ABC):
             An instantiated CrewAI Crew object
         """
         raise NotImplementedError("Subclasses must implement the _create_crew method.")
+
+    @abstractmethod
+    async def _execute_crew(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Subclasses must implement this method to define the crew's execution logic.
+        
+        Args:
+            inputs: Serialized project data for crew execution
+            
+        Returns:
+            The crew's execution result
+        """
+        raise NotImplementedError("Subclasses must implement the _execute_crew method.")
 
     @retry(
         stop=stop_after_attempt(3),
@@ -74,8 +90,8 @@ class BaseCrew(ABC):
         """
         tracker = None
         try:
-            if os.getenv('CODECARBON_ENABLED', 'false').lower() == 'true':
-                project_name = os.getenv('CODECARBON_PROJECT_NAME', f'ZeroToShip_{self.__class__.__name__}')
+            if os.getenv('CODECARBON_ENABLED', 'false').lower() == 'true' and self.sustainability_tracker:
+                project_name = os.getenv('CODECARBON_PROJECT_NAME', f'tractionbuild_{self.__class__.__name__}')
                 tracker = EmissionsTracker(
                     project_name=project_name,
                     measure_power_secs=15,
@@ -93,17 +109,30 @@ class BaseCrew(ABC):
         project_id = self.project_data.get('id', 'unknown')
 
         try:
-            logger.info(f"Starting {self.__class__.__name__} execution")
+            logger.info(f"Starting {self.__class__.__name__} execution (attempt with retry logic)")
             crew_inputs = self._prepare_crew_inputs()
-            result = await self.crew.kickoff_async(inputs=crew_inputs)
+            result = await self._execute_crew(crew_inputs)
 
-            execution_time = (datetime.utcnow() - execution_start).total_seconds()
+            emissions = 0.0
+            energy_consumed = 0.0
+            if tracker:
+                try:
+                    emissions = tracker.stop()
+                    energy_consumed = getattr(tracker, 'energy_consumed', 0.0)
+                    logger.info(f"{self.__class__.__name__} carbon footprint: {emissions:.6f} kg CO2e")
+                except Exception as e:
+                    logger.warning(f"Failed to stop carbon tracking: {e}")
+
             serialized_result = output_serializer.serialize_crew_output(result, project_id)
+            if not output_serializer.validate_serialization(result, serialized_result):
+                logger.warning(f"Serialization validation failed for {self.__class__.__name__}")
+
             content = serialized_result.get('content', {})
             primary_content = content.get('primary_content', content.get('raw', str(result)))
             output_key = self._get_output_key()
             next_state = self._determine_next_state()
 
+            execution_time = (datetime.utcnow() - execution_start).total_seconds()
             enhanced_result = {
                 output_key: primary_content,
                 'serialized_output': serialized_result,
@@ -112,21 +141,38 @@ class BaseCrew(ABC):
                     'execution_timestamp': execution_start.isoformat(),
                     'execution_duration_seconds': execution_time,
                     'project_id': project_id,
-                    'status': 'success',
-                },
-                'state_transition': {
-                    'next_state': next_state,
-                    'conditions_met': True,
-                    'transition_timestamp': datetime.utcnow().isoformat(),
-                },
+                    'retry_attempt': getattr(self, '_retry_attempt', 1),
+                    'serialization_validated': True,
+                }
             }
+            if tracker or next_state != 'ERROR':
+                enhanced_result.update({
+                    'sustainability': {
+                        'co2_emissions_kg': float(emissions) if emissions else 0.0,
+                        'energy_consumed_kwh': float(energy_consumed) if energy_consumed else 0.0,
+                        'carbon_efficiency_rating': self._calculate_carbon_efficiency(emissions),
+                    },
+                    'state_transition': {
+                        'next_state': next_state,
+                        'conditions_met': True,
+                        'transition_timestamp': datetime.utcnow().isoformat(),
+                    },
+                })
 
             validated_result = CrewOutputValidator.validate_and_enrich(enhanced_result, self.__class__.__name__, project_id)
+            logger.info(f"{self.__class__.__name__} completed successfully in {execution_time:.2f}s")
             self.update_project_data({'state': next_state})
             await self._log_to_vault('execution_success', enhanced_result['execution_metadata'])
             return validated_result
 
         except (RetryError, Exception) as e:
+            emissions = 0.0
+            if tracker:
+                try:
+                    emissions = tracker.stop()
+                except Exception:
+                    pass
+
             execution_time = (datetime.utcnow() - execution_start).total_seconds()
             error_msg = str(e) if not isinstance(e, RetryError) else f"Failed after retries: {e.last_attempt.exception()}"
             retry_count = 1 if not isinstance(e, RetryError) else e.last_attempt.attempt_number
@@ -250,6 +296,7 @@ class BaseCrew(ABC):
             'LaunchCrew': 'COMPLETED',
             'BuilderCrew': 'TESTING',
             'ExecutionCrew': 'COMPLETED',
+            'AdvisoryBoardCrew': 'IDEA_REFINEMENT',  # New state for AdvisoryBoardCrew
         }
         return state_map.get(crew_name, 'COMPLETED')
 
@@ -258,6 +305,7 @@ class BaseCrew(ABC):
         
         Args:
             emissions: CO2 emissions in kg
+            
         Returns:
             Carbon efficiency rating string
         """
@@ -280,4 +328,3 @@ class BaseCrew(ABC):
         encrypted_details = self.vault_client.encrypt(details)
         await self.vault_client.log_audit(event_type, encrypted_details)
         logger.info(f"Logged {event_type} to Vault: {details}")
-

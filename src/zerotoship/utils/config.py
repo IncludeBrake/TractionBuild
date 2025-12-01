@@ -1,5 +1,5 @@
 """
-Configuration utilities for ZeroToShip.
+Configuration utilities for tractionbuild.
 """
 
 import os
@@ -15,13 +15,13 @@ class Config(BaseModel):
     """Main configuration class."""
     
     # Core settings
-    project_name: str = Field(default="ZeroToShip", description="Project name")
+    project_name: str = Field(default="tractionbuild", description="Project name")
     environment: str = Field(default="development", description="Environment")
     debug: bool = Field(default=False, description="Debug mode")
     
     # AI Provider settings
     openai_api_key: Optional[str] = Field(default=None, description="OpenAI API key")
-    openai_model: str = Field(default="gpt-4-turbo-preview", description="OpenAI model")
+    openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model")
     anthropic_api_key: Optional[str] = Field(default=None, description="Anthropic API key")
     anthropic_model: str = Field(default="claude-3-sonnet-20240229", description="Anthropic model")
     
@@ -62,13 +62,13 @@ class Config(BaseModel):
         env_data = {}
         
         # Core settings
-        env_data["project_name"] = os.getenv("PROJECT_NAME", "ZeroToShip")
+        env_data["project_name"] = os.getenv("PROJECT_NAME", "tractionbuild")
         env_data["environment"] = os.getenv("ENVIRONMENT", "development")
         env_data["debug"] = os.getenv("DEBUG", "false").lower() == "true"
         
         # AI Provider settings
         env_data["openai_api_key"] = os.getenv("OPENAI_API_KEY")
-        env_data["openai_model"] = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
+        env_data["openai_model"] = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         env_data["anthropic_api_key"] = os.getenv("ANTHROPIC_API_KEY")
         env_data["anthropic_model"] = os.getenv("ANTHROPIC_MODEL", "claude-3-sonnet-20240229")
         

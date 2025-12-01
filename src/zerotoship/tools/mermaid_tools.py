@@ -1,5 +1,5 @@
 """
-Mermaid tools for ZeroToShip agents.
+Mermaid tools for tractionbuild agents.
 """
 
 from typing import Dict, List, Any, Optional

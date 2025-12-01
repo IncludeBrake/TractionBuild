@@ -1,0 +1,14 @@
+STDOUT:
+
+
+STDERR:
+ERROR: usage: __main__.py [options] [file_or_dir] [file_or_dir] [...]
+__main__.py: error: unrecognized arguments: --cov=zerotoship --cov-report=term-missing --cov-report=html --cov-report=xml
+  inifile: C:\Users\jthri\Dev\MySauce\TractionBuild\pyproject.toml
+  rootdir: C:\Users\jthri\Dev\MySauce\TractionBuild
+
+C:\Users\jthri\Dev\MySauce\TractionBuild\.venv\Lib\site-packages\coverage\control.py:894: CoverageWarning: No data was collected. (no-data-collected)
+  self._warn("No data was collected.", slug="no-data-collected")
+
+
+EXIT CODE: 4

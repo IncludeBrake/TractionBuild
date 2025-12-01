@@ -1,5 +1,5 @@
 """
-Logging utilities for ZeroToShip.
+Logging utilities for tractionbuild.
 """
 
 import logging

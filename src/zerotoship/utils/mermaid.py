@@ -1,5 +1,5 @@
 """
-Mermaid utilities for ZeroToShip.
+Mermaid utilities for tractionbuild.
 """
 
 from typing import Dict, List, Any, Optional

@@ -1,5 +1,5 @@
 """
-Task decomposition and atomic execution for ZeroToShip.
+Task decomposition and atomic execution for tractionbuild.
 """
 
 from .atomic_execution_engine import TaskDecomposer, TaskDecomposerConfig, AtomicTask

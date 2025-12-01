@@ -1,17 +1,21 @@
 """
-Builder Crew for ZeroToShip.
+Builder Crew for tractionbuild.
 Orchestrates code generation, development, and technical implementation.
 """
 
 import asyncio
 from typing import Dict, List, Optional, Any
-from crewai import Crew, Agent, Task, Process
+from crewai import Crew, Process, Task
 from pydantic import BaseModel, Field
 
-from .base_crew import BaseCrew
+from ..agents.builder_agent import BuilderAgent
 from ..tools.code_tools import CodeTools
 from ..tools.mermaid_tools import MermaidTools
+from ..tools.compliance_tool import ComplianceCheckerTool
+from ..tools.celery_execution_tool import CeleryExecutionTool
 from ..core.project_meta_memory import ProjectMetaMemoryManager
+from .base_crew import BaseCrew
+from ..utils.llm_factory import get_llm
 
 class BuilderCrewConfig(BaseModel):
     """Configuration for the Builder Crew."""
@@ -22,120 +26,119 @@ class BuilderCrewConfig(BaseModel):
     enable_documentation: bool = Field(default=True, description="Enable code documentation")
 
 class BuilderCrew(BaseCrew):
-    """
-    The BuilderCrew is a specialized team of AI agents that handles the entire
-    software development lifecycle, from system architecture to code generation,
-    testing, and documentation.
-    """
-
+    """Builder Crew for comprehensive code generation and development."""
+    
     def __init__(self, project_data: Dict[str, Any], config: Optional[BuilderCrewConfig] = None):
-        """Initialize the Builder Crew with project data and config."""
         super().__init__(project_data)
         self.config = config or BuilderCrewConfig()
         self.memory_manager = ProjectMetaMemoryManager()
+        self.builder_agent = BuilderAgent()
+        self.celery_executor = CeleryExecutionTool()
 
     def _create_crew(self) -> Crew:
-        """
-        Defines the agents and tasks that form the BuilderCrew.
-        This method is called by the BaseCrew's __init__.
-        """
+        """Create the Builder Crew with agents and tasks."""
+        # Get LLM from the factory
+        llm = get_llm()
         
-        # 1. --- DEFINE SPECIALIZED AGENTS ---
-        
-        code_architect = Agent(
-            role="Principal Software Architect",
-            goal="Design a robust, scalable, and maintainable software architecture based on the project requirements.",
-            backstory="You are a seasoned software architect with 20 years of experience designing enterprise-grade systems. You think in terms of design patterns, scalability, and long-term maintainability.",
-            tools=[MermaidTools()], # e.g., MermaidTools for diagrams
-            allow_delegation=False,
-            verbose=True
-        )
+        agents = [
+            BuilderAgent(tools=[ComplianceCheckerTool()], llm=llm).agent,
+            BuilderAgent(llm=llm).agent,
+            BuilderAgent(llm=llm).agent,
+            BuilderAgent(llm=llm).agent,
+            BuilderAgent(tools=[ComplianceCheckerTool()], llm=llm).agent,
+        ]
 
-        feature_implementer = Agent(
-            role="Senior Full-Stack Developer",
-            goal="Write high-quality, production-ready code to implement the specified features.",
-            backstory="You are a pragmatic and efficient developer who excels at turning architectural plans into clean, functional code. You follow best practices and write code that is easy for others to understand.",
-            tools=[CodeTools()], # e.g., CodeTools, FileTools
-            allow_delegation=False,
-            verbose=True
-        )
-
-        test_engineer = Agent(
-            role="QA and Test Automation Engineer",
-            goal="Ensure the code is bug-free and meets all quality standards by creating a comprehensive suite of automated tests.",
-            backstory="You have a keen eye for detail and a passion for quality. You are an expert in creating robust unit, integration, and end-to-end tests that catch issues before they reach production.",
-            tools=[CodeTools()], # e.g., CodeTools for test generation
-            allow_delegation=False,
-            verbose=True
-        )
-
-        documentation_specialist = Agent(
-            role="Technical Writer",
-            goal="Create clear, comprehensive, and user-friendly documentation for the codebase.",
-            backstory="You are a skilled writer who can make complex technical concepts easy to understand. You create documentation that empowers both developers and end-users.",
-            tools=[],
-            allow_delegation=False,
-            verbose=True
-        )
-
-        # 2. --- DEFINE THE SEQUENTIAL TASKS ---
-
-        task_architecture = Task(
-            description="Based on the project idea and requirements provided in the inputs, design a comprehensive system architecture. "
-                        "Define the technology stack, data models, API endpoints, and overall structure.",
-            expected_output="A detailed technical blueprint document, including a Mermaid diagram of the architecture.",
-            agent=code_architect
-        )
-
-        task_implementation = Task(
-            description="Using the system architecture blueprint, write the source code for the core features. "
-                        "Ensure the code is clean, well-commented, and adheres to best practices.",
-            expected_output="A set of source code files that implement the core functionality.",
-            agent=feature_implementer,
-            context=[task_architecture] # This task depends on the output of the architecture task
+        # Create tasks separately to avoid forward references
+        task1 = Task(
+            description="""
+            Design comprehensive system architecture for the project.
+            Focus on: 1. Technology stack selection, 2. System architecture patterns,
+            3. Database design, 4. API design, 5. Scalability considerations.
+            Ensure GDPR compliance during design.
+            Provide blueprint with diagrams.
+            """,
+            agent=agents[0],
+            expected_output="Comprehensive system architecture with technical specs."
         )
         
-        task_testing = Task(
-            description="Create and run a comprehensive suite of automated tests (unit, integration) for the generated code. "
-                        "Ensure at least 80% test coverage.",
-            expected_output="A complete set of test files and a test coverage report.",
-            agent=test_engineer,
-            context=[task_implementation]
+        task2 = Task(
+            description="""
+            Implement core features based on architecture.
+            Implement: 1. Business logic, 2. UI components, 3. Data models,
+            4. API endpoints, 5. External integrations.
+            Provide code with error handling.
+            """,
+            agent=agents[1],
+            expected_output="Functional code implementation.",
+            context=[task1]
         )
+        
+        task3 = Task(
+            description="""
+            Develop automated testing suite.
+            Create: 1. Unit tests, 2. Integration tests, 3. E2E tests,
+            4. Performance tests, 5. Security tests.
+            Provide coverage reports.
+            """,
+            agent=agents[2],
+            expected_output="Comprehensive test suite with high coverage.",
+            context=[task2]
+        )
+        
+        task4 = Task(
+            description="""
+            Generate code documentation.
+            Create: 1. API docs, 2. Code comments, 3. User guides,
+            4. Developer guides, 5. Architecture docs.
+            Provide clear documentation.
+            """,
+            agent=agents[3],
+            expected_output="Complete documentation suite.",
+            context=[task2, task3]
+        )
+        
+        task5 = Task(
+            description="""
+            Conduct code quality review.
+            Review: 1. Code quality, 2. Performance, 3. Security,
+            4. Maintainability, 5. Technical debt.
+            Ensure GDPR compliance.
+            Provide quality assessment.
+            """,
+            agent=agents[4],
+            expected_output="Code quality report with recommendations.",
+            context=[task2, task3, task4]
+        )
+        
+        tasks = [task1, task2, task3, task4, task5]
 
-        task_documentation = Task(
-            description="Generate comprehensive documentation for the code, including API docs and a README file with setup instructions.",
-            expected_output="A complete set of documentation files in Markdown format.",
-            agent=documentation_specialist,
-            context=[task_implementation, task_testing]
-        )
-        
-        # 3. --- ASSEMBLE AND RETURN THE CREW ---
-        
         return Crew(
-            agents=[code_architect, feature_implementer, test_engineer, documentation_specialist],
-            tasks=[task_architecture, task_implementation, task_testing, task_documentation],
+            agents=agents,
+            tasks=tasks,
             process=Process.sequential,
-            verbose=True
+            verbose=True,
         )
+
+    async def _execute_crew(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute the Builder Crew using distributed execution."""
+        task_type = next(iter(inputs.keys()), "generate_code")  # Default to generate_code
+        task_result = await self.celery_executor.execute_task(
+            lambda: self.crew.kickoff_async(inputs=inputs)
+        )
+        result = task_result.result() if task_result else {}
+        return result.get(task_type, {})
 
     async def generate_code(self, execution_plan: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Generate code based on execution plan and context."""
         project_data = self.project_data.copy()
         project_data.update({"execution_plan": execution_plan, "context": context})
-        result = await self.run_async(project_data)
-        return result.get("builder", {})
+        return await self._execute_crew(project_data)
 
     async def implement_feature(self, feature_spec: Dict[str, Any], codebase_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Implement a specific feature based on specification."""
         project_data = self.project_data.copy()
         project_data.update({"feature_spec": feature_spec, "codebase_context": codebase_context})
-        result = await self.run_async(project_data)
-        return result.get("builder", {})
+        return await self._execute_crew(project_data)
 
     async def run_tests(self, test_suite: Dict[str, Any]) -> Dict[str, Any]:
-        """Run tests on the codebase."""
         project_data = self.project_data.copy()
         project_data.update({"test_suite": test_suite})
-        result = await self.run_async(project_data)
-        return result.get("builder", {})
+        return await self._execute_crew(project_data)

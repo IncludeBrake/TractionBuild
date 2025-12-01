@@ -1,5 +1,5 @@
 """
-Repository pattern for ZeroToShip.
+Repository pattern for tractionbuild.
 Handles data access and persistence operations.
 """
 

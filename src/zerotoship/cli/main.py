@@ -1,5 +1,5 @@
 """
-Main CLI entry point for ZeroToShip.
+Main CLI entry point for tractionbuild.
 """
 
 import asyncio
@@ -28,13 +28,13 @@ def validate_idea(
     token_limit: int = typer.Option(50000, "--token-limit", "-t", help="Token budget limit"),
     enable_safety: bool = typer.Option(True, "--safety", help="Enable safety features")
 ):
-    """Validate an idea using the ZeroToShip pipeline."""
+    """Validate an idea using the tractionbuild pipeline."""
     
     if verbose:
         logging.basicConfig(level=logging.INFO)
     
     console.print(Panel.fit(
-        f"[bold blue]🚀 ZeroToShip[/bold blue]\n"
+        f"[bold blue]🚀 tractionbuild[/bold blue]\n"
         f"[dim]Validating idea: {idea[:100]}{'...' if len(idea) > 100 else ''}[/dim]",
         title="Idea Validation"
     ))
@@ -80,7 +80,7 @@ def show_stats():
     stats = memory_manager.get_memory_stats()
     
     # Create stats table
-    table = Table(title="ZeroToShip System Statistics")
+    table = Table(title="tractionbuild System Statistics")
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="green")
     

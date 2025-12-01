@@ -1,95 +1,285 @@
+"""
+Validator Crew for tractionbuild.
+Orchestrates market research, competitor analysis, and idea validation.
+"""
+
+import asyncio
+from typing import Dict, List, Optional, Any
 from crewai import Crew, Agent, Task, Process
-from .base_crew import BaseCrew # Import our standardized base class
+from pydantic import BaseModel, Field
+
+from .base_crew import BaseCrew
+from ..agents.validator_agent import ValidatorAgent
+from ..tools.market_oracle_tool import MarketOracleTool
+from ..core.project_meta_memory import ProjectMetaMemoryManager
+from ..models.validation_result import ValidationResult
+from ..tools.celery_execution_tool import CeleryExecutionTool
+from ..utils.llm_factory import get_llm
+
+class ValidatorCrewConfig(BaseModel):
+    """Configuration for the Validator Crew."""
+    enable_memory_learning: bool = Field(default=True, description="Enable memory learning")
+    enable_market_research: bool = Field(default=True, description="Enable market research")
+    enable_competitive_analysis: bool = Field(default=True, description="Enable competitive analysis")
+    enable_market_sizing: bool = Field(default=True, description="Enable market sizing")
+    enable_risk_assessment: bool = Field(default=True, description="Enable risk assessment")
+    max_validation_iterations: int = Field(default=3, description="Maximum validation iterations")
 
 class ValidatorCrew(BaseCrew):
-    """
-    The ValidatorCrew is the first gate in the ZeroToShip pipeline. It is a
-    specialized team of AI agents that conducts comprehensive market research,
-    competitor analysis, and risk assessment to validate a business idea.
-    """
+    """Validates a business idea using real-time market data and compliance checks."""
+    
+    def __init__(self, project_data: Dict[str, Any], config: Optional[ValidatorCrewConfig] = None):
+        self.config = config or ValidatorCrewConfig()
+        self.memory_manager = ProjectMetaMemoryManager()
+        self.validator_agent = ValidatorAgent()
+        self.celery_executor = CeleryExecutionTool()
+        super().__init__(project_data)
 
     def _create_crew(self) -> Crew:
-        """
-        Defines the agents and tasks that form the ValidatorCrew.
-        """
-        idea = self.project_data.get("idea", "[No idea provided]")
+        """Create the Validator Crew with agents and tasks."""
+        context = self.get_project_context()
+        idea = context.get("idea", "")
 
-        # 1. --- DEFINE SPECIALIZED AGENTS ---
+        # Get LLM from the factory
+        llm = get_llm()
 
+        # Create agents
         market_researcher = Agent(
-            role="Senior Market Research Analyst",
-            goal=f"Conduct in-depth market research for the idea: '{idea}'. Analyze market size, trends, and target audience.",
-            backstory="You are a meticulous market analyst with 15 years of experience at a top-tier consulting firm. You excel at uncovering data-driven insights and identifying untapped market opportunities.",
-            tools=[], # e.g., WebSearchTool, MarketDataAPITool
+            role="Market Research Specialist",
+            goal="Conduct comprehensive market research and analysis",
+            backstory="Expert with 15+ years in market analysis and trend identification",
+            tools=[MarketOracleTool()],
+            verbose=True,
             allow_delegation=False,
-            verbose=True
+            llm=llm
         )
 
         competitor_analyst = Agent(
-            role="Competitive Intelligence Analyst",
-            goal=f"Analyze the competitive landscape for the idea: '{idea}'. Identify key competitors, their strategies, and market positioning.",
-            backstory="You are a strategic analyst who lives and breathes competitive intelligence. You can dissect any market to find strategic gaps and opportunities for differentiation.",
-            tools=[], # e.g., ScrapeWebsiteTool
-            allow_delegation=False,
-            verbose=True
+            role="Competitive Intelligence Analyst", 
+            goal="Analyze competitive landscape and positioning opportunities",
+            backstory="Specialist in competitive intelligence with deep industry knowledge",
+            verbose=True,
+            allow_delegation=False
+        )
+
+        market_sizer = Agent(
+            role="Market Sizing Specialist",
+            goal="Quantify market opportunities with TAM/SAM/SOM analysis", 
+            backstory="Data-driven analyst expert in market sizing and financial modeling",
+            verbose=True,
+            allow_delegation=False
         )
 
         risk_assessor = Agent(
-            role="Venture Capital Risk Assessor",
-            goal=f"Evaluate all potential market, technical, and execution risks associated with the idea: '{idea}'.",
-            backstory="You are a seasoned risk assessor from a leading VC firm. Your job is to poke holes in business ideas and identify every potential point of failure, providing clear mitigation strategies.",
-            tools=[],
-            allow_delegation=False,
-            verbose=True
+            role="Risk Assessment Specialist",
+            goal="Identify and evaluate market and business risks",
+            backstory="Risk management expert with experience across multiple industries",
+            verbose=True,
+            allow_delegation=False
         )
-        
+
         validation_synthesizer = Agent(
-            role="Lead Validation Strategist",
-            goal="Synthesize all research, competitive analysis, and risk assessments into a final, data-driven go/no-go recommendation.",
-            backstory="You are the final decision-maker. Your role is to weigh all the evidence from your team of analysts and produce a clear, concise, and actionable recommendation with a quantifiable confidence score.",
-            tools=[],
-            allow_delegation=False,
-            verbose=True
+            role="Validation Synthesis Specialist",
+            goal="Synthesize validation findings into actionable recommendations",
+            backstory="Strategic advisor with expertise in business validation and go-to-market strategy",
+            verbose=True,
+            allow_delegation=False
         )
 
-        # 2. --- DEFINE THE SEQUENTIAL TASKS ---
-
-        task_market_research = Task(
-            description="Conduct comprehensive market research to understand the potential for the provided idea. "
-                        "Focus on market size (TAM, SAM, SOM), key growth trends, and defining the primary target audience personas.",
-            expected_output="A detailed market research report with quantified market size estimates and rich descriptions of the target audience.",
-            agent=market_researcher
+        # Create tasks
+        market_research_task = Task(
+            description=f"""
+            Analyze the provided idea through comprehensive market research.
+            Focus on: 1. Market size, 2. Target audience,
+            3. Market trends, 4. Opportunity assessment.
+            Use real-time data and market insights.
+            Idea: {idea}
+            Provide detailed findings.
+            """,
+            agent=market_researcher,
+            expected_output="Comprehensive market research report with insights."
         )
 
-        task_competitor_analysis = Task(
-            description="Analyze the direct and indirect competitors. Identify their strengths, weaknesses, and market positioning. "
-                        "Pinpoint any gaps in the market that our product could fill.",
-            expected_output="A competitive analysis matrix and a summary of strategic opportunities for differentiation.",
+        competitor_analysis_task = Task(
+            description=f"""
+            Conduct thorough competitor analysis for the idea.
+            Analyze: 1. Direct/indirect competitors, 2. Advantages/disadvantages,
+            3. Positioning opportunities, 4. Competitive gaps.
+            Idea: {idea}
+            Provide strategic insights.
+            """,
             agent=competitor_analyst,
-            context=[task_market_research]
+            expected_output="Strategic competitive analysis with recommendations.",
+            context=[market_research_task]
         )
 
-        task_risk_assessment = Task(
-            description="Identify and evaluate potential risks across all domains: market (e.g., saturation), "
-                        "technical (e.g., feasibility), and execution (e.g., resource needs). Propose clear mitigation strategies for the top 3 risks.",
-            expected_output="A risk assessment report with a prioritized list of risks and actionable mitigation plans.",
+        market_sizing_task = Task(
+            description=f"""
+            Quantify the market size and opportunity potential.
+            Calculate: 1. TAM, 2. SAM, 3. SOM, 4. Growth rates.
+            Idea: {idea}
+            Provide market size estimates.
+            """,
+            agent=market_sizer,
+            expected_output="Quantified market size analysis with TAM/SAM/SOM breakdown.",
+            context=[market_research_task, competitor_analysis_task]
+        )
+
+        risk_assessment_task = Task(
+            description=f"""
+            Conduct comprehensive risk assessment for the idea.
+            Evaluate: 1. Market risks, 2. Competitive threats,
+            3. Technical challenges, 4. Regulatory, 5. Resource risks.
+            Idea: {idea}
+            Provide mitigation strategies.
+            """,
             agent=risk_assessor,
-            context=[task_market_research, task_competitor_analysis]
+            expected_output="Comprehensive risk assessment with mitigation strategies.",
+            context=[market_sizing_task, competitor_analysis_task]
         )
-        
-        task_synthesis = Task(
-            description="Synthesize the findings from the market research, competitive analysis, and risk assessment into a final report. "
-                        "Conclude with a clear 'GO' or 'NO-GO' recommendation and a confidence score (0.0 to 1.0).",
-            expected_output="A final validation report containing a summary of all findings, a clear recommendation, and a confidence score.",
+
+        synthesis_task = Task(
+            description=f"""
+            Synthesize all validation findings into a recommendation.
+            Integrate: 1. Market insights, 2. Competitive analysis,
+            3. Market sizing, 4. Risk assessment, 5. Opportunity evaluation.
+            Idea: {idea}
+            Provide go/no-go recommendation.
+            """,
             agent=validation_synthesizer,
-            context=[task_market_research, task_competitor_analysis, task_risk_assessment]
+            expected_output="Final validation recommendation with confidence score.",
+            context=[market_research_task, competitor_analysis_task, market_sizing_task, risk_assessment_task]
         )
-        
-        # 3. --- ASSEMBLE AND RETURN THE CREW ---
-        
+
         return Crew(
-            agents=[market_researcher, competitor_analyst, risk_assessor, validation_synthesizer],
-            tasks=[task_market_research, task_competitor_analysis, task_risk_assessment, task_synthesis],
+            agents=[market_researcher, competitor_analyst, market_sizer, risk_assessor, validation_synthesizer],
+            tasks=[market_research_task, competitor_analysis_task, market_sizing_task, risk_assessment_task, synthesis_task],
             process=Process.sequential,
-            verbose=True
+            verbose=True,
         )
+
+    async def _execute_crew(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute the Validator Crew using distributed execution."""
+        task_type = next(iter(inputs.keys()), "validate_idea")
+        task_result = await self.celery_executor.execute_task(
+            lambda: self.crew.kickoff_async(inputs=inputs)
+        )
+        result = task_result.result() if task_result else {}
+        return result.get(task_type, {})
+
+    async def validate_idea(self, idea: str, context: Optional[Dict[str, Any]] = None) -> ValidationResult:
+        """
+        Validate a business idea using comprehensive market research.
+        
+        Args:
+            idea: The business idea to validate
+            context: Additional context for validation
+            
+        Returns:
+            ValidationResult with comprehensive analysis
+        """
+        # Store validation request in memory
+        self.memory_manager.add_success_pattern(
+            pattern={"validation_request": {"idea": idea, "context": context}},
+            project_id="validator_crew",
+            agent_id="validator_crew", 
+            confidence_score=0.8
+        )
+        
+        # Execute the crew workflow
+        project_data = self.project_data.copy()
+        project_data.update({"idea": idea, "context": context or {}})
+        
+        result = await self._execute_crew(project_data)
+        
+        # Store validation result in memory
+        self.memory_manager.add_success_pattern(
+            pattern={"validation_result": result},
+            project_id="validator_crew",
+            agent_id="validator_crew",
+            confidence_score=0.9
+        )
+        
+        return ValidationResult(
+            idea=idea,
+            market_size=result.get("market_size", "TBD"),
+            competition_level=result.get("competition_level", "medium"),
+            target_audience=result.get("target_audience", "TBD"),
+            mvp_scope=result.get("mvp_scope", "TBD"),
+            risks=result.get("risks", "TBD"),
+            recommendation=result.get("recommendation", "go"),
+            confidence_score=result.get("confidence_score", 0.7),
+            reasoning=result.get("reasoning", "Comprehensive validation completed"),
+            estimated_timeline=result.get("estimated_timeline", "TBD"),
+            estimated_budget=result.get("estimated_budget", "TBD")
+        )
+
+    async def analyze_market(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Analyze market data and trends.
+        
+        Args:
+            market_data: Market data to analyze
+            
+        Returns:
+            Market analysis results
+        """
+        # Store market analysis in memory
+        self.memory_manager.add_success_pattern(
+            pattern={"market_analysis": market_data},
+            project_id="validator_crew",
+            agent_id="validator_crew",
+            confidence_score=0.8
+        )
+        
+        # Execute market analysis
+        project_data = self.project_data.copy()
+        project_data.update({"market_data": market_data, "analysis_type": "market_analysis"})
+        
+        result = await self._execute_crew(project_data)
+        
+        return {
+            "market_size": result.get("market_size", "TBD"),
+            "growth_rate": result.get("growth_rate", "TBD"),
+            "key_players": result.get("key_players", []),
+            "trends": result.get("trends", []),
+            "opportunities": result.get("opportunities", []),
+            "threats": result.get("threats", [])
+        }
+
+    async def scope_mvp(self, idea: str, constraints: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Scope MVP requirements for the idea.
+        
+        Args:
+            idea: The business idea to scope
+            constraints: Resource and timeline constraints
+            
+        Returns:
+            MVP scope and requirements
+        """
+        # Store MVP scoping in memory
+        self.memory_manager.add_success_pattern(
+            pattern={"mvp_scoping": {"idea": idea, "constraints": constraints}},
+            project_id="validator_crew",
+            agent_id="validator_crew",
+            confidence_score=0.8
+        )
+        
+        # Execute MVP scoping
+        project_data = self.project_data.copy()
+        project_data.update({
+            "idea": idea, 
+            "constraints": constraints or {},
+            "analysis_type": "mvp_scoping"
+        })
+        
+        result = await self._execute_crew(project_data)
+        
+        return {
+            "core_features": result.get("core_features", []),
+            "timeline": result.get("timeline", "TBD"),
+            "budget": result.get("budget", "TBD"),
+            "team_size": result.get("team_size", "TBD"),
+            "success_metrics": result.get("success_metrics", [])
+        }

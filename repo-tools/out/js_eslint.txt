@@ -1,0 +1,6 @@
+
+npm error code EJSONPARSE
+npm error JSON.parse Invalid package.json: JSONParseError: Expected ',' or '}' after property value in JSON at position 1468 (line 62 column 3) while parsing near "...m\": \">=8.0.0\"\n  }\n  {\n  \"scripts\": {\n   ..."
+npm error JSON.parse Failed to parse JSON data.
+npm error JSON.parse Note: package.json must be actual JSON, not just JavaScript.
+npm error A complete log of this run can be found in: C:\Users\jthri\AppData\Local\npm-cache\_logs\2025-11-03T10_23_49_846Z-debug-0.log

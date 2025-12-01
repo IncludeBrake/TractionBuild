@@ -1,5 +1,5 @@
 """
-Mermaid Exporter for ZeroToShip.
+Mermaid Exporter for tractionbuild.
 Handles visualization generation for execution graphs and project workflows.
 """
 
@@ -251,7 +251,7 @@ class MermaidExporter:
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ZeroToShip Execution Graph</title>
+    <title>tractionbuild Execution Graph</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
         body {{
@@ -289,7 +289,7 @@ class MermaidExporter:
 </head>
 <body>
     <div class="container">
-        <h1>ZeroToShip Execution Graph</h1>
+        <h1>tractionbuild Execution Graph</h1>
         
         <div class="metadata">
             <h3>Graph Information</h3>
@@ -340,7 +340,7 @@ class MermaidExporter:
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
     <rect width="800" height="600" fill="#ffffff"/>
     <text x="400" y="50" text-anchor="middle" font-family="Arial" font-size="24" fill="#333">
-        ZeroToShip Execution Graph
+        tractionbuild Execution Graph
     </text>
     <text x="400" y="80" text-anchor="middle" font-family="Arial" font-size="14" fill="#666">
         Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}

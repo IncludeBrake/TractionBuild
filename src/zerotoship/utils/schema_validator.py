@@ -1,5 +1,5 @@
 """
-JSON Schema Validation for ZeroToShip.
+JSON Schema Validation for tractionbuild.
 Handles dpath access issues and ensures data integrity with comprehensive validation.
 """
 

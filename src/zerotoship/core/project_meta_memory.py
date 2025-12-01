@@ -1,5 +1,5 @@
 """
-Project Meta Memory System for ZeroToShip.
+Project Meta Memory System for tractionbuild.
 Stores heuristics, failure patterns, and learning from project executions.
 """
 

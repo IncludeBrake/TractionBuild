@@ -1,5 +1,5 @@
 """
-Project model for ZeroToShip.
+Project model for tractionbuild.
 """
 
 from typing import Optional, List, Dict, Any

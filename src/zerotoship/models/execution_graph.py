@@ -1,5 +1,5 @@
 """
-Execution graph models for ZeroToShip.
+Execution graph models for tractionbuild.
 """
 
 from typing import Optional, List, Dict, Any

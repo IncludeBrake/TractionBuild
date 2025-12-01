@@ -1,5 +1,5 @@
 """
-Token budget management for ZeroToShip.
+Token budget management for tractionbuild.
 Controls per-crew and global token usage with safety limits.
 """
 
@@ -71,7 +71,7 @@ class TokenBudgetManager(BaseModel):
     # Cost estimates (per 1K tokens)
     cost_estimates: Dict[str, float] = Field(
         default={
-            "gpt-4-turbo-preview": 0.03,
+            "gpt-4o-mini": 0.03,
             "gpt-4": 0.06,
             "gpt-3.5-turbo": 0.002,
             "claude-3-sonnet": 0.015,
@@ -128,7 +128,7 @@ class TokenBudgetManager(BaseModel):
         crew_id: str,
         project_id: str,
         estimated_tokens: int,
-        model: str = "gpt-4-turbo-preview"
+        model: str = "gpt-4o-mini"
     ) -> Dict[str, Any]:
         """
         Check if token usage is within budget limits.
@@ -164,7 +164,7 @@ class TokenBudgetManager(BaseModel):
         crew_id: str,
         project_id: str,
         tokens_used: int,
-        model: str = "gpt-4-turbo-preview"
+        model: str = "gpt-4o-mini"
     ) -> None:
         """
         Record token usage.

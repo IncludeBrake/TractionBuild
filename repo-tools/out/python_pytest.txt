@@ -1,0 +1,12 @@
+STDOUT:
+
+
+STDERR:
+ERROR: usage: pytest [options] [file_or_dir] [file_or_dir] [...]
+pytest: error: unrecognized arguments: --cov=zerotoship --cov-report=term-missing --cov-report=html --cov-report=xml
+  inifile: C:\Users\jthri\Dev\MySauce\TractionBuild\pyproject.toml
+  rootdir: C:\Users\jthri\Dev\MySauce\TractionBuild
+
+
+
+EXIT CODE: 4

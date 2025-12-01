@@ -1,5 +1,5 @@
 """
-GDPR and compliance management for ZeroToShip.
+GDPR and compliance management for tractionbuild.
 Implements real-time data encryption, anonymization, and audit trails for enterprise compliance.
 """
 
@@ -58,7 +58,7 @@ class GDPRComplianceManager:
         try:
             if self.vault_enabled and vault_client.enabled:
                 # Get encryption key from Vault
-                key_data = vault_client.get_encryption_key('zerotoship_gdpr')
+                key_data = vault_client.get_encryption_key('tractionbuild_gdpr')
                 if key_data:
                     self.encryption_key = key_data.encode()
                     logger.info("Using Vault-managed encryption key")
@@ -78,13 +78,13 @@ class GDPRComplianceManager:
         """Generate local encryption key for development/testing."""
         try:
             # Use environment variable or generate new key
-            key_env = os.getenv('ZEROTOSHIP_ENCRYPTION_KEY')
+            key_env = os.getenv('tractionbuild_ENCRYPTION_KEY')
             if key_env:
                 self.encryption_key = key_env.encode()
             else:
                 # Generate from password and salt
-                password = os.getenv('ZEROTOSHIP_PASSWORD', 'default_dev_password').encode()
-                salt = b'zerotoship_salt_2025'  # In production, use random salt
+                password = os.getenv('tractionbuild_PASSWORD', 'default_dev_password').encode()
+                salt = b'tractionbuild_salt_2025'  # In production, use random salt
                 kdf = PBKDF2HMAC(
                     algorithm=hashes.SHA256(),
                     length=32,
@@ -171,7 +171,7 @@ class GDPRComplianceManager:
     def _hash_personal_data(self, data: str) -> str:
         """Hash personal data for anonymization."""
         # Use SHA-256 with salt for irreversible anonymization
-        salt = "zerotoship_gdpr_salt_2025"
+        salt = "tractionbuild_gdpr_salt_2025"
         hash_input = f"{data}{salt}".encode()
         hash_result = hashlib.sha256(hash_input).hexdigest()
         return f"anon_{hash_result[:12]}"
@@ -289,7 +289,7 @@ class GDPRComplianceManager:
             'purpose': purpose,
             'timestamp': datetime.utcnow().isoformat(),
             'ip_address': 'anonymized',  # In production, get from request
-            'user_agent': 'zerotoship_system'
+            'user_agent': 'tractionbuild_system'
         }
         
         self.consent_records[consent_id] = consent_record

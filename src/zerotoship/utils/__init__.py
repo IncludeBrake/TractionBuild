@@ -1,5 +1,5 @@
 """
-Utility functions for ZeroToShip.
+Utility functions for tractionbuild.
 """
 
 from .config import Config

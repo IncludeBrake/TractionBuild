@@ -1,5 +1,5 @@
 """
-CrewController for ZeroToShip with advanced loop prevention and ML-based optimization.
+CrewController for tractionbuild with advanced loop prevention and ML-based optimization.
 Implements atomic state updates, watchdog timers, and ML-based loop detection.
 """
 
@@ -16,7 +16,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-# ZeroToShip imports
+# tractionbuild imports
 from ..database.project_registry import ProjectRegistry
 from ..crews import CREW_REGISTRY
 from ..utils.mermaid_exporter import MermaidExporter

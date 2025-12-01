@@ -1,5 +1,5 @@
 """
-Command line interface for ZeroToShip.
+Command line interface for tractionbuild.
 """
 
 from .main import main

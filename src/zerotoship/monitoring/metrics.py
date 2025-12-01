@@ -1,5 +1,5 @@
 """
-Prometheus metrics for ZeroToShip monitoring and observability.
+Prometheus metrics for tractionbuild monitoring and observability.
 Provides comprehensive metrics for workflow execution, crew performance, and system health.
 """
 
@@ -21,8 +21,8 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-class ZeroToShipMetrics:
-    """Centralized metrics collection for ZeroToShip."""
+class tractionbuildMetrics:
+    """Centralized metrics collection for tractionbuild."""
     
     def __init__(self, registry: Optional[CollectorRegistry] = None):
         self.registry = registry or REGISTRY
@@ -34,14 +34,14 @@ class ZeroToShipMetrics:
         
         # Workflow execution metrics
         self.workflow_duration = Histogram(
-            'zerotoship_workflow_duration_seconds',
+            'tractionbuild_workflow_duration_seconds',
             'Time spent executing complete workflows',
             ['workflow_name', 'status'],
             registry=self.registry
         )
         
         self.workflow_executions_total = Counter(
-            'zerotoship_workflow_executions_total',
+            'tractionbuild_workflow_executions_total',
             'Total number of workflow executions',
             ['workflow_name', 'status'],
             registry=self.registry
@@ -49,14 +49,14 @@ class ZeroToShipMetrics:
         
         # Crew execution metrics
         self.crew_duration = Histogram(
-            'zerotoship_crew_duration_seconds',
+            'tractionbuild_crew_duration_seconds',
             'Time spent executing individual crews',
             ['crew_name', 'status', 'execution_mode'],
             registry=self.registry
         )
         
         self.crew_executions_total = Counter(
-            'zerotoship_crew_executions_total',
+            'tractionbuild_crew_executions_total',
             'Total number of crew executions',
             ['crew_name', 'status', 'execution_mode'],
             registry=self.registry
@@ -64,14 +64,14 @@ class ZeroToShipMetrics:
         
         # Task queue metrics (Celery)
         self.celery_tasks_total = Counter(
-            'zerotoship_celery_tasks_total',
+            'tractionbuild_celery_tasks_total',
             'Total number of Celery tasks',
             ['task_name', 'status'],
             registry=self.registry
         )
         
         self.celery_task_duration = Histogram(
-            'zerotoship_celery_task_duration_seconds',
+            'tractionbuild_celery_task_duration_seconds',
             'Duration of Celery task execution',
             ['task_name', 'worker_id'],
             registry=self.registry
@@ -79,20 +79,20 @@ class ZeroToShipMetrics:
         
         # System health metrics
         self.active_workflows = Gauge(
-            'zerotoship_active_workflows',
+            'tractionbuild_active_workflows',
             'Number of currently active workflows',
             registry=self.registry
         )
         
         self.active_crew_executions = Gauge(
-            'zerotoship_active_crew_executions',
+            'tractionbuild_active_crew_executions',
             'Number of currently executing crews',
             registry=self.registry
         )
         
         # Error tracking
         self.errors_total = Counter(
-            'zerotoship_errors_total',
+            'tractionbuild_errors_total',
             'Total number of errors',
             ['error_type', 'component'],
             registry=self.registry
@@ -100,14 +100,14 @@ class ZeroToShipMetrics:
         
         # Sustainability metrics
         self.carbon_emissions_total = Counter(
-            'zerotoship_carbon_emissions_kg_total',
+            'tractionbuild_carbon_emissions_kg_total',
             'Total carbon emissions in kg CO2e',
             ['crew_name', 'project_id'],
             registry=self.registry
         )
         
         self.energy_consumption_total = Counter(
-            'zerotoship_energy_consumption_kwh_total',
+            'tractionbuild_energy_consumption_kwh_total',
             'Total energy consumption in kWh',
             ['crew_name', 'project_id'],
             registry=self.registry
@@ -115,7 +115,7 @@ class ZeroToShipMetrics:
         
         # System information
         self.system_info = Info(
-            'zerotoship_system_info',
+            'tractionbuild_system_info',
             'System information',
             registry=self.registry
         )
@@ -123,11 +123,11 @@ class ZeroToShipMetrics:
         # Set system info
         self.system_info.info({
             'version': '1.0.0',
-            'component': 'zerotoship',
+            'component': 'tractionbuild',
             'startup_time': datetime.utcnow().isoformat()
         })
         
-        logger.info("ZeroToShip metrics initialized successfully")
+        logger.info("tractionbuild metrics initialized successfully")
     
     def record_workflow_execution(self, workflow_name: str, duration: float, status: str):
         """Record workflow execution metrics."""
@@ -230,7 +230,7 @@ class ZeroToShipMetrics:
 
 
 # Global metrics instance
-metrics = ZeroToShipMetrics()
+metrics = tractionbuildMetrics()
 
 
 def track_execution_time(metric_name: str, labels: Dict[str, str] = None):

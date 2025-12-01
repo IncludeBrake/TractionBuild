@@ -1,5 +1,5 @@
 """
-Neo4j client for ZeroToShip.
+Neo4j client for tractionbuild.
 Handles database operations and graph queries.
 """
 

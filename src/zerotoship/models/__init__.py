@@ -1,5 +1,5 @@
 """
-Data models for ZeroToShip.
+Data models for tractionbuild.
 """
 
 from .project import Project, ProjectStatus

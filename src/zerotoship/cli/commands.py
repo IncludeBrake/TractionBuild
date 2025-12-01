@@ -1,5 +1,5 @@
 """
-CLI commands for ZeroToShip.
+CLI commands for tractionbuild.
 """
 
 import typer
@@ -15,9 +15,9 @@ def validate(
     user_id: str = typer.Option("default_user", "--user-id", "-u", help="User ID"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging")
 ):
-    """Validate an idea using the ZeroToShip pipeline."""
+    """Validate an idea using the tractionbuild pipeline."""
     console.print(Panel.fit(
-        f"[bold blue]🚀 ZeroToShip[/bold blue]\n"
+        f"[bold blue]🚀 tractionbuild[/bold blue]\n"
         f"[dim]Validating idea: {idea[:100]}{'...' if len(idea) > 100 else ''}[/dim]",
         title="Idea Validation"
     ))
@@ -31,9 +31,9 @@ def build(
     user_id: str = typer.Option("default_user", "--user-id", "-u", help="User ID"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging")
 ):
-    """Build a project using the ZeroToShip pipeline."""
+    """Build a project using the tractionbuild pipeline."""
     console.print(Panel.fit(
-        f"[bold blue]🔨 ZeroToShip[/bold blue]\n"
+        f"[bold blue]🔨 tractionbuild[/bold blue]\n"
         f"[dim]Building project: {project_id}[/dim]",
         title="Project Build"
     ))
@@ -47,9 +47,9 @@ def launch(
     user_id: str = typer.Option("default_user", "--user-id", "-u", help="User ID"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging")
 ):
-    """Launch a project using the ZeroToShip pipeline."""
+    """Launch a project using the tractionbuild pipeline."""
     console.print(Panel.fit(
-        f"[bold blue]🚀 ZeroToShip[/bold blue]\n"
+        f"[bold blue]🚀 tractionbuild[/bold blue]\n"
         f"[dim]Launching project: {project_id}[/dim]",
         title="Project Launch"
     ))
@@ -65,7 +65,7 @@ def monitor(
 ):
     """Monitor project status and performance."""
     console.print(Panel.fit(
-        f"[bold blue]📊 ZeroToShip[/bold blue]\n"
+        f"[bold blue]📊 tractionbuild[/bold blue]\n"
         f"[dim]Monitoring project: {project_id or 'all'}[/dim]",
         title="Project Monitor"
     ))

@@ -1,5 +1,5 @@
 """
-Neo4j tools for ZeroToShip agents.
+Neo4j tools for tractionbuild agents.
 """
 
 from typing import Dict, List, Any, Optional
