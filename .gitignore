@@ -173,5 +173,24 @@ Thumbs.db
 .env.production
 .env.staging
 secrets.json
-config.json 
-node_modules
+config.json
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+.eslintcache
+.node_repl_history
+package-lock.json
+
+# Build outputs
+dist/
+build/
+output/
+*.tsbuildinfo
+
+# Misc
+nul
