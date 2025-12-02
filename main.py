@@ -11,7 +11,7 @@ import json
 
 # Gracefully import Prometheus for optional monitoring
 try:
-    from prometheus_client import Summary, Counter, start_http_server
+    from prometheus_client import Summary, Counter, Gauge, Histogram, start_http_server
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -29,15 +29,23 @@ logger = logging.getLogger(__name__)
 if PROMETHEUS_AVAILABLE:
     REQUEST_TIME = Summary('zerotoship_request_processing_seconds', 'Time spent processing a workflow')
     WORKFLOW_EXECUTIONS = Counter('zerotoship_workflow_executions_total', 'Total workflow executions', ['workflow_name', 'status'])
-    PROJECT_CREATIONS = Counter('zerotoship_project_creations_total', 'Total project creations', ['workflow_name']) # Correctly defined with label
+    PROJECT_CREATIONS = Counter('zerotoship_project_creations_total', 'Total project creations', ['workflow_name'])
     ERROR_COUNTER = Counter('zerotoship_errors_total', 'Total errors', ['error_type'])
+
+    # Enhanced metrics for workflow monitoring
+    WORKFLOW_TOTAL = Counter('workflow_total', 'Total number of workflows run')
+    WORKFLOW_STATE = Gauge('workflow_state', 'Current workflow state', ['state'])
+    WORKFLOW_DURATION_SECONDS = Histogram('workflow_duration_seconds', 'Workflow execution duration in seconds', buckets=[0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0, 120.0, 300.0])
 else:
     # If Prometheus is not installed, these metrics do nothing.
     class MockMetric:
         def time(self): return self
         def inc(self, **_): pass
+        def dec(self, **_): pass
+        def set(self, *_, **__): pass
+        def observe(self, *_, **__): pass
         def labels(self, **_): return self
-    REQUEST_TIME = WORKFLOW_EXECUTIONS = PROJECT_CREATIONS = ERROR_COUNTER = MockMetric()
+    REQUEST_TIME = WORKFLOW_EXECUTIONS = PROJECT_CREATIONS = ERROR_COUNTER = WORKFLOW_TOTAL = WORKFLOW_STATE = WORKFLOW_DURATION_SECONDS = MockMetric()
 
 
 class ZeroToShipOrchestrator:
@@ -78,7 +86,13 @@ class ZeroToShipOrchestrator:
                 PROJECT_CREATIONS.labels(workflow_name=workflow_name).inc()
                 logger.info(f"Created project '{project_data['id']}' for workflow '{workflow_name}'.")
 
-                engine = WorkflowEngine(project_data, self.registry)
+                # Pass metrics to WorkflowEngine
+                metrics_dict = {
+                    "workflow_total": WORKFLOW_TOTAL,
+                    "workflow_state": WORKFLOW_STATE,
+                    "workflow_duration_seconds": WORKFLOW_DURATION_SECONDS,
+                }
+                engine = WorkflowEngine(project_data, self.registry, metrics=metrics_dict)
                 final_project_data = await engine.run()
 
                 WORKFLOW_EXECUTIONS.labels(workflow_name=workflow_name, status=final_project_data.get('state')).inc()
@@ -133,7 +147,12 @@ async def main(args):
         logger.error(f"Orchestrator failed: {e}. Running in registry-less fallback mode.")
         # This is the simplified fallback from your original script
         project_data = {"idea": args.idea, "workflow": args.workflow}
-        engine = WorkflowEngine(project_data)
+        metrics_dict = {
+            "workflow_total": WORKFLOW_TOTAL,
+            "workflow_state": WORKFLOW_STATE,
+            "workflow_duration_seconds": WORKFLOW_DURATION_SECONDS,
+        }
+        engine = WorkflowEngine(project_data, metrics=metrics_dict)
         await engine.run()
 
 if __name__ == "__main__":

@@ -1,16 +1,25 @@
 import logging
-from typing import Dict, Any
+import time
+from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
 class WorkflowEngine:
-    def __init__(self, project_data: Dict[str, Any], registry=None):
+    def __init__(self, project_data: Dict[str, Any], registry=None, metrics: Optional[Dict[str, Any]] = None):
         self.project_data = project_data
         self.registry = registry
+        self.metrics = metrics or {}
         logger.info(f"WorkflowEngine initialized for project {project_data.get('id')}")
 
     async def run(self) -> Dict[str, Any]:
         """Main entry point for running the workflow."""
+        # Increment workflow counter
+        if "workflow_total" in self.metrics:
+            self.metrics["workflow_total"].inc()
+
+        # Track workflow duration
+        start_time = time.time()
+
         max_iterations = 20  # Safety limit to prevent infinite loops
         iterations = 0
 
@@ -20,6 +29,9 @@ class WorkflowEngine:
             # Exit conditions
             if current_state in ["COMPLETED", "ERROR", "FAILED"]:
                 logger.info(f"✅ Workflow terminated with state: {current_state}")
+                # Update final state gauge
+                if "workflow_state" in self.metrics:
+                    self.metrics["workflow_state"].labels(state=current_state).set(1)
                 break
 
             await self.route_and_execute()
@@ -29,6 +41,14 @@ class WorkflowEngine:
             logger.error(f"⚠️ Workflow exceeded maximum iterations ({max_iterations})")
             self.project_data["state"] = "ERROR"
             self.project_data["message"] = "Workflow exceeded maximum iterations"
+            if "workflow_state" in self.metrics:
+                self.metrics["workflow_state"].labels(state="ERROR").set(1)
+
+        # Record workflow duration
+        duration = time.time() - start_time
+        if "workflow_duration_seconds" in self.metrics:
+            self.metrics["workflow_duration_seconds"].observe(duration)
+        logger.info(f"⏱️ Workflow completed in {duration:.2f} seconds")
 
         return self.project_data
 
@@ -36,6 +56,10 @@ class WorkflowEngine:
         """Route to the correct state handler."""
         state = self.project_data.get("state", "UNKNOWN")
         logger.info(f"🔄 Routing workflow state: {state}")
+
+        # Update state gauge before executing handler
+        if "workflow_state" in self.metrics:
+            self.metrics["workflow_state"].labels(state=state).set(1)
 
         handlers = {
             "idea_validation": self.handle_idea_validation,
