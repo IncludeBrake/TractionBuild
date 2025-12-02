@@ -48,10 +48,10 @@ class ZeroToShipOrchestrator:
         self.registry = ProjectRegistry() # Connection details are handled by the registry
         if PROMETHEUS_AVAILABLE:
             try:
-                start_http_server(8000)
-                logger.info("Prometheus metrics server started on port 8000.")
+                start_http_server(8010)
+                logger.info("Prometheus metrics server started on port 8010.")
             except OSError:
-                logger.warning("Port 8000 is already in use. Prometheus server not started.")
+                logger.warning("Port 8010 is already in use. Prometheus server not started.")
 
     def _load_workflows(self) -> Dict[str, Any]:
         try:
