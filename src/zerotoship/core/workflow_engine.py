@@ -8,7 +8,11 @@ class WorkflowEngine:
         self.project_data = project_data
         self.registry = registry
         logger.info(f"WorkflowEngine initialized for project {project_data.get('id')}")
-    
+
+    async def run(self) -> Dict[str, Any]:
+        """Main entry point for running the workflow."""
+        return await self.route_and_execute()
+
     async def route_and_execute(self) -> Dict[str, Any]:
         """Execute the next step in the workflow."""
         current_state = self.project_data.get('state', 'UNKNOWN')
