@@ -4,7 +4,7 @@ import re, json, os
 
 # Import metrics if available, otherwise create dummy functions
 try:
-    from tractionbuild.observability.metrics import ERRORS
+    from ..observability.metrics import ERRORS
 except ImportError:
     # Dummy error counter for standalone mode
     class DummyCounter:

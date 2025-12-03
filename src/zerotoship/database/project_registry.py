@@ -22,3 +22,28 @@ class ProjectRegistry:
         logger.info(f"Saving project state for {project_id} (version: {version})")
         # Mock implementation - replace with actual Neo4j logic
         pass
+
+    async def save_snapshot(self, project_id: str, context: Dict[str, Any]) -> None:
+        """
+        Save context snapshot for a project.
+
+        Args:
+            project_id: The project identifier
+            context: The context dictionary to save
+
+        Note:
+            This is a persistence hook for ContextBus snapshots.
+            Current implementation logs only - extend with actual DB writes as needed.
+        """
+        logger.info(f"Saving context snapshot for project {project_id}")
+        logger.debug(f"Context snapshot contains {len(context)} keys")
+
+        # TODO: Implement actual persistence logic
+        # Options:
+        # 1. Write to Neo4j as project properties
+        # 2. Write to JSON file in output directory
+        # 3. Write to separate document store (MongoDB, etc.)
+        # 4. Write to relational DB (PostgreSQL, etc.)
+
+        # For now, just log that we would save it
+        logger.info(f"Context snapshot saved (mock) for {project_id}")

@@ -1,5 +1,5 @@
 """
-Dynamic Crew Registry for tractionbuild.
+Dynamic Crew Registry for zerotoship.
 Discovers and loads all crew classes automatically for plugin-style architecture.
 """
 
@@ -25,7 +25,7 @@ def load_crew_registry():
         module_name = module_info.name
         try:
             # Dynamically import the module
-            module = importlib.import_module(f"tractionbuild.crews.{module_name}")
+            module = importlib.import_module(f".{module_name}", package=__name__)
             for attr_name in dir(module):
                 # Look for classes ending in 'Crew'
                 if attr_name.endswith("Crew") and attr_name != "Crew":  # Exclude base Crew class

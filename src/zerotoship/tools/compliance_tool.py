@@ -1,14 +1,24 @@
 """
-Compliance Tool for tractionbuild.
+Compliance Tool for zerotoship.
 Provides GDPR compliance and PII anonymization using Microsoft Presidio.
 """
 
 from crewai.tools import BaseTool
-from presidio_analyzer import AnalyzerEngine
-from presidio_anonymizer import AnonymizerEngine
-from presidio_anonymizer.entities import RecognizerResult, OperatorConfig
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
+
+# Try to import Presidio, but make it optional
+try:
+    from presidio_analyzer import AnalyzerEngine
+    from presidio_anonymizer import AnonymizerEngine
+    from presidio_anonymizer.entities import RecognizerResult, OperatorConfig
+    PRESIDIO_AVAILABLE = True
+except ImportError:
+    PRESIDIO_AVAILABLE = False
+    AnalyzerEngine = None
+    AnonymizerEngine = None
+    RecognizerResult = None
+    OperatorConfig = None
 
 class ComplianceArgs(BaseModel):
     """Arguments for the Compliance Tool."""
@@ -27,20 +37,38 @@ class ComplianceCheckerTool(BaseTool):
     def __init__(self, **kwargs):
         """Initialize the Presidio engines."""
         super().__init__(**kwargs)
-        self.analyzer = AnalyzerEngine()
-        self.anonymizer = AnonymizerEngine()
+        if PRESIDIO_AVAILABLE:
+            self.analyzer = AnalyzerEngine()
+            self.anonymizer = AnonymizerEngine()
+        else:
+            self.analyzer = None
+            self.anonymizer = None
 
     def _run(self, text: str, language: str = "en") -> Dict[str, Any]:
         """
         Analyze text for PII and return anonymized version with compliance report.
-        
+
         Args:
             text: The text to scan and anonymize
             language: Language of the text (default: "en")
-            
+
         Returns:
             Dictionary containing anonymized text and compliance report
         """
+        if not PRESIDIO_AVAILABLE:
+            return {
+                "anonymized_text": text,
+                "original_text": text,
+                "pii_detected": False,
+                "pii_types_found": [],
+                "pii_count": 0,
+                "compliance_status": "presidio_unavailable",
+                "gdpr_compliant": False,
+                "anonymization_method": "none",
+                "entities_detected": [],
+                "error": "Presidio library not installed. Install with: pip install presidio-analyzer presidio-anonymizer"
+            }
+
         try:
             # Analyze the text for PII
             analyzer_results = self.analyzer.analyze(
