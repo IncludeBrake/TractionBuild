@@ -77,6 +77,41 @@ class BaseCrew(ABC):
         """
         raise NotImplementedError("Subclasses must implement the _execute_crew method.")
 
+    async def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Standardized entry point for running any crew with a context dictionary.
+
+        Args:
+            context: Dictionary containing execution context (will be merged with project_data)
+
+        Returns:
+            Dictionary with standardized payload: {"status": "success/error", "message": "...", "data": {...}}
+        """
+        # Merge context into project data
+        if context:
+            self.project_data.update(context)
+
+        # Execute the crew
+        result = await self.run_async()
+
+        # Normalize the response to standard format
+        status = "error" if result.get("execution_metadata", {}).get("status") == "error" else "success"
+
+        # Extract crew-specific output key
+        output_key = self._get_output_key()
+        crew_output = result.get(output_key, {})
+
+        # Determine final state
+        final_state = result.get("state_transition", {}).get("next_state", "COMPLETED")
+
+        return {
+            "status": status,
+            "message": f"✅ Completed {self.__class__.__name__} phase." if status == "success" else f"❌ {self.__class__.__name__} encountered errors.",
+            "data": crew_output,
+            "metadata": result.get("execution_metadata", {}),
+            "next_state": final_state,
+            "full_result": result,  # Include full result for advanced use cases
+        }
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10),
