@@ -29,6 +29,8 @@ from .core.workflow_engine import WorkflowEngine
 from .core.learning_memory import LearningMemory
 from .core.context_bus import ContextBus
 from .core.crew_router import CrewRouter
+from .core.distributed_executor import DistributedExecutor
+from .core.project_meta_memory import ProjectMetaMemoryManager
 from .database.project_registry import ProjectRegistry
 from .core.schema_validator import validate_and_enrich_data, is_valid_project_data
 from .crews.simple_builder_crew import SimpleBuilderCrew
@@ -64,6 +66,8 @@ if PROMETHEUS_AVAILABLE:
     MEMORY_HITS = Counter('tractionbuild_memory_hits_total', 'Total memory recall hits')
     CREW_DURATION_SECONDS = Summary('tractionbuild_crew_duration_seconds', 'Crew execution duration in seconds', ['crew_name'])
     CREW_FAILURES_TOTAL = Counter('tractionbuild_crew_failures_total', 'Total crew execution failures', ['crew_name'])
+    WORKFLOW_COST_USD = Histogram('tractionbuild_workflow_cost_usd', 'Estimated cost of a workflow in USD')
+    CREW_COST_USD_TOTAL = Summary('tractionbuild_crew_cost_usd_total', 'Estimated cost of a crew execution in USD', ['crew_name'])
 else:
     # Mock metrics for when prometheus_client is not available
     class MockMetric:
@@ -81,6 +85,8 @@ else:
     MEMORY_HITS = MockMetric()
     CREW_DURATION_SECONDS = MockMetric()
     CREW_FAILURES_TOTAL = MockMetric()
+    WORKFLOW_COST_USD = MockMetric()
+    CREW_COST_USD_TOTAL = MockMetric()
 
 
 class tractionbuildOrchestrator:
@@ -97,17 +103,18 @@ class tractionbuildOrchestrator:
         self.memory = LearningMemory()
         self.context_bus = ContextBus() # Shared ContextBus instance
 
-        # Define crew classes for the router
+        # Define crew classes for the router, now as a list to support multiple crews per state
         self.crew_classes = {
-            "IDEA_VALIDATION": PlaceholderCrew, # Assuming a PlaceholderCrew for now
-            "TASK_EXECUTION": SimpleBuilderCrew,
-            "MARKETING_PREPARATION": PlaceholderCrew,
-            "VALIDATION": PlaceholderCrew,
-            "LAUNCH": PlaceholderCrew,
-            "IN_PROGRESS": PlaceholderCrew,
-            # Add other crew mappings as needed
+            "IDEA_VALIDATION": [PlaceholderCrew],
+            "TASK_EXECUTION": [SimpleBuilderCrew],
+            "MARKETING_PREPARATION": [PlaceholderCrew],
+            "VALIDATION": [PlaceholderCrew],
+            "LAUNCH": [PlaceholderCrew],
+            "IN_PROGRESS": [PlaceholderCrew],
         }
-        self.crew_router = CrewRouter(self.crew_classes, self.context_bus)
+        self.project_meta_memory = ProjectMetaMemoryManager()
+        self.crew_router = CrewRouter(self.crew_classes, self.context_bus, self.project_meta_memory)
+        self.executor = DistributedExecutor(self.crew_router)
         
         # Start Prometheus metrics server if available
         if PROMETHEUS_AVAILABLE:
@@ -140,6 +147,7 @@ class tractionbuildOrchestrator:
         """Async context manager entry."""
         try:
             await self.memory.load()
+            await self.executor.start()
             self.registry = ProjectRegistry(
                 neo4j_uri=self.neo4j_uri,
                 neo4j_user=self.neo4j_user
@@ -153,6 +161,7 @@ class tractionbuildOrchestrator:
     
     async def __aexit__(self, exc_type, exc, tb):
         """Async context manager exit."""
+        await self.executor.stop()
         if self.registry:
             await self.registry.__aexit__(exc_type, exc, tb)
     
@@ -175,6 +184,7 @@ class tractionbuildOrchestrator:
                 "id": project_id,
                 "idea": idea,
                 "workflow": workflow_name,
+                "workflow_sequence": workflow.get('sequence', []), # E4: Add sequence to project data
                 "state": initial_state,
                 "created_at": datetime.now().isoformat(),
                 "metadata": {
@@ -212,8 +222,19 @@ class tractionbuildOrchestrator:
                 "memory_hits_total": MEMORY_HITS,
                 "crew_duration_seconds": CREW_DURATION_SECONDS,
                 "crew_failures_total": CREW_FAILURES_TOTAL,
+                "workflow_cost_usd": WORKFLOW_COST_USD,
+                "crew_cost_usd_total": CREW_COST_USD_TOTAL,
             } if PROMETHEUS_AVAILABLE else {}
-            engine = WorkflowEngine(project_data, self.registry, crew_router=self.crew_router, metrics=metrics, memory=self.memory, context_bus=self.context_bus)
+            engine = WorkflowEngine(
+                project_data,
+                self.registry,
+                crew_router=self.crew_router,
+                metrics=metrics,
+                memory=self.memory,
+                context_bus=self.context_bus,
+                project_meta_memory=self.project_meta_memory,
+                executor=self.executor
+            )
             
             # Track workflow start
             WORKFLOW_EXECUTIONS.labels(workflow_name=workflow_name, status="started").inc()
@@ -461,6 +482,8 @@ async def run_workflow(idea: str, workflow_name: str):
         "memory_hits_total": MEMORY_HITS,
         "crew_duration_seconds": CREW_DURATION_SECONDS,
         "crew_failures_total": CREW_FAILURES_TOTAL,
+        "workflow_cost_usd": WORKFLOW_COST_USD,
+        "crew_cost_usd_total": CREW_COST_USD_TOTAL,
     } if PROMETHEUS_AVAILABLE else {}
     
     # Initialize CrewRouter and ContextBus for the fallback run_workflow path
