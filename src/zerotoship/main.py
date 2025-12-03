@@ -27,8 +27,25 @@ except ImportError:
 # Fixed with relative imports
 from .core.workflow_engine import WorkflowEngine
 from .core.learning_memory import LearningMemory
+from .core.context_bus import ContextBus
+from .core.crew_router import CrewRouter
 from .database.project_registry import ProjectRegistry
 from .core.schema_validator import validate_and_enrich_data, is_valid_project_data
+from .crews.simple_builder_crew import SimpleBuilderCrew
+
+# Placeholder Crew for states without specific implementations yet
+class PlaceholderCrew:
+    def __init__(self, project_data: dict):
+        self.project_data = project_data
+
+    async def run(self, context: dict) -> dict:
+        return {
+            "status": "success",
+            "message": f"Placeholder crew for {self.project_data.get('state')} executed.",
+            "data": {},
+            "next_state": context.get("state") # Keep current state if no change
+        }
+
 
 # Configure logging
 logging.basicConfig(
@@ -78,6 +95,19 @@ class tractionbuildOrchestrator:
         self.registry = None
         self.workflows = self._load_workflows()
         self.memory = LearningMemory()
+        self.context_bus = ContextBus() # Shared ContextBus instance
+
+        # Define crew classes for the router
+        self.crew_classes = {
+            "IDEA_VALIDATION": PlaceholderCrew, # Assuming a PlaceholderCrew for now
+            "TASK_EXECUTION": SimpleBuilderCrew,
+            "MARKETING_PREPARATION": PlaceholderCrew,
+            "VALIDATION": PlaceholderCrew,
+            "LAUNCH": PlaceholderCrew,
+            "IN_PROGRESS": PlaceholderCrew,
+            # Add other crew mappings as needed
+        }
+        self.crew_router = CrewRouter(self.crew_classes, self.context_bus)
         
         # Start Prometheus metrics server if available
         if PROMETHEUS_AVAILABLE:
@@ -183,7 +213,7 @@ class tractionbuildOrchestrator:
                 "crew_duration_seconds": CREW_DURATION_SECONDS,
                 "crew_failures_total": CREW_FAILURES_TOTAL,
             } if PROMETHEUS_AVAILABLE else {}
-            engine = WorkflowEngine(project_data, self.registry, metrics=metrics, memory=self.memory)
+            engine = WorkflowEngine(project_data, self.registry, crew_router=self.crew_router, metrics=metrics, memory=self.memory, context_bus=self.context_bus)
             
             # Track workflow start
             WORKFLOW_EXECUTIONS.labels(workflow_name=workflow_name, status="started").inc()
@@ -432,7 +462,20 @@ async def run_workflow(idea: str, workflow_name: str):
         "crew_duration_seconds": CREW_DURATION_SECONDS,
         "crew_failures_total": CREW_FAILURES_TOTAL,
     } if PROMETHEUS_AVAILABLE else {}
-    engine = WorkflowEngine(project_data, metrics=metrics)
+    
+    # Initialize CrewRouter and ContextBus for the fallback run_workflow path
+    context_bus = ContextBus()
+    crew_classes = {
+        "IDEA_VALIDATION": PlaceholderCrew, # Assuming a PlaceholderCrew for now
+        "TASK_EXECUTION": SimpleBuilderCrew,
+        "MARKETING_PREPARATION": PlaceholderCrew,
+        "VALIDATION": PlaceholderCrew,
+        "LAUNCH": PlaceholderCrew,
+        "IN_PROGRESS": PlaceholderCrew,
+    }
+    crew_router = CrewRouter(crew_classes, context_bus)
+
+    engine = WorkflowEngine(project_data, metrics=metrics, crew_router=crew_router, context_bus=context_bus)
 
     # Enhanced loop prevention
     step_count = 0

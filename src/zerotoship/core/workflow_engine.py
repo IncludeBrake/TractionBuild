@@ -10,12 +10,12 @@ from ..utils.context_exporter import export_context_to_graph
 logger = logging.getLogger(__name__)
 
 class WorkflowEngine:
-    def __init__(self, project_data: Dict[str, Any], registry=None, crew_router=None, metrics: Optional[Dict[str, Any]] = None, memory: Optional[LearningMemory] = None):
+    def __init__(self, project_data: Dict[str, Any], registry=None, crew_router=None, metrics: Optional[Dict[str, Any]] = None, memory: Optional[LearningMemory] = None, context_bus: Optional[ContextBus] = None):
         self.project_data = project_data
         self.registry = registry
         self.crew_router = crew_router  # ✅ Store the router
         self.metrics = metrics or {}
-        self.context = ContextBus()  # ✅ Initialize shared context
+        self.context = context_bus or ContextBus()  # ✅ Initialize shared context
         self.memory = memory or LearningMemory()  # ✅ Initialize learning memory
         
         # Load adaptive config
@@ -158,7 +158,7 @@ class WorkflowEngine:
         
         for attempt in range(max_retries):
             start_time = time.time()
-            result = await self.crew_router.execute(state_name, context_snapshot)
+            result = await self.crew_router.execute(state_name, context_snapshot, self.project_data)
             duration = time.time() - start_time
             status = result.get("status", "error")
 

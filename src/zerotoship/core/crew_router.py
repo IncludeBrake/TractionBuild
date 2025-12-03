@@ -40,10 +40,10 @@ class CrewRouter:
 
         logger.info(f"CrewRouter initialized with {len(crews)} crew mappings")
 
-    async def execute(self, state: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, state: str, context: Dict[str, Any], project_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the crew associated with the given state."""
-        crew = self.crews.get(state)
-        if not crew:
+        crew_or_class = self.crews.get(state)
+        if not crew_or_class:
             logger.warning(f"No crew registered for state: {state}")
             return {
                 "status": "skipped",
@@ -51,6 +51,12 @@ class CrewRouter:
                 "data": {},
                 "next_state": None,
             }
+        
+        # Instantiate crew if it's a class, otherwise use the instance directly
+        if isinstance(crew_or_class, type): # Check if it's a class
+            crew = crew_or_class(project_data)
+        else:
+            crew = crew_or_class
 
         # D3: Dynamic Crew Scaling
         feedback_history_key = f"{state}_feedback_history"
@@ -71,9 +77,10 @@ class CrewRouter:
                 logger.info(f"📉 Scaling down workers for {state} to {num_workers} due to slow avg duration ({avg_duration:.2f}s)")
             self.crew_workers[state] = num_workers
 
+            self.crew_workers[state] = num_workers
+
         logger.info(f"🚀 Dispatching crew for state: {state}")
         try:
-            # Assuming crew.run can take num_workers, but for now it's just logged.
             # result = await crew.run(context, num_workers=self.crew_workers.get(state, 1))
             result = await crew.run(context)
             logger.info(f"✅ Crew execution completed for state: {state}")
