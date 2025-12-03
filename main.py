@@ -21,6 +21,14 @@ from src.zerotoship.core.workflow_engine import WorkflowEngine
 from src.zerotoship.database.project_registry import ProjectRegistry
 from src.zerotoship.core.config_generator import initialize_system
 
+# ✅ Import Crews and Router
+from src.zerotoship.crews.builder_crew import BuilderCrew
+from src.zerotoship.crews.validator_crew import ValidatorCrew
+from src.zerotoship.crews.marketing_crew import MarketingCrew
+from src.zerotoship.crews.launch_crew import LaunchCrew
+from src.zerotoship.crews.feedback_crew import FeedbackCrew
+from src.zerotoship.core.crew_router import CrewRouter
+
 # --- Logging Configuration ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -86,13 +94,42 @@ class ZeroToShipOrchestrator:
                 PROJECT_CREATIONS.labels(workflow_name=workflow_name).inc()
                 logger.info(f"Created project '{project_data['id']}' for workflow '{workflow_name}'.")
 
-                # Pass metrics to WorkflowEngine
+                # ✅ 1. Instantiate the Crews (passing project_data)
+                logger.info("Initializing crews for workflow execution...")
+                builder = BuilderCrew(project_data)
+                validator = ValidatorCrew(project_data)
+                marketing = MarketingCrew(project_data)
+                launch = LaunchCrew(project_data)
+                feedback = FeedbackCrew(project_data)
+
+                # ✅ 2. Create the Router Map
+                crew_router = CrewRouter({
+                    "IDEA_VALIDATION": validator,
+                    "TASK_EXECUTION": builder,
+                    "MARKETING_PREPARATION": marketing,
+                    "VALIDATION": validator,
+                    "LAUNCH": launch,
+                    "FEEDBACK_COLLECTION": feedback,
+                    "IN_PROGRESS": builder,  # Fallback for in-progress states
+                })
+                logger.info("CrewRouter initialized with 7 crew mappings")
+
+                # ✅ 3. Pass metrics to WorkflowEngine
                 metrics_dict = {
                     "workflow_total": WORKFLOW_TOTAL,
                     "workflow_state": WORKFLOW_STATE,
                     "workflow_duration_seconds": WORKFLOW_DURATION_SECONDS,
                 }
-                engine = WorkflowEngine(project_data, self.registry, metrics=metrics_dict)
+
+                # ✅ 4. Create WorkflowEngine with Router
+                engine = WorkflowEngine(
+                    project_data=project_data,
+                    registry=self.registry,
+                    crew_router=crew_router,  # <--- Injected here
+                    metrics=metrics_dict
+                )
+                logger.info("WorkflowEngine initialized with CrewRouter")
+
                 final_project_data = await engine.run()
 
                 WORKFLOW_EXECUTIONS.labels(workflow_name=workflow_name, status=final_project_data.get('state')).inc()
@@ -146,14 +183,55 @@ async def main(args):
     except Exception as e:
         logger.error(f"Orchestrator failed: {e}. Running in registry-less fallback mode.")
         # This is the simplified fallback from your original script
-        project_data = {"idea": args.idea, "workflow": args.workflow}
-        metrics_dict = {
-            "workflow_total": WORKFLOW_TOTAL,
-            "workflow_state": WORKFLOW_STATE,
-            "workflow_duration_seconds": WORKFLOW_DURATION_SECONDS,
+        project_data = {
+            "idea": args.idea,
+            "workflow": args.workflow,
+            "state": "TASK_EXECUTION",  # Default starting state
+            "id": f"fallback_{uuid.uuid4().hex[:8]}"
         }
-        engine = WorkflowEngine(project_data, metrics=metrics_dict)
-        await engine.run()
+
+        # Initialize crews for fallback mode
+        try:
+            logger.info("Initializing crews for fallback mode...")
+            builder = BuilderCrew(project_data)
+            validator = ValidatorCrew(project_data)
+            marketing = MarketingCrew(project_data)
+            launch = LaunchCrew(project_data)
+            feedback = FeedbackCrew(project_data)
+
+            # Create the Router Map
+            crew_router = CrewRouter({
+                "IDEA_VALIDATION": validator,
+                "TASK_EXECUTION": builder,
+                "MARKETING_PREPARATION": marketing,
+                "VALIDATION": validator,
+                "LAUNCH": launch,
+                "FEEDBACK_COLLECTION": feedback,
+                "IN_PROGRESS": builder,
+            })
+
+            metrics_dict = {
+                "workflow_total": WORKFLOW_TOTAL,
+                "workflow_state": WORKFLOW_STATE,
+                "workflow_duration_seconds": WORKFLOW_DURATION_SECONDS,
+            }
+
+            engine = WorkflowEngine(
+                project_data=project_data,
+                crew_router=crew_router,
+                metrics=metrics_dict
+            )
+            await engine.run()
+        except Exception as fallback_error:
+            logger.error(f"Fallback mode also failed: {fallback_error}")
+            logger.info("Running in minimal mode without crews...")
+            metrics_dict = {
+                "workflow_total": WORKFLOW_TOTAL,
+                "workflow_state": WORKFLOW_STATE,
+                "workflow_duration_seconds": WORKFLOW_DURATION_SECONDS,
+            }
+            engine = WorkflowEngine(project_data, metrics=metrics_dict)
+            await engine.run()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the ZeroToShip AI Product Studio.")
