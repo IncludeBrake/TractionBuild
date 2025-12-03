@@ -2,16 +2,18 @@ import logging
 import time
 from typing import Dict, Any, Optional
 from .context_bus import ContextBus
+from .learning_memory import LearningMemory
 
 logger = logging.getLogger(__name__)
 
 class WorkflowEngine:
-    def __init__(self, project_data: Dict[str, Any], registry=None, crew_router=None, metrics: Optional[Dict[str, Any]] = None):
+    def __init__(self, project_data: Dict[str, Any], registry=None, crew_router=None, metrics: Optional[Dict[str, Any]] = None, memory: Optional[LearningMemory] = None):
         self.project_data = project_data
         self.registry = registry
         self.crew_router = crew_router  # ✅ Store the router
         self.metrics = metrics or {}
         self.context = ContextBus()  # ✅ Initialize shared context
+        self.memory = memory or LearningMemory()  # ✅ Initialize learning memory
         logger.info(f"WorkflowEngine initialized for project {project_data.get('id')}")
 
         # State handlers mapping
@@ -33,6 +35,18 @@ class WorkflowEngine:
 
         # Track workflow duration
         start_time = time.time()
+
+        # C2: Search for related projects from past runs
+        idea = self.project_data.get("idea", "")
+        related = await self.memory.search(idea, limit=3)
+        logger.info(f"🧠 Found {len(related)} related projects from learning memory")
+
+        # C3: Inject related projects into ContextBus
+        await self.context.set("related_projects", related)
+        if related:
+            if "memory_hits_total" in self.metrics:
+                self.metrics["memory_hits_total"].inc()
+            logger.info(f"📚 Related projects: {[r['id'] for r in related]}")
 
         max_iterations = 20  # Safety limit to prevent infinite loops
         iterations = 0
@@ -81,6 +95,14 @@ class WorkflowEngine:
         if self.registry:
             project_id = self.project_data.get("id", "unknown")
             await self.registry.save_snapshot(project_id, final_context)
+
+        # C5: Add final context and event history to learning memory
+        project_id = self.project_data.get("id", "unknown")
+        await self.memory.add(project_id, str({
+            "final_context": await self.context.snapshot(),
+            "event_history": self.context.history
+        }))
+        logger.info(f"🧠 Added project {project_id} summary to learning memory.")
 
         return self.project_data
 

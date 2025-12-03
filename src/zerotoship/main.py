@@ -26,6 +26,7 @@ except ImportError:
 # tractionbuild imports
 # Fixed with relative imports
 from .core.workflow_engine import WorkflowEngine
+from .core.learning_memory import LearningMemory
 from .database.project_registry import ProjectRegistry
 from .core.schema_validator import validate_and_enrich_data, is_valid_project_data
 
@@ -43,6 +44,7 @@ if PROMETHEUS_AVAILABLE:
     CREW_EXECUTIONS = Counter('tractionbuild_crew_executions_total', 'Total crew executions', ['crew_name', 'status'])
     PROJECT_CREATIONS = Counter('tractionbuild_project_creations_total', 'Total project creations', ['workflow_name'])
     ERROR_COUNTER = Counter('tractionbuild_errors_total', 'Total errors', ['error_type'])
+    MEMORY_HITS = Counter('tractionbuild_memory_hits_total', 'Total memory recall hits')
 else:
     # Mock metrics for when prometheus_client is not available
     class MockMetric:
@@ -70,6 +72,7 @@ class tractionbuildOrchestrator:
         self.neo4j_user = neo4j_user
         self.registry = None
         self.workflows = self._load_workflows()
+        self.memory = LearningMemory()
         
         # Start Prometheus metrics server if available
         if PROMETHEUS_AVAILABLE:
@@ -169,7 +172,8 @@ class tractionbuildOrchestrator:
         
         try:
             # Initialize workflow engine
-            engine = WorkflowEngine(project_data, self.registry)
+            metrics = {"memory_hits_total": MEMORY_HITS} if PROMETHEUS_AVAILABLE else {}
+            engine = WorkflowEngine(project_data, self.registry, metrics=metrics, memory=self.memory)
             
             # Track workflow start
             WORKFLOW_EXECUTIONS.labels(workflow_name=workflow_name, status="started").inc()
@@ -413,7 +417,8 @@ async def run_workflow(idea: str, workflow_name: str):
     print(f"   project data state: '{project_data['state']}'")
 
     # The engine takes over from here
-    engine = WorkflowEngine(project_data)
+    metrics = {"memory_hits_total": MEMORY_HITS} if PROMETHEUS_AVAILABLE else {}
+    engine = WorkflowEngine(project_data, metrics=metrics)
 
     # Enhanced loop prevention
     step_count = 0

@@ -36,6 +36,7 @@ strict = true
 
 [tool.pytest.ini_options]
 addopts = "-q -x --cov=src --cov-report=term-missing:skip-covered"
+pythonpath = ["src"]
 
 [tool.coverage.run]
 source = ["src"]
