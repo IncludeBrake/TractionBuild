@@ -1,0 +1,60 @@
+Block E1 – Hybrid Memory Integration
+Goal: Combine LearningMemory and ProjectMetaMemory.
+Instruction:
+Extend WorkflowEngine to accept ProjectMetaMemory (from ProjectRegistry or new instance).
+Integrate:
+- LearningMemory for high-level concepts (ideas, outcomes).
+- ProjectMetaMemory for detailed project context, event history, and artifacts.
+Prioritize ProjectMetaMemory for deep retrieval; fall back to LearningMemory for fuzzy/general matches.
+Block E2 – Reliability-Based Crew Selection
+Goal: Select crews based on historical reliability.
+Instruction:
+Modify CrewRouter to use LearningMemory.reliability_score during crew selection.
+When multiple crews can handle a state, prioritize the one with higher reliability_score for the given (or similar) task.
+If no reliable crew, fall back to default selection or prompt for human input.
+Block E3 – Multi-Modal Contextual Awareness
+Goal: Incorporate external data for better decisions.
+Instruction:
+Extend ContextBus with `external_data_sources` attribute (e.g., URLs, file paths).
+Implement `fetch_and_merge_external_data()` in ContextBus.
+Automatically fetch/process external data and merge into context before crew execution.
+Block E4 – Dynamic Workflow Reconfiguration
+Goal: Adapt workflow steps based on context.
+Instruction:
+In WorkflowEngine.run(), dynamically modify `project_data["workflow"]["sequence"]`.
+Use ProjectMetaMemory, LearningMemory, and reliability_scores to:
+- Skip unnecessary steps (high reliability, simple task).
+- Insert additional validation steps (low reliability, complex task).
+- Reorder steps for efficiency.
+Block E5 – Cost Optimization Metrics
+Goal: Track and optimize execution costs.
+Instruction:
+Add Prometheus Histogram `workflow_cost_usd` and Summary `crew_cost_usd_total` (per crew, per token usage) to metrics.
+Integrate cost tracking into WorkflowEngine and CrewRouter; estimate costs based on LLM usage (tokens) and API calls.
+Block E6 – Advanced Failure Recovery Strategies
+Goal: Intelligent error handling.
+Instruction:
+Extend WorkflowEngine retry logic:
+- Implement exponential backoff for retries.
+- Add error categorization (e.g., transient, permanent).
+- For permanent errors, automatically re-route to a specialized 'RecoveryCrew' (new placeholder crew class).
+Block E7 – Human-in-the-Loop Feedback
+Goal: Enable human oversight and learning.
+Instruction:
+If `CrewRouter` cannot find a reliable crew or encounters a permanent error, log a specific event `human_intervention_needed`.
+Optionally, allow a manual override or feedback injection through ContextBus.
+Block E8 – Test Suite Expansion (Track E)
+Goal: Validate new features.
+Instruction:
+Expand tests/test_adaptive_observability.py to cover:
+- Hybrid memory prioritization.
+- Reliability-based crew selection.
+- Dynamic workflow reconfiguration.
+- Cost metrics updates.
+- Advanced failure recovery (retries, RecoveryCrew).
+- Human-in-the-loop event logging.
+Block E9 – Track E Summary & Commit
+Goal: Finalize Track E.
+Instruction:
+Generate TRACK_E_COMPLETION_SUMMARY.md summarizing advanced adaptive features and human-in-the-loop mechanisms.
+git add -A && git commit -m "feat: Track E Adaptive Optimization & Human-in-the-Loop complete".
