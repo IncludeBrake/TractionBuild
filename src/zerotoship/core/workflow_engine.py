@@ -1,8 +1,11 @@
 import logging
 import time
+import yaml
+import asyncio
 from typing import Dict, Any, Optional
 from .context_bus import ContextBus
 from .learning_memory import LearningMemory
+from ..utils.context_exporter import export_context_to_graph
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +17,19 @@ class WorkflowEngine:
         self.metrics = metrics or {}
         self.context = ContextBus()  # ✅ Initialize shared context
         self.memory = memory or LearningMemory()  # ✅ Initialize learning memory
+        
+        # Load adaptive config
+        try:
+            with open("config/adaptive_config.yaml", 'r') as f:
+                self.adaptive_config = yaml.safe_load(f)
+        except FileNotFoundError:
+            self.adaptive_config = {
+                "retry_limit": 3,
+                "scaling_thresholds": {"up": 2.0, "down": 10.0},
+                "reliability_decay": 0.95
+            }
+            logger.warning("adaptive_config.yaml not found. Using default values.")
+
         logger.info(f"WorkflowEngine initialized for project {project_data.get('id')}")
 
         # State handlers mapping
@@ -98,11 +114,18 @@ class WorkflowEngine:
 
         # C5: Add final context and event history to learning memory
         project_id = self.project_data.get("id", "unknown")
-        await self.memory.add(project_id, str({
-            "final_context": await self.context.snapshot(),
-            "event_history": self.context.history
-        }))
-        logger.info(f"🧠 Added project {project_id} summary to learning memory.")
+        idea = self.project_data.get("idea", "")
+        final_state = self.project_data.get("state")
+        await self.memory.add(project_id, idea, final_state)
+        logger.info(f"🧠 Added/updated project '{idea}' in learning memory with status {final_state}.")
+
+        # D5: Export context graph
+        output_dir = f"output/{project_id}"
+        await export_context_to_graph(self.context, output_dir)
+        
+        # D6: Persist learning memory
+        await self.memory.persist()
+        logger.info("🧠 Learning memory persisted.")
 
         return self.project_data
 
@@ -126,14 +149,52 @@ class WorkflowEngine:
 
     # === State Handlers ===
 
+    async def _execute_crew_with_feedback(self, state_name: str) -> Dict[str, Any]:
+        """Execute a crew with retry logic and record feedback."""
+        context_snapshot = await self.context.snapshot()
+        context_snapshot.update(self.project_data)
+
+        max_retries = self.adaptive_config.get("retry_limit", 3)
+        
+        for attempt in range(max_retries):
+            start_time = time.time()
+            result = await self.crew_router.execute(state_name, context_snapshot)
+            duration = time.time() - start_time
+            status = result.get("status", "error")
+
+            feedback = { "status": status, "duration_seconds": duration, "error_type": result.get("message") if status != "success" else None }
+            
+            # Store feedback history for each attempt
+            feedback_history_key = f"{state_name}_feedback_history"
+            history = await self.context.get(feedback_history_key) or []
+            history.append(feedback)
+            await self.context.set(feedback_history_key, history)
+
+            # Record Prometheus metrics for each attempt
+            if "crew_duration_seconds" in self.metrics:
+                self.metrics["crew_duration_seconds"].labels(crew_name=state_name).observe(duration)
+
+            if status == "success":
+                logger.info(f"📝 Recorded feedback for {state_name} (attempt {attempt+1}): status={status}, duration={duration:.2f}s")
+                return result
+
+            # If not success, record failure and decide whether to retry
+            if "crew_failures_total" in self.metrics:
+                self.metrics["crew_failures_total"].labels(crew_name=state_name).inc()
+            
+            if attempt < max_retries - 1:
+                logger.warning(f"Attempt {attempt + 1}/{max_retries} failed for {state_name}. Retrying...")
+                await asyncio.sleep(1) # simple backoff
+            else:
+                logger.error(f"All {max_retries} attempts failed for {state_name}.")
+                await self.context.record(f"{state_name}_failed_retry", feedback)
+        
+        return result
+
     async def handle_idea_validation(self) -> Dict[str, Any]:
         logger.info("💡 [WorkflowEngine] Entering IDEA_VALIDATION state")
         if self.crew_router:
-            # Get context snapshot and merge with project data
-            context_snapshot = await self.context.snapshot()
-            context_snapshot.update(self.project_data)
-
-            result = await self.crew_router.execute("IDEA_VALIDATION", context_snapshot)
+            result = await self._execute_crew_with_feedback("IDEA_VALIDATION")
 
             if result.get("status") == "success":
                 if "data" in result:
@@ -158,12 +219,7 @@ class WorkflowEngine:
     async def handle_task_execution(self) -> Dict[str, Any]:
         logger.info("⚙️ [WorkflowEngine] Entering TASK_EXECUTION state")
         if self.crew_router:
-            # 1. Get context snapshot and merge with project data
-            context_snapshot = await self.context.snapshot()
-            context_snapshot.update(self.project_data)
-
-            # 2. Delegate to Router with context
-            result = await self.crew_router.execute("TASK_EXECUTION", context_snapshot)
+            result = await self._execute_crew_with_feedback("TASK_EXECUTION")
 
             # 3. Update Project Data with Crew Output
             if result.get("status") == "success":
@@ -193,11 +249,7 @@ class WorkflowEngine:
     async def handle_marketing_preparation(self) -> Dict[str, Any]:
         logger.info("📣 [WorkflowEngine] Entering MARKETING_PREPARATION state")
         if self.crew_router:
-            # Get context snapshot and merge with project data
-            context_snapshot = await self.context.snapshot()
-            context_snapshot.update(self.project_data)
-
-            result = await self.crew_router.execute("MARKETING_PREPARATION", context_snapshot)
+            result = await self._execute_crew_with_feedback("MARKETING_PREPARATION")
 
             if result.get("status") == "success":
                 if "data" in result:
@@ -222,11 +274,7 @@ class WorkflowEngine:
     async def handle_validation(self) -> Dict[str, Any]:
         logger.info("🛡️ [WorkflowEngine] Entering VALIDATION state")
         if self.crew_router:
-            # Get context snapshot and merge with project data
-            context_snapshot = await self.context.snapshot()
-            context_snapshot.update(self.project_data)
-
-            result = await self.crew_router.execute("VALIDATION", context_snapshot)
+            result = await self._execute_crew_with_feedback("VALIDATION")
 
             if result.get("status") == "success":
                 if "data" in result:
@@ -251,11 +299,7 @@ class WorkflowEngine:
     async def handle_launch(self) -> Dict[str, Any]:
         logger.info("🚀 [WorkflowEngine] Entering LAUNCH state")
         if self.crew_router:
-            # Get context snapshot and merge with project data
-            context_snapshot = await self.context.snapshot()
-            context_snapshot.update(self.project_data)
-
-            result = await self.crew_router.execute("LAUNCH", context_snapshot)
+            result = await self._execute_crew_with_feedback("LAUNCH")
 
             if result.get("status") == "success":
                 if "data" in result:
@@ -280,11 +324,7 @@ class WorkflowEngine:
     async def handle_in_progress(self) -> Dict[str, Any]:
         logger.info("⏳ [WorkflowEngine] Entering IN_PROGRESS state")
         if self.crew_router:
-            # Get context snapshot and merge with project data
-            context_snapshot = await self.context.snapshot()
-            context_snapshot.update(self.project_data)
-
-            result = await self.crew_router.execute("IN_PROGRESS", context_snapshot)
+            result = await self._execute_crew_with_feedback("IN_PROGRESS")
 
             if result.get("status") == "success":
                 if "data" in result:

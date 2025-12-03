@@ -45,6 +45,8 @@ if PROMETHEUS_AVAILABLE:
     PROJECT_CREATIONS = Counter('tractionbuild_project_creations_total', 'Total project creations', ['workflow_name'])
     ERROR_COUNTER = Counter('tractionbuild_errors_total', 'Total errors', ['error_type'])
     MEMORY_HITS = Counter('tractionbuild_memory_hits_total', 'Total memory recall hits')
+    CREW_DURATION_SECONDS = Summary('tractionbuild_crew_duration_seconds', 'Crew execution duration in seconds', ['crew_name'])
+    CREW_FAILURES_TOTAL = Counter('tractionbuild_crew_failures_total', 'Total crew execution failures', ['crew_name'])
 else:
     # Mock metrics for when prometheus_client is not available
     class MockMetric:
@@ -59,6 +61,9 @@ else:
     CREW_EXECUTIONS = MockMetric()
     PROJECT_CREATIONS = MockMetric()
     ERROR_COUNTER = MockMetric()
+    MEMORY_HITS = MockMetric()
+    CREW_DURATION_SECONDS = MockMetric()
+    CREW_FAILURES_TOTAL = MockMetric()
 
 
 class tractionbuildOrchestrator:
@@ -77,7 +82,7 @@ class tractionbuildOrchestrator:
         # Start Prometheus metrics server if available
         if PROMETHEUS_AVAILABLE:
             try:
-                metrics_port = int(os.getenv('PROMETHEUS_PORT', '8000'))
+                metrics_port = int(os.getenv('PROMETHEUS_PORT', '8010'))
                 start_http_server(metrics_port)
                 logger.info(f"Prometheus metrics server started on port {metrics_port}")
                 logger.info(f"Metrics available at http://localhost:{metrics_port}/metrics")
@@ -104,6 +109,7 @@ class tractionbuildOrchestrator:
     async def __aenter__(self):
         """Async context manager entry."""
         try:
+            await self.memory.load()
             self.registry = ProjectRegistry(
                 neo4j_uri=self.neo4j_uri,
                 neo4j_user=self.neo4j_user
@@ -172,7 +178,11 @@ class tractionbuildOrchestrator:
         
         try:
             # Initialize workflow engine
-            metrics = {"memory_hits_total": MEMORY_HITS} if PROMETHEUS_AVAILABLE else {}
+            metrics = {
+                "memory_hits_total": MEMORY_HITS,
+                "crew_duration_seconds": CREW_DURATION_SECONDS,
+                "crew_failures_total": CREW_FAILURES_TOTAL,
+            } if PROMETHEUS_AVAILABLE else {}
             engine = WorkflowEngine(project_data, self.registry, metrics=metrics, memory=self.memory)
             
             # Track workflow start
@@ -417,7 +427,11 @@ async def run_workflow(idea: str, workflow_name: str):
     print(f"   project data state: '{project_data['state']}'")
 
     # The engine takes over from here
-    metrics = {"memory_hits_total": MEMORY_HITS} if PROMETHEUS_AVAILABLE else {}
+    metrics = {
+        "memory_hits_total": MEMORY_HITS,
+        "crew_duration_seconds": CREW_DURATION_SECONDS,
+        "crew_failures_total": CREW_FAILURES_TOTAL,
+    } if PROMETHEUS_AVAILABLE else {}
     engine = WorkflowEngine(project_data, metrics=metrics)
 
     # Enhanced loop prevention

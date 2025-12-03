@@ -1,0 +1,5 @@
+retry_limit: 3
+scaling_thresholds:
+  up: 2.0
+  down: 10.0
+reliability_decay: 0.95
