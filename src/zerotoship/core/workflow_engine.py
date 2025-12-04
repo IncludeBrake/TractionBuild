@@ -433,8 +433,8 @@ class WorkflowEngine:
 
     async def handle_recovery(self) -> Dict[str, Any]:
         """Handles permanent failures by routing to a recovery crew."""
-        logger.warning(f"Entering RECOVERY state from {self.project_data.get('recovery_from_state')}")
-        
+        recovery_from = self.project_data.get('recovery_from_state')
+        logger.warning(f"Entering RECOVERY state from {recovery_from}")
         # In a real implementation, a specialized RecoveryCrew would be executed.
         # For now, we will just log the event and move to a FAILED state.
         self.project_data["state"] = "FAILED"

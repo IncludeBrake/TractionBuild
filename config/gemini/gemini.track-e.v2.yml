@@ -1,0 +1,75 @@
+# ================================================================
+# GEMINI Block Manifest – Track E (Adaptive Optimization & Human-in-the-Loop)
+# System: ZeroToShip / TractionBuild
+# Version: E.2.0
+# Author: Core Engineering
+# Date: 2025-12-03
+# ================================================================
+
+blocks:
+  - id: track-e.adaptive-optimization
+    name: "Adaptive Optimization & Human-in-the-Loop"
+    description: >
+      Extends the Distributed Execution & Temporal Memory layer with hybrid memory,
+      reliability-based routing, dynamic workflow reconfiguration, cost metrics,
+      advanced recovery, and human-in-the-loop oversight.
+    type: system
+    path: src/zerotoship/core/adaptive_runtime
+    depends_on:
+      - track-e.distributed-execution
+    next:
+      - track-f.cognitive-self-optimization
+    entrypoints:
+      - adaptive_memory_manager.py
+      - reliability_router.py
+      - recovery_crew.py
+      - adaptive_workflow_engine.py
+      - cost_metrics.py
+    tests:
+      - tests/test_adaptive_memory.py
+      - tests/test_reliability_router.py
+      - tests/test_dynamic_workflow.py
+      - tests/test_cost_metrics.py
+      - tests/test_failure_recovery.py
+      - tests/test_human_feedback.py
+    metrics:
+      - workflow_cost_usd
+      - crew_cost_usd_total
+      - reliability_score_mean
+      - human_intervention_events_total
+      - recovery_attempts_total
+    outputs:
+      - output/adaptive_context_graph.json
+      - output/adaptive_cost_report.json
+      - output/human_feedback_log.json
+      - output/recovery_trace.json
+    build:
+      commands:
+        - gemini build src/zerotoship/core/adaptive_runtime/adaptive_memory_manager.py
+        - gemini build src/zerotoship/core/adaptive_runtime/adaptive_workflow_engine.py
+        - gemini build src/zerotoship/core/adaptive_runtime/reliability_router.py
+        - gemini build src/zerotoship/core/adaptive_runtime/recovery_crew.py
+      with_tests: true
+      validate_types: true
+    deploy:
+      target: production
+      precheck: pytest
+      healthcheck: "gemini status --block track-e.adaptive-optimization"
+      rollback_to: track-e.distributed-execution
+    runtime:
+      replay:
+        command: "gemini replay adaptive --project <PROJECT_ID> --state ADAPTIVE_OPTIMIZATION"
+      export_feedback:
+        command: "gemini export feedback --project <PROJECT_ID> --out output/human_feedback_log.json"
+      cost_report:
+        command: "gemini metrics report --block track-e.adaptive-optimization --out output/adaptive_cost_report.json"
+    validation:
+      reliability_gain: ">= 10 % vs Track E v1"
+      cost_reduction: ">= 15 % per workflow"
+      human_feedback_logged: ">= 1 event per 100 runs"
+      recovery_success_rate: ">= 90 %"
+      type_integrity: "0 errors"
+      metrics_detected: "5/5 new metrics registered"
+# ================================================================
+# END OF FILE
+# ================================================================

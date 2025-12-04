@@ -9,8 +9,14 @@ class LearningMemory:
         self._entries=[]
         self.store_path = store_path
 
-    async def add(self, project_id, text, status: str):
+    async def add(self, project_id, text=None, status: str = "COMPLETED"):
         async with self._lock:
+            if isinstance(project_id, dict):
+                record = project_id
+                project_id = record.get("id") or record.get("project_id") or "unknown"
+                text = record.get("idea") or record.get("text") or ""
+                status = record.get("status") or record.get("state") or status
+
             # Find existing entry by text (idea)
             existing_entry = next((e for e in self._entries if e["text"] == text), None)
 
@@ -32,7 +38,7 @@ class LearningMemory:
                 failure = 1 if status != "COMPLETED" else 0
                 new_entry = {
                     "id": project_id,
-                    "text": text,
+                    "text": text or "",
                     "ts": datetime.utcnow().isoformat(),
                     "success_count": success,
                     "failure_count": failure,
@@ -67,3 +73,17 @@ class LearningMemory:
         if total == 0:
             return 0.5  # Neutral score for new entries
         return success / total
+
+    def query(self, query: str):
+        """Return the most relevant learning memory entry matching the query."""
+        if not self._entries:
+            return {}
+        scored = [(entry, self._score(query, entry.get("text", ""))) for entry in self._entries]
+        best, score = max(scored, key=lambda item: item[1])
+        return best if score > 0 else {}
+
+    def reliability_score(self, entity_id: str) -> float:
+        entry = next((e for e in self._entries if e.get("id") == entity_id), None)
+        if not entry:
+            return 0.5
+        return entry.get("reliability_score", 0.5)

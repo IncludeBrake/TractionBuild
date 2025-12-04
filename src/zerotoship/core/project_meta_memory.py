@@ -210,6 +210,26 @@ class ProjectMetaMemoryManager:
         
         self.logger.info(f"Added memory entry {entry_id} of type {memory_type.value}")
         return entry_id
+
+    def store(self, context: Dict[str, Any]) -> str:
+        """Persist a generic context payload into meta memory."""
+        return self.add_memory_entry(
+            memory_type=MemoryType.PERFORMANCE_METRIC,
+            content={"context": context},
+            priority=MemoryPriority.MEDIUM,
+            confidence_score=0.7,
+            tags={"adaptive", "outcome"}
+        )
+
+    def query(self, query: str) -> Dict[str, Any]:
+        """Simple keyword-based lookup across stored memory content."""
+        query_lc = query.lower()
+        matches = [
+            entry.content
+            for entry in self.memory_entries.values()
+            if query_lc in json.dumps(entry.content).lower()
+        ]
+        return {"meta": matches} if matches else {}
     
     def get_memory_entries(
         self,
